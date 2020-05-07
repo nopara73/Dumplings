@@ -1,4 +1,5 @@
 ﻿using Dumplings.Helpers;
+using Dumplings.Scanning;
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
@@ -36,6 +37,16 @@ namespace Dumplings.Cli
 
             using (BenchmarkLogger.Measure(operationName: $"{command} Command"))
             {
+                if (command == Command.Resync)
+                {
+                    var scanner = new Scanner(client);
+                    await scanner.ScanAsync(rescan: true);
+                }
+                else if (command == Command.Sync)
+                {
+                    var scanner = new Scanner(client);
+                    await scanner.ScanAsync(rescan: false);
+                }
             }
 
             Console.WriteLine();

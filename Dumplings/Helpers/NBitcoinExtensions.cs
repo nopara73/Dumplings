@@ -1,3 +1,4 @@
+using Dumplings.Rpc;
 using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
@@ -241,5 +242,19 @@ namespace Dumplings.Helpers
         {
             return Money.Satoshis(Math.Round(me.SatoshiPerByte * vsize));
         }
+
+        public static async Task<VerboseBlockInfo> GetVerboseBlockAsync(this RPCClient me, uint256 blockId)
+        {
+            var resp = await me.SendCommandAsync(RPCOperations.getblock, blockId, 3).ConfigureAwait(false);
+            return RpcParser.ParseVerboseBlockResponse(resp.Result.ToString());
+        }
+
+        public static async Task<VerboseBlockInfo> GetVerboseBlockAsync(this RPCClient me, ulong height)
+        {
+            var blockId = await me.GetBlockHashAsync((int)height).ConfigureAwait(false);
+            var resp = await me.SendCommandAsync(RPCOperations.getblock, blockId, 3).ConfigureAwait(false);
+            return RpcParser.ParseVerboseBlockResponse(resp.Result.ToString());
+        }
+
     }
 }
