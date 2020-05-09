@@ -40,12 +40,14 @@ namespace Dumplings.Scanning
                 Directory.Delete(WorkFolder, true);
             }
             Directory.CreateDirectory(WorkFolder);
+            var allSamouraiCoinJoinSet = new HashSet<uint256>();
+            var allSamouraiTx0Set = new HashSet<uint256>();
 
-            ulong height = 0;
+            ulong height = Constants.FirstWasabiBlock;
             if (File.Exists(LastProcessedBlockHeightPath))
             {
                 height = ulong.Parse(File.ReadAllText(LastProcessedBlockHeightPath)) + 1;
-                Logger.LogWarning($"{height - 1} blocks already processed. Continue scanning...");
+                Logger.LogWarning($"{height - Constants.FirstWasabiBlock + 1} blocks already processed. Continue scanning...");
             }
 
             var bestHeight = (ulong)await Rpc.GetBlockCountAsync().ConfigureAwait(false);
@@ -60,48 +62,62 @@ namespace Dumplings.Scanning
 
                 var wasabiTxs = new List<VerboseTransactionInfo>();
                 var samouraiTxs = new List<VerboseTransactionInfo>();
-                var joinmarketTxs = new List<VerboseTransactionInfo>();
-                var txsLock = new object();
+                var samouraiTx0s = new List<VerboseTransactionInfo>();
+                var otherTxs = new List<VerboseTransactionInfo>();
 
-                Parallel.ForEach(block.Transactions, (dotnetBrainfuckTx) =>
+                foreach (var tx in block.Transactions)
                 {
-                    VerboseTransactionInfo tx = dotnetBrainfuckTx;
-
-                    // IDENTIFY WASABI COINJOINS
                     bool isWasabiCj = false;
-                    bool isJoinMarketCj = false;
                     bool isSamouraiCj = false;
-                    var indistinguishableOutputs = tx.GetIndistinguishableOutputs(includeSingle: false);
+                    bool isOtherCj = false;
+                    var indistinguishableOutputs = tx.GetIndistinguishableOutputs(includeSingle: false).ToArray();
                     if (tx.Inputs.All(x => x.Coinbase is null) && indistinguishableOutputs.Any())
                     {
-                        (Money value, int count) = indistinguishableOutputs.MaxBy(x => x.count);
-                        isWasabiCj =
-                            count >= 10
-                            && tx.Inputs.Count() >= count
-                            && value.Almost(Constants.ApproximateWasabiBaseDenomination, Constants.WasabiBaseDenominationPrecision);
+                        var outputs = tx.Outputs.ToArray();
+                        var inputs = tx.Inputs.Select(x => x.PrevOutput).ToArray();
+                        var outputValues = outputs.Select(x => x.Value);
+                        var inputValues = inputs.Select(x => x.Value);
+                        var outputCount = outputs.Length;
+                        var inputCount = inputs.Length;
+                        (Money mostFrequentEqualOutputValue, int mostFrequentEqualOutputCount) = indistinguishableOutputs.MaxBy(x => x.count);
+                        // IDENTIFY WASABI COINJOINS
+                        if (block.Height >= Constants.FirstWasabiBlock)
+                        {
+                            // Before Wasabi had constant coordinator addresses and different base denominations at the beginning.
+                            if (block.Height < Constants.FirstWasabiNoCoordAddressBlock)
+                            {
+                                isWasabiCj = tx.Outputs.Any(x => Constants.WasabiCoordScripts.Contains(x.ScriptPubKey)) && indistinguishableOutputs.Any(x => x.count > 2);
+                            }
+                            else
+                            {
+                                isWasabiCj =
+                                    mostFrequentEqualOutputCount >= 10 // At least 10 equal outputs.
+                                    && inputCount >= mostFrequentEqualOutputCount // More inptu than outputs.
+                                    && mostFrequentEqualOutputValue.Almost(Constants.ApproximateWasabiBaseDenomination, Constants.WasabiBaseDenominationPrecision); // The most frequent equal outputs must be almost the base denomination.
+                            }
+                        }
 
                         // IDENTIFY SAMOURAI COINJOINS
-                        isSamouraiCj =
-                               tx.Inputs.Count() == 5
-                               && tx.Outputs.Count() == 5
-                               && tx.Outputs.Select(x => x.Value).Distinct().Count() == 1
-                               && Constants.SamouraiPools.Any(x => x.Almost(tx.Outputs.First().Value, Money.Coins(0.01m)));
+                        if (block.Height >= Constants.FirstSamouraiBlock)
+                        {
+                            isSamouraiCj =
+                               inputCount == 5 // Always have 5 inputs.
+                               && outputCount == 5 // Always have 5 outputs.
+                               && outputValues.Distinct().Count() == 1 // Outputs are always equal.
+                               && Constants.SamouraiPools.Any(x => x.Almost(tx.Outputs.First().Value, Money.Coins(0.01m))); // Just to be sure match Samourai's pool sizes.
+                        }
 
-
-                        // IDENTIFY JOINMARKET COINJOINS
-                        // https://github.com/nopara73/WasabiVsSamourai/issues/2#issuecomment-558775856
+                        // IDENTIFY OTHER EQUAL OUTPUT COINJOIN LIKE TRANSACTIONS
                         if (!isWasabiCj && !isSamouraiCj)
                         {
-                            isJoinMarketCj = IsJoinMarketTx(tx, indistinguishableOutputs);
+                            isOtherCj =
+                                indistinguishableOutputs.Length == 1 // If it isn't then it'd be likely a multidenomination CJ, which only Wasabi does.                                                                 
+                                && mostFrequentEqualOutputCount == outputCount - mostFrequentEqualOutputCount // Rarely it isn't, but it helps filtering out false positives.
+                                && outputs.Select(x => x.ScriptPubKey).Distinct().Count() >= mostFrequentEqualOutputCount // Otherwise more participants would be single actors which makes no sense.
+                                && inputs.Select(x => x.ScriptPubKey).Distinct().Count() >= mostFrequentEqualOutputCount // Otherwise more participants would be single actors which makes no sense.
+                                && inputValues.Max() <= mostFrequentEqualOutputValue + outputValues.Where(x => x != mostFrequentEqualOutputValue).Max() - Money.Coins(0.0001m); // I don't want to run expensive subset sum, so this is a shortcut to at least filter out false positives.
                         }
-                        else
-                        {
-                            isJoinMarketCj = false;
-                        }
-                    }
 
-                    lock (txsLock)
-                    {
                         if (isWasabiCj)
                         {
                             wasabiTxs.Add(tx);
@@ -109,14 +125,42 @@ namespace Dumplings.Scanning
                         else if (isSamouraiCj)
                         {
                             samouraiTxs.Add(tx);
+                            allSamouraiCoinJoinSet.Add(tx.Id);
                         }
-                        else if (isJoinMarketCj)
+                        else if (isOtherCj)
                         {
-                            joinmarketTxs.Add(tx);
+                            otherTxs.Add(tx);
                         }
                     }
+                }
 
-                });
+                foreach (var txid in samouraiTxs.SelectMany(x => x.Inputs).Select(x => x.OutPoint.Hash).Where(x => !allSamouraiCoinJoinSet.Contains(x) && !allSamouraiTx0Set.Contains(x)).Distinct())
+                {
+                    var tx0Candidate = await Rpc.GetRawTransactionAsync(txid).ConfigureAwait(false);
+                    if (tx0Candidate.Outputs.Any(x => TxNullDataTemplate.Instance.CheckScriptPubKey(x.ScriptPubKey)))
+                    {
+                        allSamouraiTx0Set.Add(txid);
+                        var verboseOutputs = new List<VerboseOutputInfo>(tx0Candidate.Outputs.Count);
+                        foreach (var o in tx0Candidate.Outputs)
+                        {
+                            var voi = new VerboseOutputInfo(o.Value, o.ScriptPubKey);
+                            verboseOutputs.Add(voi);
+                        }
+
+                        var verboseInputs = new List<VerboseInputInfo>(tx0Candidate.Inputs.Count);
+                        foreach (var i in tx0Candidate.Inputs)
+                        {
+                            var tx = await Rpc.GetRawTransactionAsync(i.PrevOut.Hash).ConfigureAwait(false);
+                            var o = tx.Outputs[i.PrevOut.N];
+                            var voi = new VerboseOutputInfo(o.Value, o.ScriptPubKey);
+                            var vii = new VerboseInputInfo(i.PrevOut, voi);
+                            verboseInputs.Add(vii);
+                        }
+
+                        var vtxi = new VerboseTransactionInfo(txid, verboseInputs, verboseOutputs);
+                        samouraiTx0s.Add(vtxi);
+                    }
+                }
 
                 decimal totalBlocksPer100 = totalBlocks / 100m;
                 ulong blocksLeft = bestHeight - height;
@@ -139,136 +183,9 @@ namespace Dumplings.Scanning
                 }
 
                 File.WriteAllText(LastProcessedBlockHeightPath, height.ToString());
-                lock (txsLock)
-                {
-                    if (joinmarketTxs.Any() || wasabiTxs.Any() || samouraiTxs.Any())
-                    {
-                        Logger.LogInfo($"Block {height}, JM: {joinmarketTxs.Count}, WW: {wasabiTxs.Count}, SW: {samouraiTxs.Count}");
-                        foreach (var tx in joinmarketTxs)
-                        {
-                            Console.WriteLine($"JM: {tx.Id}");
-                        }
-                        foreach (var tx in wasabiTxs)
-                        {
-                            Console.WriteLine($"WW: {tx.Id}");
-                        }
-                        foreach (var tx in samouraiTxs)
-                        {
-                            Console.WriteLine($"SW: {tx.Id}");
-                        }
-                    }
-                }
 
                 height++;
             }
-        }
-
-        private static bool IsJoinMarketTx(VerboseTransactionInfo tx, IEnumerable<(Money value, int count)> indistinguishableOutputs)
-        {
-            bool isJoinMarketCj;
-            (Money bestEqualOutputValue, int bestEqualOutputCount) = indistinguishableOutputs.MaxBy(x => x.count);
-            var changeCount = tx.Outputs.Count() - bestEqualOutputCount;
-            var onePcOfCj = bestEqualOutputValue.Percentage(1m);
-            var minMaxFee = Money.Coins(0.0001m);
-            var maxFee = onePcOfCj > minMaxFee ? onePcOfCj : minMaxFee;
-            isJoinMarketCj =
-                bestEqualOutputCount >= 2 // ToDo: Investigate false postivies: "could be 2 in theory too, but will give a lot of false positives likely and are rare"
-                && bestEqualOutputCount <= 30 // "also, number of equally sized outputs could be limited to 20 or 30, as more aren't practical, due to IRC server rate limits for privmsg's"
-                && (bestEqualOutputCount == changeCount || bestEqualOutputCount == changeCount + 1) // ""number of equally sized outputs" == ("number of other outputs" OR "number of other outputs" - 1)"
-                && tx.Outputs.Select(x => x.ScriptPubKey).Distinct().Count() >= 3 // https://github.com/citp/BlockSci/blob/67ee51d6c89e145e879181c7f934fddb4ce3b54b/src/heuristics/tx_identification.cpp#L20
-                && tx.Inputs.Select(x => x.PrevOutput.ScriptPubKey).Distinct().Count() >= tx.Outputs.Count()
-                // && tx.Inputs.Count() <= 17 // Based on the work of Möser et al., who don’t use this heuristic, the vast majority — 92 % — of JoinMarket transactions have no more than 17 inputs.
-                && tx.Inputs.All(x => x.PrevOutput.PubkeyType == RpcPubkeyType.TxPubkeyhash || x.PrevOutput.PubkeyType == RpcPubkeyType.TxScripthash)
-                && tx.Outputs.Select(x => x.PubkeyType).Distinct().Count() <= 2
-                && tx.Inputs.Select(x => x.PrevOutput.Value).Max() <= bestEqualOutputValue + tx.Outputs.Select(x => x.Value).Where(x => x != bestEqualOutputValue).Max() - maxFee
-                && bestEqualOutputValue >= Money.Coins(0.001m); // "equally sized output amount above or equal to 0.001 BTC (or even 0.01 BTC, which is current default in joinmarket.cfg)"
-
-            if (isJoinMarketCj)
-            {
-                // There must be enough inputs to cover all of the
-                // outputs(lines 10–32).Specifically, for each change
-                // address, there must be a distinct set of inputs that
-                // add up to at least the output value v plus the change
-                // value minus the max fee(q) that might have been
-                // paid to the liquidity providers.For our calculations
-                // we set this to be the maximum of .0001 satoshis or
-                // 1 % of the CoinJoin output.
-                var remainingInputValues = tx.Inputs.Select(x => x.PrevOutput.Value).OrderByDescending(x => x).ToList();
-                var changeOutputValues = tx.Outputs.Select(x => x.Value).Where(x => x != bestEqualOutputValue).OrderByDescending(x => x).ToList();
-                var remainingOutputValues = tx.Outputs.Select(x => x.Value).ToList();
-                var toRemoveChangeOutputValues = new List<Money>();
-
-                if (bestEqualOutputCount == changeCount + 1)
-                {
-                    // Then there must be an equal output that doesn't have change.
-                    Money toRemoveInputValue = null;
-                    foreach (var inputValue in remainingInputValues)
-                    {
-                        if (inputValue.Almost(bestEqualOutputValue, maxFee))
-                        {
-                            toRemoveInputValue = inputValue;
-                            remainingOutputValues.Remove(bestEqualOutputValue);
-                            break;
-                        }
-                    }
-
-                    if (toRemoveInputValue is { })
-                    {
-                        remainingInputValues.Remove(toRemoveInputValue);
-                    }
-                }
-
-                foreach (var changeValue in changeOutputValues)
-                {
-                    var sum = changeValue + bestEqualOutputValue;
-                    Money toRemoveInputValue = null;
-                    foreach (var inputValue in remainingInputValues)
-                    {
-                        if (inputValue.Almost(sum, maxFee))
-                        {
-                            toRemoveInputValue = inputValue;
-                            toRemoveChangeOutputValues.Add(changeValue);
-                            break;
-                        }
-                    }
-
-                    if (toRemoveInputValue is { })
-                    {
-                        remainingInputValues.Remove(toRemoveInputValue);
-                    }
-                }
-
-                foreach (var changeToRemove in toRemoveChangeOutputValues)
-                {
-                    remainingOutputValues.Remove(bestEqualOutputValue);
-                    remainingOutputValues.Remove(changeToRemove);
-                }
-
-                // If subset sum is feasible on the remaining input and output values then do subset sum, otherwise risk false positive.
-                // Note maxfee isn't exactly what should be here, but it's a good enough precision to use.
-                if (remainingInputValues.Count <= 7 && remainingOutputValues.Count <= 7) // 7x7 is where this aglo is still performant on my computer
-                {
-                    try
-                    {
-                        var nonDerivedMapping = new Mapping(new SubSet(remainingInputValues.Select(x => x.ToDecimal(MoneyUnit.BTC)), remainingOutputValues.Select(x => x.ToDecimal(MoneyUnit.BTC)), maxFee.ToDecimal(MoneyUnit.BTC)));
-                        var mappings = nonDerivedMapping.AnalyzeWithNopara73Algorithm().ToArray();
-                        // If the analysis did not find a mapping that has the exact same number subsets as the participant count, then it's not a CJ.
-                        if (!mappings.Any(x => x.SubSets.Count() == bestEqualOutputCount))
-                        {
-                            isJoinMarketCj = false;
-                        }
-
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        // Precision issues, doesn't matter let's risk false positive.
-                        Logger.LogTrace(ex);
-                    }
-
-                }
-            }
-
-            return isJoinMarketCj;
         }
     }
 }
