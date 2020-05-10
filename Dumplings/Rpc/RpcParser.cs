@@ -1,7 +1,9 @@
 ﻿using NBitcoin;
+using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Dumplings.Rpc
@@ -78,11 +80,14 @@ namespace Dumplings.Rpc
                 transactions: transaction
             );
 
-            foreach (var txJson in blockInfoJson["tx"])
+            JToken[] array = blockInfoJson["tx"].ToArray();
+            for (uint i = 0; i < array.Length; i++)
             {
+                JToken txJson = (JToken)array[i];
                 var inputs = new List<VerboseInputInfo>();
                 var outputs = new List<VerboseOutputInfo>();
-                var tx = new VerboseTransactionInfo(uint256.Parse(txJson.Value<string>("txid")), inputs, outputs);
+                var txBlockInfo = new TransactionBlockInfo(blockInfo.Hash, blockInfo.BlockTime, i);
+                var tx = new VerboseTransactionInfo(txBlockInfo, Transaction.Parse(txJson.Value<string>("hex"), Network.Main), inputs, outputs);
 
                 foreach (var txinJson in txJson["vin"])
                 {
@@ -120,6 +125,19 @@ namespace Dumplings.Rpc
             }
 
             return blockInfo;
+        }
+
+        public static SmartRawTransactionInfo ParseSmartRawTransactionInfoResponse(JToken json)
+        {
+            var tbi = new TransactionBlockInfo(
+                blockHash: json["blockhash"] is { } ? uint256.Parse(json.Value<string>("blockhash")) : null,
+                blockTime: json["blocktime"] is { } ? Utils.UnixTimeToDateTime(json.Value<long>("blocktime")) : (DateTimeOffset?)null,
+                blockIndex: json.Value<uint>("nTx"));
+            return new SmartRawTransactionInfo
+            {
+                Transaction = Transaction.Parse(json.Value<string>("hex"), Network.Main),
+                TransactionBlockInfo = tbi
+            };
         }
     }
 }

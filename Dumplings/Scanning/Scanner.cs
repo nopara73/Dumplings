@@ -59,150 +59,153 @@ namespace Dumplings.Scanning
 
             while (height <= bestHeight)
             {
-                var block = await Rpc.GetVerboseBlockAsync(height).ConfigureAwait(false);
-
-                var wasabiTxs = new List<VerboseTransactionInfo>();
-                var samouraiTxs = new List<VerboseTransactionInfo>();
-                var samouraiTx0s = new List<VerboseTransactionInfo>();
-                var otherTxs = new List<VerboseTransactionInfo>();
-
-                foreach (var tx in block.Transactions)
+                using (BenchmarkLogger.Measure(LogLevel.Debug, "Block Processed"))
                 {
-                    if (tx.Outputs.Count() > 1 && tx.Outputs.Any(x => TxNullDataTemplate.Instance.CheckScriptPubKey(x.ScriptPubKey)))
-                    {
-                        opreturnTransactionCache.Add(tx.Id, tx);
-                    }
+                    var block = await Rpc.GetVerboseBlockAsync(height).ConfigureAwait(false);
 
-                    bool isWasabiCj = false;
-                    bool isSamouraiCj = false;
-                    bool isOtherCj = false;
-                    var indistinguishableOutputs = tx.GetIndistinguishableOutputs(includeSingle: false).ToArray();
-                    if (tx.Inputs.All(x => x.Coinbase is null) && indistinguishableOutputs.Any())
+                    var wasabiTxs = new List<VerboseTransactionInfo>();
+                    var samouraiTxs = new List<VerboseTransactionInfo>();
+                    var samouraiTx0s = new List<VerboseTransactionInfo>();
+                    var otherTxs = new List<VerboseTransactionInfo>();
+
+                    foreach (var tx in block.Transactions)
                     {
-                        var outputs = tx.Outputs.ToArray();
-                        var inputs = tx.Inputs.Select(x => x.PrevOutput).ToArray();
-                        var outputValues = outputs.Select(x => x.Value);
-                        var inputValues = inputs.Select(x => x.Value);
-                        var outputCount = outputs.Length;
-                        var inputCount = inputs.Length;
-                        (Money mostFrequentEqualOutputValue, int mostFrequentEqualOutputCount) = indistinguishableOutputs.MaxBy(x => x.count);
-                        // IDENTIFY WASABI COINJOINS
-                        if (block.Height >= Constants.FirstWasabiBlock)
+                        if (tx.Outputs.Count() > 1 && tx.Outputs.Any(x => TxNullDataTemplate.Instance.CheckScriptPubKey(x.ScriptPubKey)))
                         {
-                            // Before Wasabi had constant coordinator addresses and different base denominations at the beginning.
-                            if (block.Height < Constants.FirstWasabiNoCoordAddressBlock)
+                            opreturnTransactionCache.Add(tx.Id, tx);
+                        }
+
+                        bool isWasabiCj = false;
+                        bool isSamouraiCj = false;
+                        bool isOtherCj = false;
+                        var indistinguishableOutputs = tx.GetIndistinguishableOutputs(includeSingle: false).ToArray();
+                        if (tx.Inputs.All(x => x.Coinbase is null) && indistinguishableOutputs.Any())
+                        {
+                            var outputs = tx.Outputs.ToArray();
+                            var inputs = tx.Inputs.Select(x => x.PrevOutput).ToArray();
+                            var outputValues = outputs.Select(x => x.Value);
+                            var inputValues = inputs.Select(x => x.Value);
+                            var outputCount = outputs.Length;
+                            var inputCount = inputs.Length;
+                            (Money mostFrequentEqualOutputValue, int mostFrequentEqualOutputCount) = indistinguishableOutputs.MaxBy(x => x.count);
+                            // IDENTIFY WASABI COINJOINS
+                            if (block.Height >= Constants.FirstWasabiBlock)
                             {
-                                isWasabiCj = tx.Outputs.Any(x => Constants.WasabiCoordScripts.Contains(x.ScriptPubKey)) && indistinguishableOutputs.Any(x => x.count > 2);
-                            }
-                            else
-                            {
-                                isWasabiCj =
-                                    mostFrequentEqualOutputCount >= 10 // At least 10 equal outputs.
-                                    && inputCount >= mostFrequentEqualOutputCount // More inptu than outputs.
-                                    && mostFrequentEqualOutputValue.Almost(Constants.ApproximateWasabiBaseDenomination, Constants.WasabiBaseDenominationPrecision); // The most frequent equal outputs must be almost the base denomination.
-                            }
-                        }
-
-                        // IDENTIFY SAMOURAI COINJOINS
-                        if (block.Height >= Constants.FirstSamouraiBlock)
-                        {
-                            isSamouraiCj =
-                               inputCount == 5 // Always have 5 inputs.
-                               && outputCount == 5 // Always have 5 outputs.
-                               && outputValues.Distinct().Count() == 1 // Outputs are always equal.
-                               && Constants.SamouraiPools.Any(x => x.Almost(tx.Outputs.First().Value, Money.Coins(0.01m))); // Just to be sure match Samourai's pool sizes.
-                        }
-
-                        // IDENTIFY OTHER EQUAL OUTPUT COINJOIN LIKE TRANSACTIONS
-                        if (!isWasabiCj && !isSamouraiCj)
-                        {
-                            isOtherCj =
-                                indistinguishableOutputs.Length == 1 // If it isn't then it'd be likely a multidenomination CJ, which only Wasabi does.                                                                 
-                                && mostFrequentEqualOutputCount == outputCount - mostFrequentEqualOutputCount // Rarely it isn't, but it helps filtering out false positives.
-                                && outputs.Select(x => x.ScriptPubKey).Distinct().Count() >= mostFrequentEqualOutputCount // Otherwise more participants would be single actors which makes no sense.
-                                && inputs.Select(x => x.ScriptPubKey).Distinct().Count() >= mostFrequentEqualOutputCount // Otherwise more participants would be single actors which makes no sense.
-                                && inputValues.Max() <= mostFrequentEqualOutputValue + outputValues.Where(x => x != mostFrequentEqualOutputValue).Max() - Money.Coins(0.0001m); // I don't want to run expensive subset sum, so this is a shortcut to at least filter out false positives.
-                        }
-
-                        if (isWasabiCj)
-                        {
-                            wasabiTxs.Add(tx);
-                        }
-                        else if (isSamouraiCj)
-                        {
-                            samouraiTxs.Add(tx);
-                            allSamouraiCoinJoinSet.Add(tx.Id);
-                        }
-                        else if (isOtherCj)
-                        {
-                            otherTxs.Add(tx);
-                        }
-                    }
-                }
-
-                foreach (var txid in samouraiTxs.SelectMany(x => x.Inputs).Select(x => x.OutPoint.Hash).Where(x => !allSamouraiCoinJoinSet.Contains(x) && !allSamouraiTx0Set.Contains(x)).Distinct())
-                {
-                    VerboseTransactionInfo vtxi = null;
-                    if (opreturnTransactionCache.ContainsKey(txid))
-                    {
-                        vtxi = opreturnTransactionCache[txid];
-                    }
-                    else
-                    {
-                        var tx0Candidate = await Rpc.GetRawTransactionAsync(txid).ConfigureAwait(false);
-                        if (tx0Candidate.Outputs.Any(x => TxNullDataTemplate.Instance.CheckScriptPubKey(x.ScriptPubKey)))
-                        {
-                            allSamouraiTx0Set.Add(txid);
-                            var verboseOutputs = new List<VerboseOutputInfo>(tx0Candidate.Outputs.Count);
-                            foreach (var o in tx0Candidate.Outputs)
-                            {
-                                var voi = new VerboseOutputInfo(o.Value, o.ScriptPubKey);
-                                verboseOutputs.Add(voi);
+                                // Before Wasabi had constant coordinator addresses and different base denominations at the beginning.
+                                if (block.Height < Constants.FirstWasabiNoCoordAddressBlock)
+                                {
+                                    isWasabiCj = tx.Outputs.Any(x => Constants.WasabiCoordScripts.Contains(x.ScriptPubKey)) && indistinguishableOutputs.Any(x => x.count > 2);
+                                }
+                                else
+                                {
+                                    isWasabiCj =
+                                        mostFrequentEqualOutputCount >= 10 // At least 10 equal outputs.
+                                        && inputCount >= mostFrequentEqualOutputCount // More inptu than outputs.
+                                        && mostFrequentEqualOutputValue.Almost(Constants.ApproximateWasabiBaseDenomination, Constants.WasabiBaseDenominationPrecision); // The most frequent equal outputs must be almost the base denomination.
+                                }
                             }
 
-                            var verboseInputs = new List<VerboseInputInfo>(tx0Candidate.Inputs.Count);
-                            foreach (var i in tx0Candidate.Inputs)
+                            // IDENTIFY SAMOURAI COINJOINS
+                            if (block.Height >= Constants.FirstSamouraiBlock)
                             {
-                                var tx = await Rpc.GetRawTransactionAsync(i.PrevOut.Hash).ConfigureAwait(false);
-                                var o = tx.Outputs[i.PrevOut.N];
-                                var voi = new VerboseOutputInfo(o.Value, o.ScriptPubKey);
-                                var vii = new VerboseInputInfo(i.PrevOut, voi);
-                                verboseInputs.Add(vii);
+                                isSamouraiCj =
+                                   inputCount == 5 // Always have 5 inputs.
+                                   && outputCount == 5 // Always have 5 outputs.
+                                   && outputValues.Distinct().Count() == 1 // Outputs are always equal.
+                                   && Constants.SamouraiPools.Any(x => x.Almost(tx.Outputs.First().Value, Money.Coins(0.01m))); // Just to be sure match Samourai's pool sizes.
                             }
 
-                            vtxi = new VerboseTransactionInfo(txid, verboseInputs, verboseOutputs);
-                        }
+                            // IDENTIFY OTHER EQUAL OUTPUT COINJOIN LIKE TRANSACTIONS
+                            if (!isWasabiCj && !isSamouraiCj)
+                            {
+                                isOtherCj =
+                                    indistinguishableOutputs.Length == 1 // If it isn't then it'd be likely a multidenomination CJ, which only Wasabi does.                                                                 
+                                    && mostFrequentEqualOutputCount == outputCount - mostFrequentEqualOutputCount // Rarely it isn't, but it helps filtering out false positives.
+                                    && outputs.Select(x => x.ScriptPubKey).Distinct().Count() >= mostFrequentEqualOutputCount // Otherwise more participants would be single actors which makes no sense.
+                                    && inputs.Select(x => x.ScriptPubKey).Distinct().Count() >= mostFrequentEqualOutputCount // Otherwise more participants would be single actors which makes no sense.
+                                    && inputValues.Max() <= mostFrequentEqualOutputValue + outputValues.Where(x => x != mostFrequentEqualOutputValue).Max() - Money.Coins(0.0001m); // I don't want to run expensive subset sum, so this is a shortcut to at least filter out false positives.
+                            }
 
-                        if (vtxi is { })
-                        {
-                            samouraiTx0s.Add(vtxi);
+                            if (isWasabiCj)
+                            {
+                                wasabiTxs.Add(tx);
+                            }
+                            else if (isSamouraiCj)
+                            {
+                                samouraiTxs.Add(tx);
+                                allSamouraiCoinJoinSet.Add(tx.Id);
+                            }
+                            else if (isOtherCj)
+                            {
+                                otherTxs.Add(tx);
+                            }
                         }
                     }
-                }
 
-                decimal totalBlocksPer100 = totalBlocks / 100m;
-                ulong blocksLeft = bestHeight - height;
-                ulong processedBlocks = totalBlocks - blocksLeft;
-                PercentageDone = processedBlocks / totalBlocksPer100;
-                bool displayProgress = (PercentageDone - PreviousPercentageDone) >= 1;
-                if (displayProgress)
-                {
-                    Logger.LogInfo($"Progress: {(int)PercentageDone}%, Current height: {height}.");
-                    PreviousPercentageDone = PercentageDone;
-                }
-                if (bestHeight <= height)
-                {
-                    // Refresh bestHeight and if still no new block, then end here.
-                    bestHeight = (ulong)await Rpc.GetBlockCountAsync().ConfigureAwait(false);
+                    foreach (var txid in samouraiTxs.SelectMany(x => x.Inputs).Select(x => x.OutPoint.Hash).Where(x => !allSamouraiCoinJoinSet.Contains(x) && !allSamouraiTx0Set.Contains(x)).Distinct())
+                    {
+                        VerboseTransactionInfo vtxi = null;
+                        if (opreturnTransactionCache.ContainsKey(txid))
+                        {
+                            vtxi = opreturnTransactionCache[txid];
+                        }
+                        else
+                        {
+                            var tx0Candidate = await Rpc.GetSmartRawTransactionInfoAsync(txid).ConfigureAwait(false);
+                            if (tx0Candidate.Transaction.Outputs.Any(x => TxNullDataTemplate.Instance.CheckScriptPubKey(x.ScriptPubKey)))
+                            {
+                                allSamouraiTx0Set.Add(txid);
+                                var verboseOutputs = new List<VerboseOutputInfo>(tx0Candidate.Transaction.Outputs.Count);
+                                foreach (var o in tx0Candidate.Transaction.Outputs)
+                                {
+                                    var voi = new VerboseOutputInfo(o.Value, o.ScriptPubKey);
+                                    verboseOutputs.Add(voi);
+                                }
+
+                                var verboseInputs = new List<VerboseInputInfo>(tx0Candidate.Transaction.Inputs.Count);
+                                foreach (var i in tx0Candidate.Transaction.Inputs)
+                                {
+                                    var tx = await Rpc.GetRawTransactionAsync(i.PrevOut.Hash).ConfigureAwait(false);
+                                    var o = tx.Outputs[i.PrevOut.N];
+                                    var voi = new VerboseOutputInfo(o.Value, o.ScriptPubKey);
+                                    var vii = new VerboseInputInfo(i.PrevOut, voi);
+                                    verboseInputs.Add(vii);
+                                }
+
+                                vtxi = new VerboseTransactionInfo(tx0Candidate.TransactionBlockInfo, tx0Candidate.Transaction, verboseInputs, verboseOutputs);
+                            }
+
+                            if (vtxi is { })
+                            {
+                                samouraiTx0s.Add(vtxi);
+                            }
+                        }
+                    }
+
+                    decimal totalBlocksPer100 = totalBlocks / 100m;
+                    ulong blocksLeft = bestHeight - height;
+                    ulong processedBlocks = totalBlocks - blocksLeft;
+                    PercentageDone = processedBlocks / totalBlocksPer100;
+                    bool displayProgress = (PercentageDone - PreviousPercentageDone) >= 1;
+                    if (displayProgress)
+                    {
+                        Logger.LogInfo($"Progress: {(int)PercentageDone}%, Current height: {height}.");
+                        PreviousPercentageDone = PercentageDone;
+                    }
                     if (bestHeight <= height)
                     {
-                        break;
+                        // Refresh bestHeight and if still no new block, then end here.
+                        bestHeight = (ulong)await Rpc.GetBlockCountAsync().ConfigureAwait(false);
+                        if (bestHeight <= height)
+                        {
+                            break;
+                        }
                     }
+
+                    File.WriteAllText(LastProcessedBlockHeightPath, height.ToString());
+
+                    height++;
                 }
-
-                File.WriteAllText(LastProcessedBlockHeightPath, height.ToString());
-
-                height++;
             }
         }
     }

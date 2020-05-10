@@ -256,5 +256,13 @@ namespace Dumplings.Helpers
             return RpcParser.ParseVerboseBlockResponse(resp.Result.ToString());
         }
 
+
+
+        public static async Task<SmartRawTransactionInfo> GetSmartRawTransactionInfoAsync(this RPCClient me, uint256 txId)
+        {
+            var request = new RPCRequest(RPCOperations.getrawtransaction, new object[] { txId, true });
+            var resp = await me.SendCommandAsync(request).ConfigureAwait(false);
+            return RpcParser.ParseSmartRawTransactionInfoResponse(resp.Result);
+        }
     }
 }

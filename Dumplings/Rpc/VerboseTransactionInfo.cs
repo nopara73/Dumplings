@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
@@ -6,15 +7,17 @@ namespace Dumplings.Rpc
 {
 	public class VerboseTransactionInfo
 	{
-		public VerboseTransactionInfo(uint256 id, IEnumerable<VerboseInputInfo> inputs, IEnumerable<VerboseOutputInfo> outputs)
+		public VerboseTransactionInfo(TransactionBlockInfo blockInfo, Transaction transaction, IEnumerable<VerboseInputInfo> inputs, IEnumerable<VerboseOutputInfo> outputs)
 		{
-			Id = id;
+			Transaction = transaction;
+			BlockInfo = blockInfo;
 			Inputs = inputs;
 			Outputs = outputs;
 		}
 
-		public uint256 Id { get; }
-
+		public uint256 Id => Transaction.GetHash();
+		public TransactionBlockInfo BlockInfo { get; }
+		public Transaction Transaction { get; }
 		public IEnumerable<VerboseInputInfo> Inputs { get; }
 
 		public IEnumerable<VerboseOutputInfo> Outputs { get; }
