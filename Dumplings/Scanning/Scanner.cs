@@ -59,7 +59,7 @@ namespace Dumplings.Scanning
 
             while (height <= bestHeight)
             {
-                using (BenchmarkLogger.Measure(LogLevel.Debug, "Block Processed"))
+                using (BenchmarkLogger.Measure(LogLevel.Debug, $"Block Processed: {height}"))
                 {
                     var block = await Rpc.GetVerboseBlockAsync(height).ConfigureAwait(false);
 
