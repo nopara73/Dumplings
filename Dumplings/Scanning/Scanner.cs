@@ -49,11 +49,14 @@ namespace Dumplings.Scanning
             var allSamouraiTx0Set = new HashSet<uint256>();
             var opreturnTransactionCache = new Dictionary<uint256, VerboseTransactionInfo>();
 
-            ulong height = Constants.FirstWasabiBlock;
+            ulong startingHeight = Constants.FirstWasabiBlock;
+            ulong height = startingHeight;
             if (File.Exists(LastProcessedBlockHeightPath))
             {
                 height = ulong.Parse(File.ReadAllText(LastProcessedBlockHeightPath)) + 1;
-                Logger.LogWarning($"{height - Constants.FirstWasabiBlock + 1} blocks already processed. Continue scanning...");
+                allSamouraiCoinJoinSet = Enumerable.ToHashSet(File.ReadAllLines(SamouraiCoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x).Id));
+                allSamouraiTx0Set = Enumerable.ToHashSet(File.ReadAllLines(SamouraiTx0sPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x).Id));
+                Logger.LogWarning($"{height - startingHeight + 1} blocks already processed. Continue scanning...");
             }
 
             var bestHeight = (ulong)await Rpc.GetBlockCountAsync().ConfigureAwait(false);
