@@ -7,7 +7,7 @@ namespace Dumplings.Rpc
 {
     public class TransactionBlockInfo
     {
-        public TransactionBlockInfo(uint256 blockHash, DateTimeOffset? blockTime, uint blockIndex)
+        public TransactionBlockInfo(uint256 blockHash, DateTimeOffset? blockTime, uint? blockIndex)
         {
             BlockHash = blockHash;
             BlockTime = blockTime;
@@ -16,6 +16,6 @@ namespace Dumplings.Rpc
 
         public uint256 BlockHash { get; }
         public DateTimeOffset? BlockTime { get; }
-        public uint BlockIndex { get; }
+        public uint? BlockIndex { get; }
     }
 }

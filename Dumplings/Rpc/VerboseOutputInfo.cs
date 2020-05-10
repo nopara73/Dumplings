@@ -1,4 +1,5 @@
 using NBitcoin;
+using System;
 
 namespace Dumplings.Rpc
 {
@@ -26,5 +27,22 @@ namespace Dumplings.Rpc
         public Script ScriptPubKey { get; }
 
         public RpcPubkeyType PubkeyType { get; }
+
+        private const string Separator = "+";
+        public override string ToString()
+        {
+            return $"{Value.Satoshi}{Separator}{ScriptPubKey.ToHex()}{Separator}{PubkeyType}";
+        }
+
+        internal static VerboseOutputInfo FromString(string x)
+        {
+            var parts = x.Split(Separator, StringSplitOptions.None);
+
+            var val = parts[0] is null ? null : Money.Satoshis(long.Parse(parts[0]));
+            var script = parts[1] is null ? null : Script.FromHex(parts[1]);
+            var t = parts[2] is null ? RpcPubkeyType.Unknown : Enum.Parse<RpcPubkeyType>(parts[2]);
+
+            return new VerboseOutputInfo(val, script, t);
+        }
     }
 }
