@@ -1,6 +1,7 @@
 ﻿using Dumplings.Analysis;
 using Dumplings.Helpers;
 using Dumplings.Rpc;
+using Microsoft.Extensions.Caching.Memory;
 using MoreLinq;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -28,6 +29,9 @@ namespace Dumplings.Scanning
         public static readonly string SamouraiCoinJoinsPath = Path.Combine(WorkFolder, "SamouraiCoinJoins.txt");
         public static readonly string SamouraiTx0sPath = Path.Combine(WorkFolder, "SamouraiTx0s.txt");
         public static readonly string OtherCoinJoinsPath = Path.Combine(WorkFolder, "OtherCoinJoins.txt");
+        public static readonly string WasabiPostMixTxsPath = Path.Combine(WorkFolder, "WasabiPostMixTxs.txt");
+        public static readonly string SamouraiPostMixTxsPath = Path.Combine(WorkFolder, "SamouraiPostMixTxs.txt");
+        public static readonly string OtherCoinJoinPostMixTxsPath = Path.Combine(WorkFolder, "OtherCoinJoinPostMixTxs.txt");
 
         public RPCClient Rpc { get; }
 
@@ -45,9 +49,12 @@ namespace Dumplings.Scanning
                 Directory.Delete(WorkFolder, true);
             }
             Directory.CreateDirectory(WorkFolder);
+            var allWasabiCoinJoinSet = new HashSet<uint256>();
             var allSamouraiCoinJoinSet = new HashSet<uint256>();
+            var allOtherCoinJoinSet = new HashSet<uint256>();
             var allSamouraiTx0Set = new HashSet<uint256>();
-            var opreturnTransactionCache = new Dictionary<uint256, VerboseTransactionInfo>();
+
+            var opreturnTransactionCache = new MemoryCache(new MemoryCacheOptions() { SizeLimit = 100000 });
 
             ulong startingHeight = Constants.FirstWasabiBlock;
             ulong height = startingHeight;
@@ -55,6 +62,8 @@ namespace Dumplings.Scanning
             {
                 height = ulong.Parse(File.ReadAllText(LastProcessedBlockHeightPath)) + 1;
                 allSamouraiCoinJoinSet = Enumerable.ToHashSet(File.ReadAllLines(SamouraiCoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x).Id));
+                allWasabiCoinJoinSet = Enumerable.ToHashSet(File.ReadAllLines(WasabiCoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x).Id));
+                allOtherCoinJoinSet = Enumerable.ToHashSet(File.ReadAllLines(OtherCoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x).Id));
                 allSamouraiTx0Set = Enumerable.ToHashSet(File.ReadAllLines(SamouraiTx0sPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x).Id));
                 Logger.LogWarning($"{height - startingHeight + 1} blocks already processed. Continue scanning...");
             }
@@ -77,12 +86,15 @@ namespace Dumplings.Scanning
                 var samouraiCoinJoins = new List<VerboseTransactionInfo>();
                 var samouraiTx0s = new List<VerboseTransactionInfo>();
                 var otherCoinJoins = new List<VerboseTransactionInfo>();
+                var wasabiPostMixTxs = new List<VerboseTransactionInfo>();
+                var samouraiPostMixTxs = new List<VerboseTransactionInfo>();
+                var otherCoinJoinPostMixTxs = new List<VerboseTransactionInfo>();
 
                 foreach (var tx in block.Transactions)
                 {
-                    if (tx.Outputs.Count() > 1 && tx.Outputs.Any(x => TxNullDataTemplate.Instance.CheckScriptPubKey(x.ScriptPubKey)))
+                    if (tx.Outputs.Count() > 2 && tx.Outputs.Any(x => TxNullDataTemplate.Instance.CheckScriptPubKey(x.ScriptPubKey)))
                     {
-                        opreturnTransactionCache.Add(tx.Id, tx);
+                        opreturnTransactionCache.Set(tx.Id, tx, new MemoryCacheEntryOptions().SetSize(1));
                     }
 
                     bool isWasabiCj = false;
@@ -139,6 +151,7 @@ namespace Dumplings.Scanning
                         if (isWasabiCj)
                         {
                             wasabiCoinJoins.Add(tx);
+                            allWasabiCoinJoinSet.Add(tx.Id);
                         }
                         else if (isSamouraiCj)
                         {
@@ -148,23 +161,39 @@ namespace Dumplings.Scanning
                         else if (isOtherCj)
                         {
                             otherCoinJoins.Add(tx);
+                            allOtherCoinJoinSet.Add(tx.Id);
+                        }
+
+                        foreach (var txid in tx.Inputs.Select(x => x.OutPoint.Hash))
+                        {
+                            if (!isWasabiCj && allWasabiCoinJoinSet.Contains(txid) && !wasabiPostMixTxs.Any(x => x.Id == txid))
+                            {
+                                // Then it's a post mix tx.
+                                wasabiPostMixTxs.Add(tx);
+                            }
+
+                            if (!isSamouraiCj && allSamouraiCoinJoinSet.Contains(txid) && !samouraiPostMixTxs.Any(x => x.Id == txid))
+                            {
+                                // Then it's a post mix tx.
+                                samouraiPostMixTxs.Add(tx);
+                            }
+
+                            if (!isOtherCj && allOtherCoinJoinSet.Contains(txid) && !otherCoinJoinPostMixTxs.Any(x => x.Id == txid))
+                            {
+                                // Then it's a post mix tx.
+                                otherCoinJoinPostMixTxs.Add(tx);
+                            }
                         }
                     }
                 }
 
                 foreach (var txid in samouraiCoinJoins.SelectMany(x => x.Inputs).Select(x => x.OutPoint.Hash).Where(x => !allSamouraiCoinJoinSet.Contains(x) && !allSamouraiTx0Set.Contains(x)).Distinct())
                 {
-                    VerboseTransactionInfo vtxi = null;
-                    if (opreturnTransactionCache.ContainsKey(txid))
-                    {
-                        vtxi = opreturnTransactionCache[txid];
-                    }
-                    else
+                    if (!opreturnTransactionCache.TryGetValue(txid, out VerboseTransactionInfo vtxi))
                     {
                         var tx0Candidate = await Rpc.GetSmartRawTransactionInfoAsync(txid).ConfigureAwait(false);
                         if (tx0Candidate.Transaction.Outputs.Any(x => TxNullDataTemplate.Instance.CheckScriptPubKey(x.ScriptPubKey)))
                         {
-                            allSamouraiTx0Set.Add(txid);
                             var verboseOutputs = new List<VerboseOutputInfo>(tx0Candidate.Transaction.Outputs.Count);
                             foreach (var o in tx0Candidate.Transaction.Outputs)
                             {
@@ -187,6 +216,7 @@ namespace Dumplings.Scanning
 
                         if (vtxi is { })
                         {
+                            allSamouraiTx0Set.Add(txid);
                             samouraiTx0s.Add(vtxi);
                         }
                     }
@@ -229,6 +259,9 @@ namespace Dumplings.Scanning
                 File.AppendAllLines(SamouraiCoinJoinsPath, samouraiCoinJoins.Select(x => RpcParser.ToLine(x)));
                 File.AppendAllLines(SamouraiTx0sPath, samouraiTx0s.Select(x => RpcParser.ToLine(x)));
                 File.AppendAllLines(OtherCoinJoinsPath, otherCoinJoins.Select(x => RpcParser.ToLine(x)));
+                File.AppendAllLines(WasabiPostMixTxsPath, wasabiPostMixTxs.Select(x => RpcParser.ToLine(x)));
+                File.AppendAllLines(SamouraiPostMixTxsPath, samouraiPostMixTxs.Select(x => RpcParser.ToLine(x)));
+                File.AppendAllLines(OtherCoinJoinPostMixTxsPath, otherCoinJoinPostMixTxs.Select(x => RpcParser.ToLine(x)));
 
                 height++;
             }
