@@ -211,7 +211,7 @@ namespace Dumplings.Scanning
                                 verboseInputs.Add(vii);
                             }
 
-                            vtxi = new VerboseTransactionInfo(tx0Candidate.TransactionBlockInfo, tx0Candidate.Transaction, verboseInputs, verboseOutputs);
+                            vtxi = new VerboseTransactionInfo(tx0Candidate.TransactionBlockInfo, txid, verboseInputs, verboseOutputs);
                         }
 
                         if (vtxi is { })

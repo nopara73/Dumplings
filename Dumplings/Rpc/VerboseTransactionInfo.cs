@@ -7,17 +7,16 @@ namespace Dumplings.Rpc
 {
 	public class VerboseTransactionInfo
 	{
-		public VerboseTransactionInfo(TransactionBlockInfo blockInfo, Transaction transaction, IEnumerable<VerboseInputInfo> inputs, IEnumerable<VerboseOutputInfo> outputs)
+		public VerboseTransactionInfo(TransactionBlockInfo blockInfo, uint256 id, IEnumerable<VerboseInputInfo> inputs, IEnumerable<VerboseOutputInfo> outputs)
 		{
-			Transaction = transaction;
+			Id = id;
 			BlockInfo = blockInfo;
 			Inputs = inputs;
 			Outputs = outputs;
 		}
 
-		public uint256 Id => Transaction.GetHash();
+		public uint256 Id { get; }
 		public TransactionBlockInfo BlockInfo { get; }
-		public Transaction Transaction { get; }
 		public IEnumerable<VerboseInputInfo> Inputs { get; }
 
 		public IEnumerable<VerboseOutputInfo> Outputs { get; }

@@ -87,7 +87,7 @@ namespace Dumplings.Rpc
                 var inputs = new List<VerboseInputInfo>();
                 var outputs = new List<VerboseOutputInfo>();
                 var txBlockInfo = new TransactionBlockInfo(blockInfo.Hash, blockInfo.BlockTime, i);
-                var tx = new VerboseTransactionInfo(txBlockInfo, Transaction.Parse(txJson.Value<string>("hex"), Network.Main), inputs, outputs);
+                var tx = new VerboseTransactionInfo(txBlockInfo, uint256.Parse(txJson.Value<string>("txid")), inputs, outputs);
 
                 foreach (var txinJson in txJson["vin"])
                 {
@@ -155,8 +155,6 @@ namespace Dumplings.Rpc
             sb.Append(VerboseTransactionInfoLineSeparator);
             sb.Append(vbi.BlockInfo.BlockTime.HasValue ? vbi.BlockInfo.BlockTime.Value.ToUnixTimeSeconds() : (long?)null);
             sb.Append(VerboseTransactionInfoLineSeparator);
-            sb.Append(vbi.Transaction?.ToHex());
-            sb.Append(VerboseTransactionInfoLineSeparator);
             sb.Append(string.Join(VerboseInOutInfoInLineSeparator, vbi.Inputs));
             sb.Append(VerboseTransactionInfoLineSeparator);
             sb.Append(string.Join(VerboseInOutInfoInLineSeparator, vbi.Outputs));
@@ -168,15 +166,14 @@ namespace Dumplings.Rpc
         {
             var parts = vti.Split(VerboseTransactionInfoLineSeparator, StringSplitOptions.None);
 
-            //var id = parts[0] is null ? null : uint256.Parse(parts[0]); it's written out just to conveniently search in the file
+            var id = parts[0] is null ? null : uint256.Parse(parts[0]);
             var blockHash = parts[1] is null ? null : uint256.Parse(parts[1]);
             var blockIndex = parts[2] is null ? (uint?)null : uint.Parse(parts[2]);
             var blockTime = parts[3] is null ? (DateTimeOffset?)null : DateTimeOffset.FromUnixTimeSeconds(long.Parse(parts[3]));
-            var tx = parts[4] is null ? null : Transaction.Parse(parts[4], Network.Main);
-            var inputs = parts[5] is null ? null : parts[5].Split(VerboseInOutInfoInLineSeparator, StringSplitOptions.None).Select(x => VerboseInputInfo.FromString(x));
-            var outputs = parts[6] is null ? null : parts[6].Split(VerboseInOutInfoInLineSeparator, StringSplitOptions.None).Select(x => VerboseOutputInfo.FromString(x));
+            var inputs = parts[4] is null ? null : parts[4].Split(VerboseInOutInfoInLineSeparator, StringSplitOptions.None).Select(x => VerboseInputInfo.FromString(x));
+            var outputs = parts[5] is null ? null : parts[5].Split(VerboseInOutInfoInLineSeparator, StringSplitOptions.None).Select(x => VerboseOutputInfo.FromString(x));
 
-            return new VerboseTransactionInfo(new TransactionBlockInfo(blockHash, blockTime, blockIndex), tx, inputs, outputs);
+            return new VerboseTransactionInfo(new TransactionBlockInfo(blockHash, blockTime, blockIndex), id, inputs, outputs);
         }
     }
 }
