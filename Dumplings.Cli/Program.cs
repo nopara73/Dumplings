@@ -1,4 +1,5 @@
-﻿using Dumplings.Helpers;
+﻿using Dumplings.Checking;
+using Dumplings.Helpers;
 using Dumplings.Scanning;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -47,6 +48,12 @@ namespace Dumplings.Cli
                 {
                     var scanner = new Scanner(client);
                     await scanner.ScanAsync(rescan: false);
+                }
+                else if (command == Command.Check)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var checker = new Checker(loadedScannerFiles);
+                    checker.Check();
                 }
             }
 

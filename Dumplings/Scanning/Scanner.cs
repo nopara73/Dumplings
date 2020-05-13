@@ -60,11 +60,11 @@ namespace Dumplings.Scanning
             ulong height = startingHeight;
             if (File.Exists(LastProcessedBlockHeightPath))
             {
-                height = ulong.Parse(File.ReadAllText(LastProcessedBlockHeightPath)) + 1;
-                allSamouraiCoinJoinSet = Enumerable.ToHashSet(File.ReadAllLines(SamouraiCoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x).Id));
-                allWasabiCoinJoinSet = Enumerable.ToHashSet(File.ReadAllLines(WasabiCoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x).Id));
-                allOtherCoinJoinSet = Enumerable.ToHashSet(File.ReadAllLines(OtherCoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x).Id));
-                allSamouraiTx0Set = Enumerable.ToHashSet(File.ReadAllLines(SamouraiTx0sPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x).Id));
+                height = ReadBestHeight() + 1;
+                allSamouraiCoinJoinSet = Enumerable.ToHashSet(ReadSamouraiCoinJoins().Select(x => x.Id));
+                allWasabiCoinJoinSet = Enumerable.ToHashSet(ReadWasabiCoinJoins().Select(x => x.Id));
+                allOtherCoinJoinSet = Enumerable.ToHashSet(ReadOtherCoinJoins().Select(x => x.Id));
+                allSamouraiTx0Set = Enumerable.ToHashSet(ReadSamouraiTx0s().Select(x => x.Id));
                 Logger.LogWarning($"{height - startingHeight + 1} blocks already processed. Continue scanning...");
             }
 
@@ -267,6 +267,52 @@ namespace Dumplings.Scanning
             }
         }
 
+        private static IEnumerable<VerboseTransactionInfo> ReadWasabiCoinJoins()
+        {
+            return File.ReadAllLines(WasabiCoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+        }
+        private static IEnumerable<VerboseTransactionInfo> ReadSamouraiCoinJoins()
+        {
+            return File.ReadAllLines(SamouraiCoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+        }
+        private static IEnumerable<VerboseTransactionInfo> ReadOtherCoinJoins()
+        {
+            return File.ReadAllLines(OtherCoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+        }
+        private static IEnumerable<VerboseTransactionInfo> ReadSamouraiTx0s()
+        {
+            return File.ReadAllLines(SamouraiTx0sPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+        }
+        private static IEnumerable<VerboseTransactionInfo> ReadWasabiPostMixTxs()
+        {
+            return File.ReadAllLines(WasabiPostMixTxsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+        }
+        private static IEnumerable<VerboseTransactionInfo> ReadSamouraiPostMixTxs()
+        {
+            return File.ReadAllLines(SamouraiPostMixTxsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+        }
+        private static IEnumerable<VerboseTransactionInfo> ReadOtherCoinJoinPostMixTxs()
+        {
+            return File.ReadAllLines(OtherCoinJoinPostMixTxsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+        }
+
+        private static ulong ReadBestHeight()
+        {
+            return ulong.Parse(File.ReadAllText(LastProcessedBlockHeightPath));
+        }
+
+        public static ScannerFiles Load()
+        {
+            return new ScannerFiles(
+                ReadBestHeight(),
+                ReadWasabiCoinJoins(),
+                ReadSamouraiCoinJoins(),
+                ReadOtherCoinJoins(),
+                ReadSamouraiTx0s(),
+                ReadWasabiPostMixTxs(),
+                ReadSamouraiPostMixTxs(),
+                ReadOtherCoinJoinPostMixTxs());
+        }
 
         private static ulong CalculateProcessedBlocks(ulong height, ulong bestHeight, ulong totalBlocks)
         {
