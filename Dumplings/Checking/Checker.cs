@@ -39,33 +39,36 @@ namespace Dumplings.Checking
 
         private void CheckDuplications(IEnumerable<VerboseTransactionInfo> txs, string where)
         {
-            var txids = txs.Select(x => x.Id).ToArray();
-            var duplicated = new HashSet<uint256>();
-            for (int i = 0; i < txids.Length; i++)
+            using (BenchmarkLogger.Measure())
             {
-                var current = txids[i];
-                for (int j = i + 1; j < txids.Length; j++)
+                var txids = txs.Select(x => x.Id).ToArray();
+                var duplicated = new HashSet<uint256>();
+                for (int i = 0; i < txids.Length; i++)
                 {
-                    var another = txids[j];
-                    if (current == another)
+                    var current = txids[i];
+                    for (int j = i + 1; j < txids.Length; j++)
                     {
-                        duplicated.Add(current);
-                        break;
+                        var another = txids[j];
+                        if (current == another)
+                        {
+                            duplicated.Add(current);
+                            break;
+                        }
                     }
                 }
-            }
 
-            if (duplicated.Any())
-            {
-                Logger.LogWarning($"Duplicated transactions found in {where}.");
-                foreach (var txid in duplicated)
+                if (duplicated.Any())
                 {
-                    Logger.LogWarning($"Duplicated: {txid}");
+                    Logger.LogWarning($"Duplicated transactions found in {where}.");
+                    foreach (var txid in duplicated)
+                    {
+                        Logger.LogWarning($"Duplicated: {txid}");
+                    }
                 }
-            }
-            else
-            {
-                Logger.LogWarning($"No duplicated transactions found in {where}.");
+                else
+                {
+                    Logger.LogWarning($"No duplicated transactions found in {where}.");
+                }
             }
         }
 
@@ -78,7 +81,7 @@ namespace Dumplings.Checking
                 var cjInputs = ScannerFiles.SamouraiCoinJoins.SelectMany(x => x.Inputs).Select(x => x.OutPoint.Hash).ToHashSet();
                 foreach (var inputTxId in cjInputs)
                 {
-                    if (!ScannerFiles.SamouraiTx0s.Select(x => x.Id).Contains(inputTxId))
+                    if (!ScannerFiles.SamouraiTx0s.Select(x => x.Id).Contains(inputTxId) && !ScannerFiles.SamouraiCoinJoins.Select(x => x.Id).Contains(inputTxId))
                     {
                         missed.Add(inputTxId);
                         Logger.LogWarning($"Missed TX0: {inputTxId}.");
