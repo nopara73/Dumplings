@@ -21,7 +21,7 @@ namespace Dumplings.Scanning
             WasabiCoinJoins = wasabiCoinJoins;
             SamouraiCoinJoins = samouraiCoinJoins;
             OtherCoinJoins = otherCoinJoins;
-            SamouraiTx0S = samouraiTx0s;
+            SamouraiTx0s = samouraiTx0s;
             WasabiPostMixTxs = wasabiPostMixTxs;
             SamouraiPostMixTxs = samouraiPostMixTxs;
             OtherCoinJoinPostMixTxs = otherCoinJoinPostMixTxs;
@@ -31,7 +31,7 @@ namespace Dumplings.Scanning
         public IEnumerable<VerboseTransactionInfo> WasabiCoinJoins { get; }
         public IEnumerable<VerboseTransactionInfo> SamouraiCoinJoins { get; }
         public IEnumerable<VerboseTransactionInfo> OtherCoinJoins { get; }
-        public IEnumerable<VerboseTransactionInfo> SamouraiTx0S { get; }
+        public IEnumerable<VerboseTransactionInfo> SamouraiTx0s { get; }
         public IEnumerable<VerboseTransactionInfo> WasabiPostMixTxs { get; }
         public IEnumerable<VerboseTransactionInfo> SamouraiPostMixTxs { get; }
         public IEnumerable<VerboseTransactionInfo> OtherCoinJoinPostMixTxs { get; }
