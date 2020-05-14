@@ -191,34 +191,31 @@ namespace Dumplings.Scanning
                 {
                     if (!opreturnTransactionCache.TryGetValue(txid, out VerboseTransactionInfo vtxi))
                     {
-                        var tx0Candidate = await Rpc.GetSmartRawTransactionInfoAsync(txid).ConfigureAwait(false);
-                        if (tx0Candidate.Transaction.Outputs.Any(x => TxNullDataTemplate.Instance.CheckScriptPubKey(x.ScriptPubKey)))
+                        var tx0 = await Rpc.GetSmartRawTransactionInfoAsync(txid).ConfigureAwait(false);
+                        var verboseOutputs = new List<VerboseOutputInfo>(tx0.Transaction.Outputs.Count);
+                        foreach (var o in tx0.Transaction.Outputs)
                         {
-                            var verboseOutputs = new List<VerboseOutputInfo>(tx0Candidate.Transaction.Outputs.Count);
-                            foreach (var o in tx0Candidate.Transaction.Outputs)
-                            {
-                                var voi = new VerboseOutputInfo(o.Value, o.ScriptPubKey);
-                                verboseOutputs.Add(voi);
-                            }
-
-                            var verboseInputs = new List<VerboseInputInfo>(tx0Candidate.Transaction.Inputs.Count);
-                            foreach (var i in tx0Candidate.Transaction.Inputs)
-                            {
-                                var tx = await Rpc.GetRawTransactionAsync(i.PrevOut.Hash).ConfigureAwait(false);
-                                var o = tx.Outputs[i.PrevOut.N];
-                                var voi = new VerboseOutputInfo(o.Value, o.ScriptPubKey);
-                                var vii = new VerboseInputInfo(i.PrevOut, voi);
-                                verboseInputs.Add(vii);
-                            }
-
-                            vtxi = new VerboseTransactionInfo(tx0Candidate.TransactionBlockInfo, txid, verboseInputs, verboseOutputs);
+                            var voi = new VerboseOutputInfo(o.Value, o.ScriptPubKey);
+                            verboseOutputs.Add(voi);
                         }
 
-                        if (vtxi is { })
+                        var verboseInputs = new List<VerboseInputInfo>(tx0.Transaction.Inputs.Count);
+                        foreach (var i in tx0.Transaction.Inputs)
                         {
-                            allSamouraiTx0Set.Add(txid);
-                            samouraiTx0s.Add(vtxi);
+                            var tx = await Rpc.GetRawTransactionAsync(i.PrevOut.Hash).ConfigureAwait(false);
+                            var o = tx.Outputs[i.PrevOut.N];
+                            var voi = new VerboseOutputInfo(o.Value, o.ScriptPubKey);
+                            var vii = new VerboseInputInfo(i.PrevOut, voi);
+                            verboseInputs.Add(vii);
                         }
+
+                        vtxi = new VerboseTransactionInfo(tx0.TransactionBlockInfo, txid, verboseInputs, verboseOutputs);
+                    }
+
+                    if (vtxi is { })
+                    {
+                        allSamouraiTx0Set.Add(txid);
+                        samouraiTx0s.Add(vtxi);
                     }
                 }
 
