@@ -24,51 +24,82 @@ namespace Dumplings.Checking
             CheckSamouraiTx0Completeness();
             // Make sure no duplicated transactions have been saved.
             CheckDuplication();
+            // Make sure no intesecting coinjoins were identified.
+            CheckIntersection();
+        }
+
+        private void CheckIntersection()
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                CheckIntersections(ScannerFiles.WasabiCoinJoinHashes, nameof(ScannerFiles.WasabiCoinJoins), ScannerFiles.SamouraiCoinJoinHashes, nameof(ScannerFiles.SamouraiCoinJoins));
+                CheckIntersections(ScannerFiles.WasabiCoinJoinHashes, nameof(ScannerFiles.WasabiCoinJoins), ScannerFiles.OtherCoinJoinHashes, nameof(ScannerFiles.OtherCoinJoins));
+                CheckIntersections(ScannerFiles.SamouraiCoinJoinHashes, nameof(ScannerFiles.SamouraiCoinJoins), ScannerFiles.OtherCoinJoinHashes, nameof(ScannerFiles.OtherCoinJoins));
+                CheckIntersections(ScannerFiles.SamouraiTx0Hashes, nameof(ScannerFiles.SamouraiTx0s), ScannerFiles.WasabiCoinJoinHashes, nameof(ScannerFiles.WasabiCoinJoins));
+                CheckIntersections(ScannerFiles.SamouraiTx0Hashes, nameof(ScannerFiles.SamouraiTx0s), ScannerFiles.SamouraiCoinJoinHashes, nameof(ScannerFiles.SamouraiCoinJoins));
+            }
+        }
+
+        private void CheckIntersections(IEnumerable<uint256> txs1, string txs1Name, IEnumerable<uint256> txs2, string txs2Name)
+        {
+            var common = txs1.Intersect(txs2);
+            if (common.Any())
+            {
+                Logger.LogWarning($"Common transactions found in {txs1Name} and {txs2Name}.");
+                foreach (var txid in common)
+                {
+                    Logger.LogWarning($"Common: {txid}.");
+                }
+            }
+            else
+            {
+                Logger.LogInfo($"Success! No common transactions found in {txs1Name} and {txs2Name}.");
+            }
         }
 
         private void CheckDuplication()
         {
-            CheckDuplications(ScannerFiles.WasabiCoinJoins, nameof(ScannerFiles.WasabiCoinJoins));
-            CheckDuplications(ScannerFiles.SamouraiCoinJoins, nameof(ScannerFiles.SamouraiCoinJoins));
-            CheckDuplications(ScannerFiles.OtherCoinJoins, nameof(ScannerFiles.OtherCoinJoins));
-            CheckDuplications(ScannerFiles.SamouraiTx0s, nameof(ScannerFiles.SamouraiTx0s));
-            CheckDuplications(ScannerFiles.WasabiPostMixTxs, nameof(ScannerFiles.WasabiPostMixTxs));
-            CheckDuplications(ScannerFiles.SamouraiPostMixTxs, nameof(ScannerFiles.SamouraiPostMixTxs));
-            CheckDuplications(ScannerFiles.OtherCoinJoinPostMixTxs, nameof(ScannerFiles.OtherCoinJoinPostMixTxs));
-        }
-
-        private void CheckDuplications(IEnumerable<VerboseTransactionInfo> txs, string where)
-        {
             using (BenchmarkLogger.Measure())
             {
-                var txids = txs.Select(x => x.Id).ToArray();
-                var duplicated = new HashSet<uint256>();
-                for (int i = 0; i < txids.Length; i++)
-                {
-                    var current = txids[i];
-                    for (int j = i + 1; j < txids.Length; j++)
-                    {
-                        var another = txids[j];
-                        if (current == another)
-                        {
-                            duplicated.Add(current);
-                            break;
-                        }
-                    }
-                }
+                CheckDuplications(ScannerFiles.WasabiCoinJoinHashes, nameof(ScannerFiles.WasabiCoinJoins));
+                CheckDuplications(ScannerFiles.SamouraiCoinJoinHashes, nameof(ScannerFiles.SamouraiCoinJoins));
+                CheckDuplications(ScannerFiles.OtherCoinJoinHashes, nameof(ScannerFiles.OtherCoinJoins));
+                CheckDuplications(ScannerFiles.SamouraiTx0Hashes, nameof(ScannerFiles.SamouraiTx0s));
+                CheckDuplications(ScannerFiles.WasabiPostMixTxHashes, nameof(ScannerFiles.WasabiPostMixTxs));
+                CheckDuplications(ScannerFiles.SamouraiPostMixTxHashes, nameof(ScannerFiles.SamouraiPostMixTxs));
+                CheckDuplications(ScannerFiles.OtherCoinJoinPostMixTxHashes, nameof(ScannerFiles.OtherCoinJoinPostMixTxs));
+            }
+        }
 
-                if (duplicated.Any())
+        private void CheckDuplications(IEnumerable<uint256> txs, string where)
+        {
+            var txids = txs.ToArray();
+            var duplicated = new HashSet<uint256>();
+            for (int i = 0; i < txids.Length; i++)
+            {
+                var current = txids[i];
+                for (int j = i + 1; j < txids.Length; j++)
                 {
-                    Logger.LogWarning($"Duplicated transactions found in {where}.");
-                    foreach (var txid in duplicated)
+                    var another = txids[j];
+                    if (current == another)
                     {
-                        Logger.LogWarning($"Duplicated: {txid}");
+                        duplicated.Add(current);
+                        break;
                     }
                 }
-                else
+            }
+
+            if (duplicated.Any())
+            {
+                Logger.LogWarning($"Duplicated transactions found in {where}.");
+                foreach (var txid in duplicated)
                 {
-                    Logger.LogWarning($"No duplicated transactions found in {where}.");
+                    Logger.LogWarning($"Duplicated: {txid}.");
                 }
+            }
+            else
+            {
+                Logger.LogInfo($"Success! No duplicated transactions found in {where}.");
             }
         }
 
@@ -76,7 +107,6 @@ namespace Dumplings.Checking
         {
             using (BenchmarkLogger.Measure())
             {
-                Logger.LogInfo("Making sure that all Samourai TX0 have been found by making sure all inputs in Samourai CoinJoins are coming from found TX0 transactions.");
                 var missed = new HashSet<uint256>();
                 var cjInputs = ScannerFiles.SamouraiCoinJoins.SelectMany(x => x.Inputs).Select(x => x.OutPoint.Hash).ToHashSet();
                 foreach (var inputTxId in cjInputs)
@@ -94,7 +124,7 @@ namespace Dumplings.Checking
                 }
                 else
                 {
-                    Logger.LogInfo("Successfully found all Samourai TX0 transactions");
+                    Logger.LogInfo("Success! All Samourai TX0 transactions are found.");
                 }
             }
         }
