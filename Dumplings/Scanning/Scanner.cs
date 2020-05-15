@@ -164,21 +164,21 @@ namespace Dumplings.Scanning
                             allOtherCoinJoinSet.Add(tx.Id);
                         }
 
-                        foreach (var txid in tx.Inputs.Select(x => x.OutPoint.Hash))
+                        foreach (var inputTxId in tx.Inputs.Select(x => x.OutPoint.Hash))
                         {
-                            if (!isWasabiCj && allWasabiCoinJoinSet.Contains(txid) && !wasabiPostMixTxs.Any(x => x.Id == txid))
+                            if (!isWasabiCj && allWasabiCoinJoinSet.Contains(inputTxId) && !wasabiPostMixTxs.Any(x => x.Id == tx.Id))
                             {
                                 // Then it's a post mix tx.
                                 wasabiPostMixTxs.Add(tx);
                             }
 
-                            if (!isSamouraiCj && allSamouraiCoinJoinSet.Contains(txid) && !samouraiPostMixTxs.Any(x => x.Id == txid))
+                            if (!isSamouraiCj && allSamouraiCoinJoinSet.Contains(inputTxId) && !samouraiPostMixTxs.Any(x => x.Id == tx.Id))
                             {
                                 // Then it's a post mix tx.
                                 samouraiPostMixTxs.Add(tx);
                             }
 
-                            if (!isOtherCj && allOtherCoinJoinSet.Contains(txid) && !otherCoinJoinPostMixTxs.Any(x => x.Id == txid))
+                            if (!isOtherCj && allOtherCoinJoinSet.Contains(inputTxId) && !otherCoinJoinPostMixTxs.Any(x => x.Id == tx.Id))
                             {
                                 // Then it's a post mix tx.
                                 otherCoinJoinPostMixTxs.Add(tx);

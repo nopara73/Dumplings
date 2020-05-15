@@ -81,7 +81,7 @@ namespace Dumplings.Checking
                 var cjInputs = ScannerFiles.SamouraiCoinJoins.SelectMany(x => x.Inputs).Select(x => x.OutPoint.Hash).ToHashSet();
                 foreach (var inputTxId in cjInputs)
                 {
-                    if (!ScannerFiles.SamouraiTx0s.Select(x => x.Id).Contains(inputTxId) && !ScannerFiles.SamouraiCoinJoins.Select(x => x.Id).Contains(inputTxId))
+                    if (!ScannerFiles.SamouraiTx0Hashes.Contains(inputTxId) && !ScannerFiles.SamouraiCoinJoinHashes.Contains(inputTxId))
                     {
                         missed.Add(inputTxId);
                         Logger.LogWarning($"Missed TX0: {inputTxId}.");
