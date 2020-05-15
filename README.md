@@ -23,3 +23,7 @@ In order to run other commands and local storage to be up to date you have to sy
 If you want to resync, then use the `resync` command.
 
 `dotnet run -c Release -- resync --rpcuser=user --rpcpassword=password`
+
+After you synchronized you probably want to do some data integrity checks too:
+
+`dotnet run -c Release -- check --rpcuser=user --rpcpassword=password`
