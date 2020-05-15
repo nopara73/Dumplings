@@ -20,6 +20,7 @@ namespace Dumplings.Scanning
             IEnumerable<VerboseTransactionInfo> otherCoinJoinPostMixTxs)
         {
             BestHeight = bestHeight;
+
             WasabiCoinJoins = wasabiCoinJoins.ToArray();
             SamouraiCoinJoins = samouraiCoinJoins.ToArray();
             OtherCoinJoins = otherCoinJoins.ToArray();
