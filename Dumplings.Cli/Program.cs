@@ -1,6 +1,7 @@
 ﻿using Dumplings.Checking;
 using Dumplings.Helpers;
 using Dumplings.Scanning;
+using Dumplings.Stats;
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
@@ -54,6 +55,12 @@ namespace Dumplings.Cli
                     var loadedScannerFiles = Scanner.Load();
                     var checker = new Checker(loadedScannerFiles);
                     checker.Check();
+                }
+                else if (command == Command.MonthlyVolumes)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles);
+                    stat.CalculateMonthlyVolumes();
                 }
             }
 
