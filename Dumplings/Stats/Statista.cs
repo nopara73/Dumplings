@@ -22,20 +22,24 @@ namespace Dumplings.Stats
         {
             using (BenchmarkLogger.Measure())
             {
+                Dictionary<YearMonth, Money> otherCoinJoinVolumes = CalculateMonthlyVolumes(ScannerFiles.OtherCoinJoins);
                 Dictionary<YearMonth, Money> wasabiVolumes = CalculateMonthlyVolumes(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, Money> samouraiVolumes = CalculateMonthlyVolumes(ScannerFiles.SamouraiCoinJoins);
-                Dictionary<YearMonth, Money> otherCoinJoinVolumes = CalculateMonthlyVolumes(ScannerFiles.OtherCoinJoins);
 
-                Console.WriteLine($"Month;Wasabi;Samuri;Otheri");
+                Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
 
                 foreach (var yearMonth in wasabiVolumes
                     .Keys
-                    .Concat(samouraiVolumes.Keys)
                     .Concat(otherCoinJoinVolumes.Keys)
+                    .Concat(samouraiVolumes.Keys)
                     .Distinct()
                     .OrderBy(x => x.Year)
                     .ThenBy(x => x.Month))
                 {
+                    if (!otherCoinJoinVolumes.TryGetValue(yearMonth, out Money otheri))
+                    {
+                        otheri = Money.Zero;
+                    }
                     if (!wasabiVolumes.TryGetValue(yearMonth, out Money wasabi))
                     {
                         wasabi = Money.Zero;
@@ -44,12 +48,8 @@ namespace Dumplings.Stats
                     {
                         samuri = Money.Zero;
                     }
-                    if (!otherCoinJoinVolumes.TryGetValue(yearMonth, out Money otheri))
-                    {
-                        otheri = Money.Zero;
-                    }
 
-                    Console.WriteLine($"{yearMonth};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0};{otheri.ToDecimal(MoneyUnit.BTC):0}");
+                    Console.WriteLine($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
                 }
             }
         }
