@@ -108,7 +108,7 @@ namespace Dumplings.Scanning
                         var outputValues = outputs.Select(x => x.Value);
                         var inputValues = inputs.Select(x => x.Value);
                         var outputCount = outputs.Length;
-                        var inputCount = inputs.Length;                        
+                        var inputCount = inputs.Length;
                         (Money mostFrequentEqualOutputValue, int mostFrequentEqualOutputCount) = indistinguishableOutputs.OrderByDescending(x => x.count).First();
                         // IDENTIFY WASABI COINJOINS
                         if (block.Height >= Constants.FirstWasabiBlock)
@@ -170,12 +170,26 @@ namespace Dumplings.Scanning
                             {
                                 // Then it's a post mix tx.
                                 wasabiPostMixTxs.Add(tx);
+                                if (isOtherCj)
+                                {
+                                    // Then it's false positive detection.
+                                    isOtherCj = false;
+                                    allOtherCoinJoinSet.Remove(tx.Id);
+                                    otherCoinJoins.Remove(tx);
+                                }
                             }
 
                             if (!isSamouraiCj && allSamouraiCoinJoinSet.Contains(inputTxId) && !samouraiPostMixTxs.Any(x => x.Id == tx.Id))
                             {
                                 // Then it's a post mix tx.
                                 samouraiPostMixTxs.Add(tx);
+                                if (isOtherCj)
+                                {
+                                    // Then it's false positive detection.
+                                    isOtherCj = false;
+                                    allOtherCoinJoinSet.Remove(tx.Id);
+                                    otherCoinJoins.Remove(tx);
+                                }
                             }
 
                             if (!isOtherCj && allOtherCoinJoinSet.Contains(inputTxId) && !otherCoinJoinPostMixTxs.Any(x => x.Id == tx.Id))
