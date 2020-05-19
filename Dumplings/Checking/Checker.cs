@@ -44,11 +44,11 @@ namespace Dumplings.Checking
                 CheckIntersections(ScannerFiles.WasabiPostMixTxHashes, nameof(ScannerFiles.WasabiPostMixTxs), ScannerFiles.OtherCoinJoinHashes, nameof(ScannerFiles.OtherCoinJoins));
                 CheckIntersections(ScannerFiles.SamouraiPostMixTxHashes, nameof(ScannerFiles.SamouraiPostMixTxs), ScannerFiles.OtherCoinJoinHashes, nameof(ScannerFiles.OtherCoinJoins));
 
-                var wasabiSamouraiCommonPostMixExceptions = new[]
+                var wasabiSamouraiCommonPostMixKnownExceptions = new[]
                 {
                     new uint256("52025ff6a0ace2790fb56fbc1283a28827e4e774723999685f29feb81fb43c4d")
                 };
-                CheckIntersections(ScannerFiles.WasabiPostMixTxHashes.Except(wasabiSamouraiCommonPostMixExceptions), nameof(ScannerFiles.WasabiPostMixTxs), ScannerFiles.SamouraiPostMixTxHashes.Except(wasabiSamouraiCommonPostMixExceptions), nameof(ScannerFiles.SamouraiPostMixTxs));
+                CheckIntersections(ScannerFiles.WasabiPostMixTxHashes.Except(wasabiSamouraiCommonPostMixKnownExceptions), nameof(ScannerFiles.WasabiPostMixTxs), ScannerFiles.SamouraiPostMixTxHashes.Except(wasabiSamouraiCommonPostMixKnownExceptions), nameof(ScannerFiles.SamouraiPostMixTxs));
             }
         }
 
