@@ -67,8 +67,12 @@ namespace Dumplings.Rpc
         }
 
         public static VerboseBlockInfo ParseVerboseBlockResponse(string getBlockResponse)
-        {            
-            var blockInfoJson = JsonDocument.Parse(getBlockResponse).RootElement;
+        {
+            var parsed = JsonDocument.Parse(getBlockResponse).RootElement;
+            if (!parsed.TryGetProperty("result", out JsonElement blockInfoJson))
+            {
+                blockInfoJson = parsed;
+            }
             var previousBlockHash = blockInfoJson.GetProperty("previousblockhash").GetString();
             var transaction = new List<VerboseTransactionInfo>();
 

@@ -6,7 +6,10 @@ using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -243,20 +246,79 @@ namespace Dumplings.Helpers
             return Money.Satoshis(Math.Round(me.SatoshiPerByte * vsize));
         }
 
-        public static async Task<VerboseBlockInfo> GetVerboseBlockAsync(this RPCClient me, uint256 blockId)
+        public static async Task<VerboseBlockInfo> GetVerboseBlockAsync(this RPCClient me, uint256 blockId, bool safe = true)
         {
-            var resp = await me.SendCommandAsync(RPCOperations.getblock, blockId, 3).ConfigureAwait(false);
-            return RpcParser.ParseVerboseBlockResponse(resp.ResultString);
+            var request = new RPCRequest(RPCOperations.getblock, new object[] { blockId, 3 });
+            if (safe)
+            {
+                var resp = await me.SendCommandAsync(request).ConfigureAwait(false);
+                return RpcParser.ParseVerboseBlockResponse(resp.ResultString);
+            }
+            else
+            {
+                var resp = await me.SendCommandAsyncCore(request).ConfigureAwait(false);
+                return RpcParser.ParseVerboseBlockResponse(resp);
+            }
         }
 
-        public static async Task<VerboseBlockInfo> GetVerboseBlockAsync(this RPCClient me, ulong height)
+        public static async Task<VerboseBlockInfo> GetVerboseBlockAsync(this RPCClient me, ulong height, bool safe = true)
         {
             var blockId = await me.GetBlockHashAsync((int)height).ConfigureAwait(false);
-            var resp = await me.SendCommandAsync(RPCOperations.getblock, blockId, 3).ConfigureAwait(false);
-            return RpcParser.ParseVerboseBlockResponse(resp.ResultString);
+            return await me.GetVerboseBlockAsync(blockId, safe).ConfigureAwait(false);
         }
 
+        private async static Task<string> SendCommandAsyncCore(this RPCClient me, RPCRequest request)
+        {
+            string response = null;
+            var writer = new StringWriter();
+            request.WriteJSON(writer);
+            writer.Flush();
+            var webRequest = me.CreateWebRequest(writer.ToString());
+            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(100)))
+            {
+                using var httpResponse = await me.HttpClient.SendAsync(webRequest, cts.Token).ConfigureAwait(false);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    response = await httpResponse.Content.ReadAsStringAsync();
+                }
+                else
+                {
+                    if (httpResponse.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        httpResponse.EnsureSuccessStatusCode(); // Let's throw
+                    }
+                    if (IsJson(httpResponse))
+                    {
+                        response = await httpResponse.Content.ReadAsStringAsync();
+                    }
+                    else
+                    {
+                        httpResponse.EnsureSuccessStatusCode(); // Let's throw
+                    }
+                }
+            }
+            return response;
+        }
 
+        private static HttpRequestMessage CreateWebRequest(this RPCClient me, string json)
+        {
+            var address = me.Address.AbsoluteUri;
+            if (!string.IsNullOrEmpty(me.CredentialString.WalletName))
+            {
+                if (!address.EndsWith("/"))
+                    address += "/";
+                address += "wallet/" + me.CredentialString.WalletName;
+            }
+            var webRequest = new HttpRequestMessage(HttpMethod.Post, address);
+            webRequest.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Encoders.Base64.EncodeData(Encoders.ASCII.DecodeData($"{me.CredentialString.UserPassword.UserName}:{me.CredentialString.UserPassword.Password}")));
+            webRequest.Content = new StringContent(json, new UTF8Encoding(false), "application/json-rpc");
+            return webRequest;
+        }
+
+        private static bool IsJson(HttpResponseMessage httpResponse)
+        {
+            return httpResponse.Content?.Headers?.ContentType?.MediaType?.Equals("application/json", StringComparison.Ordinal) is true;
+        }
 
         public static async Task<SmartRawTransactionInfo> GetSmartRawTransactionInfoAsync(this RPCClient me, uint256 txId)
         {

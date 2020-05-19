@@ -80,7 +80,7 @@ namespace Dumplings.Scanning
 
             while (height <= bestHeight)
             {
-                var block = await Rpc.GetVerboseBlockAsync(height).ConfigureAwait(false);
+                var block = await Rpc.GetVerboseBlockAsync(height, safe: false).ConfigureAwait(false);
 
                 var wasabiCoinJoins = new List<VerboseTransactionInfo>();
                 var samouraiCoinJoins = new List<VerboseTransactionInfo>();
