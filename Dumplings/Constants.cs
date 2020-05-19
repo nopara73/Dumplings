@@ -18,7 +18,7 @@ namespace Dumplings
         /// <summary>
         /// June 17, 2019 Reddit announcement - https://old.reddit.com/r/Bitcoin/comments/c1niri/samourai_whirlpool_coinjoin_implementation_is_now/
         /// </summary>
-        public const ulong FirstSamouraiBlock = 620000;
+        public const ulong FirstSamouraiBlock = 570000;
 
         public const ulong FirstWasabiNoCoordAddressBlock = 610000;
 
