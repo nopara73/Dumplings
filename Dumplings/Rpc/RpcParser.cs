@@ -171,8 +171,8 @@ namespace Dumplings.Rpc
             var blockHash = parts[1] is null ? null : uint256.Parse(parts[1]);
             var blockIndex = parts[2] is null ? (uint?)null : uint.Parse(parts[2]);
             var blockTime = parts[3] is null ? (DateTimeOffset?)null : DateTimeOffset.FromUnixTimeSeconds(long.Parse(parts[3]));
-            var inputs = parts[4] is null ? null : parts[4].Split(VerboseInOutInfoInLineSeparator, StringSplitOptions.None).Select(x => VerboseInputInfo.FromString(x));
-            var outputs = parts[5] is null ? null : parts[5].Split(VerboseInOutInfoInLineSeparator, StringSplitOptions.None).Select(x => VerboseOutputInfo.FromString(x));
+            var inputs = parts[4]?.Split(VerboseInOutInfoInLineSeparator, StringSplitOptions.None).Select(x => VerboseInputInfo.FromString(x));
+            var outputs = parts[5]?.Split(VerboseInOutInfoInLineSeparator, StringSplitOptions.None).Select(x => VerboseOutputInfo.FromString(x));
 
             return new VerboseTransactionInfo(new TransactionBlockInfo(blockHash, blockTime, blockIndex), id, inputs, outputs);
         }

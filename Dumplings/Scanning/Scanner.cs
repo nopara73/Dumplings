@@ -2,7 +2,6 @@
 using Dumplings.Helpers;
 using Dumplings.Rpc;
 using Microsoft.Extensions.Caching.Memory;
-using MoreLinq;
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
@@ -109,8 +108,8 @@ namespace Dumplings.Scanning
                         var outputValues = outputs.Select(x => x.Value);
                         var inputValues = inputs.Select(x => x.Value);
                         var outputCount = outputs.Length;
-                        var inputCount = inputs.Length;
-                        (Money mostFrequentEqualOutputValue, int mostFrequentEqualOutputCount) = indistinguishableOutputs.MaxBy(x => x.count);
+                        var inputCount = inputs.Length;                        
+                        (Money mostFrequentEqualOutputValue, int mostFrequentEqualOutputCount) = indistinguishableOutputs.OrderByDescending(x => x.count).First();
                         // IDENTIFY WASABI COINJOINS
                         if (block.Height >= Constants.FirstWasabiBlock)
                         {
