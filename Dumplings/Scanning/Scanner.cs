@@ -230,6 +230,23 @@ namespace Dumplings.Scanning
                     {
                         allSamouraiTx0Set.Add(txid);
                         samouraiTx0s.Add(vtxi);
+
+                        if (allOtherCoinJoinSet.Contains(txid))
+                        {
+                            // Then it's false positive detection.
+                            // It happens like 10-ish times, so it shouldn't be too expensive to rewrite the file.
+                            allOtherCoinJoinSet.Remove(txid);
+                            var found = otherCoinJoins.FirstOrDefault(x => x.Id == txid);
+                            if (found is { })
+                            {
+                                otherCoinJoins.Remove(found);
+                            }
+                            else
+                            {
+                                var allOtherCoinJoins = ReadOtherCoinJoins().Where(x => x.Id != txid);
+                                File.WriteAllLines(OtherCoinJoinsPath, allOtherCoinJoins.Select(x => RpcParser.ToLine(x)));
+                            }
+                        }
                     }
                 }
 

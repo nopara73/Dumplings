@@ -34,9 +34,21 @@ namespace Dumplings.Checking
             {
                 CheckIntersections(ScannerFiles.WasabiCoinJoinHashes, nameof(ScannerFiles.WasabiCoinJoins), ScannerFiles.SamouraiCoinJoinHashes, nameof(ScannerFiles.SamouraiCoinJoins));
                 CheckIntersections(ScannerFiles.WasabiCoinJoinHashes, nameof(ScannerFiles.WasabiCoinJoins), ScannerFiles.OtherCoinJoinHashes, nameof(ScannerFiles.OtherCoinJoins));
+
                 CheckIntersections(ScannerFiles.SamouraiCoinJoinHashes, nameof(ScannerFiles.SamouraiCoinJoins), ScannerFiles.OtherCoinJoinHashes, nameof(ScannerFiles.OtherCoinJoins));
+
                 CheckIntersections(ScannerFiles.SamouraiTx0Hashes, nameof(ScannerFiles.SamouraiTx0s), ScannerFiles.WasabiCoinJoinHashes, nameof(ScannerFiles.WasabiCoinJoins));
                 CheckIntersections(ScannerFiles.SamouraiTx0Hashes, nameof(ScannerFiles.SamouraiTx0s), ScannerFiles.SamouraiCoinJoinHashes, nameof(ScannerFiles.SamouraiCoinJoins));
+                CheckIntersections(ScannerFiles.SamouraiTx0Hashes, nameof(ScannerFiles.SamouraiTx0s), ScannerFiles.OtherCoinJoinHashes, nameof(ScannerFiles.OtherCoinJoins));
+
+                CheckIntersections(ScannerFiles.WasabiPostMixTxHashes, nameof(ScannerFiles.WasabiPostMixTxs), ScannerFiles.OtherCoinJoinHashes, nameof(ScannerFiles.OtherCoinJoins));
+                CheckIntersections(ScannerFiles.SamouraiPostMixTxHashes, nameof(ScannerFiles.SamouraiPostMixTxs), ScannerFiles.OtherCoinJoinHashes, nameof(ScannerFiles.OtherCoinJoins));
+
+                var wasabiSamouraiCommonPostMixExceptions = new[]
+                {
+                    new uint256("52025ff6a0ace2790fb56fbc1283a28827e4e774723999685f29feb81fb43c4d")
+                };
+                CheckIntersections(ScannerFiles.WasabiPostMixTxHashes.Except(wasabiSamouraiCommonPostMixExceptions), nameof(ScannerFiles.WasabiPostMixTxs), ScannerFiles.SamouraiPostMixTxHashes.Except(wasabiSamouraiCommonPostMixExceptions), nameof(ScannerFiles.SamouraiPostMixTxs));
             }
         }
 
@@ -48,7 +60,7 @@ namespace Dumplings.Checking
                 Logger.LogWarning($"Common transactions found in {txs1Name} and {txs2Name}.");
                 foreach (var txid in common)
                 {
-                    Logger.LogWarning($"Common: {txid}.");
+                    Logger.LogInfo($"Common: {txid}.");
                 }
             }
             else
@@ -94,7 +106,7 @@ namespace Dumplings.Checking
                 Logger.LogWarning($"Duplicated transactions found in {where}.");
                 foreach (var txid in duplicated)
                 {
-                    Logger.LogWarning($"Duplicated: {txid}.");
+                    Logger.LogInfo($"Duplicated: {txid}.");
                 }
             }
             else
@@ -109,13 +121,11 @@ namespace Dumplings.Checking
             {
                 var missed = new HashSet<uint256>();
                 var cjInputs = ScannerFiles.SamouraiCoinJoins.SelectMany(x => x.Inputs).Select(x => x.OutPoint.Hash).ToHashSet();
-                foreach (var inputTxId in cjInputs)
+                var tx0AndCjHashes = ScannerFiles.SamouraiTx0Hashes.Union(ScannerFiles.SamouraiCoinJoinHashes).ToHashSet();
+                foreach (var inputTxId in cjInputs.Except(tx0AndCjHashes))
                 {
-                    if (!ScannerFiles.SamouraiTx0Hashes.Contains(inputTxId) && !ScannerFiles.SamouraiCoinJoinHashes.Contains(inputTxId))
-                    {
-                        missed.Add(inputTxId);
-                        Logger.LogWarning($"Missed TX0: {inputTxId}.");
-                    }
+                    missed.Add(inputTxId);
+                    Logger.LogInfo($"Missed TX0: {inputTxId}.");
                 }
 
                 if (missed.Any())
