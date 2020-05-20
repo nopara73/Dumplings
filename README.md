@@ -56,6 +56,15 @@ How many non-remixed bitcoins get to CoinJoined monthly.
 
 ![](https://i.imgur.com/hWvXxux.png)
 
+## NeverMixed
+
+How many non-mixed bitcoins (CJ change outputs in the case of Otheri and Wasabi and TX0 non-mixed outputs in the case of Samuri) were not instantly mixed.
+
+![](https://i.imgur.com/ftG0jea.png)
+![](https://i.imgur.com/x1y6DGf.png)
+![](https://i.imgur.com/8neqsaw.png)
+![](https://i.imgur.com/pr1TTVo.png)
+
 # FAQ
 
 ## What does Wasabi, Samuri, Otheri mean?
