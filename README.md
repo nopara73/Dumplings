@@ -46,9 +46,15 @@ After synchronization you can create statistics as follows: `dotnet run -- COMMA
 
 ## MonthlyVolumes
 
-How much bitcoins participated in CoinJoin transactions monthly.
+Total monthly volume of CoinJoin transactions.
 
 ![](https://i.imgur.com/HIGDlHO.png)
+
+## FreshBitcoins
+
+How many non-remixed bitcoins get to CoinJoined monthly.
+
+![](https://i.imgur.com/hWvXxux.png)
 
 # FAQ
 
