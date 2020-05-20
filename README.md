@@ -66,4 +66,4 @@ In summary: **Every JoinMarket transactions are "Other CoinJoin Transactions," b
 
 ## What about network level privacy?
 
-**Not all CoinJoins are created equal.** Statistics like this gives the wrong impression that a Samurai CJ is just as good as a Wasabi or a JoinMarket CJ. This is not the case. Just like Blockchain.info's SharedCoin were, Samourai CoinJoins aren't trustless, as these companies know your **xpub,** from which all your present, past and future Bitcoin addresses can be derived, thus users have no privacy against these companies and the third parties they share your data with.
+**Not all CoinJoins are created equal.** Statistics like this gives the wrong impression that a Samurai CJ is just as good as a Wasabi or a JoinMarket CJ. This is not the case. Just like Blockchain.info's SharedCoin were, Samourai CoinJoins aren't trustless, as these companies know your **xpub,** from which all your present, past and future Bitcoin addresses can be derived, thus users gain no privacy against these companies and the third parties they share your data with, even if they CoinJoin.
