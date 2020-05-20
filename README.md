@@ -62,5 +62,8 @@ How much bitcoins participated in CoinJoin transactions monthly.
 
 [JoinMarket transactions are not obvious to identify with high accuracy solely from Blockchain data.](https://github.com/nopara73/WasabiVsSamourai/issues/2) To identify JM transactions one would need to listen to JM orderbook, which is off-chain data, so that is outside the scope of Dumplings. BlockSci made the best known attempt to identify them, which had only a 94% accuracy rate, which included computationally expensive subsetsum problem solving and left out larger JoinMarket transactions. Leaving out larger JM transactions would lead to misleading results and graphs, so I opted to not do that.
 
-In summary: **Every JoinMarket transactions are otheri transactions, but not every otheri transactions are JoinMarket transactions.**
+In summary: **Every JoinMarket transactions are "Other CoinJoin Transactions," but not every "Other CoinJoin Transactions" are JoinMarket transactions.**
 
+## What about network level privacy?
+
+**Not all CoinJoins are created equal.** Statistics like this gives the wrong impression that a Samurai CJ is just as good as a Wasabi or a JoinMarket CJ. This is not the case. Just like Blockchain.info's SharedCoin, Samourai CoinJoins aren't trusted, as the companies are aware of your xpub, from which all your present, past and future Bitcoin addresses can be derived, thus users have no privacy against these companies and the third parties they share your data with.
