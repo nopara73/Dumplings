@@ -59,14 +59,20 @@ namespace Dumplings.Cli
                 else if (command == Command.MonthlyVolumes)
                 {
                     var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles);
+                    var stat = new Statista(loadedScannerFiles, client);
                     stat.CalculateMonthlyVolumes();
                 }
                 else if (command == Command.FreshBitcoins)
                 {
                     var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles);
+                    var stat = new Statista(loadedScannerFiles, client);
                     stat.CalculateFreshBitcoins();
+                }
+                else if (command == Command.NeverMixed)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles, client);
+                    stat.CalculateNeverMixed();
                 }
             }
 
