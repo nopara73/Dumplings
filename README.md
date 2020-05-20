@@ -52,6 +52,8 @@ Total monthly volume of CoinJoin transactions.
 
 ## FreshBitcoins
 
+> Best proxy for user adoption.
+
 How many non-remixed bitcoins get to CoinJoined monthly.
 
 ![](https://i.imgur.com/hWvXxux.png)
@@ -63,7 +65,22 @@ How many non-mixed bitcoins (CJ change outputs in the case of Otheri and Wasabi 
 ![](https://i.imgur.com/ftG0jea.png)
 ![](https://i.imgur.com/x1y6DGf.png)
 ![](https://i.imgur.com/8neqsaw.png)
+
+The following is a derived metric: it's the percentage of nevermixed coins to fresh bitcoins.
+
 ![](https://i.imgur.com/pr1TTVo.png)
+
+## CoinJoinEquality
+
+> Best proxy for overall privacy gain.
+
+CoinJoin Equality metric shows how much equality is gained for bitcoins. It is calculated separately to inputs and outputs and the results are added together. For example if 2 people mix 10 bitcoins only on the output side, then CoinJoin Equality will be 2 * 1 * 10, beause 2 people mixed, both with 1 other person (each other) 10 bitcoins on the outputs side.
+
+![](https://i.imgur.com/VM1cwLq.png)
+
+The following is a derived metric: it's calculated as such the CoinJoin Equality score gets divided by the fresh bitcoins. Note: it's not a perfect efficiency metric as blockspace usage isn't factored in.
+
+![](https://i.imgur.com/Fgfd2yF.png)
 
 # FAQ
 
