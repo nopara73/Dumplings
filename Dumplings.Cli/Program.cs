@@ -74,6 +74,12 @@ namespace Dumplings.Cli
                     var stat = new Statista(loadedScannerFiles, client);
                     stat.CalculateNeverMixed();
                 }
+                else if (command == Command.CoinJoinEquality)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles, client);
+                    stat.CalculateEquality();
+                }
             }
 
             Console.WriteLine();

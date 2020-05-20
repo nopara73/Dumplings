@@ -43,6 +43,17 @@ namespace Dumplings.Stats
             }
         }
 
+        public void CalculateEquality()
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                Dictionary<YearMonth, ulong> freshOtherCoinJoins = CalculateEquality(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, ulong> freshWasabiCoinJoins = CalculateEquality(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, ulong> freshSamouraiCoinJoins = CalculateEquality(ScannerFiles.SamouraiCoinJoins);
+                DisplayResults(freshOtherCoinJoins, freshWasabiCoinJoins, freshSamouraiCoinJoins);
+            }
+        }
+
         public void CalculateFreshBitcoins()
         {
             using (BenchmarkLogger.Measure())
@@ -80,6 +91,35 @@ namespace Dumplings.Stats
                 }
 
                 Console.WriteLine($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
+            }
+        }
+
+        private void DisplayResults(Dictionary<YearMonth, ulong> otheriResults, Dictionary<YearMonth, ulong> wasabiResults, Dictionary<YearMonth, ulong> samuriResults)
+        {
+            Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
+
+            foreach (var yearMonth in wasabiResults
+                .Keys
+                .Concat(otheriResults.Keys)
+                .Concat(samuriResults.Keys)
+                .Distinct()
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month))
+            {
+                if (!otheriResults.TryGetValue(yearMonth, out ulong otheri))
+                {
+                    otheri = 0;
+                }
+                if (!wasabiResults.TryGetValue(yearMonth, out ulong wasabi))
+                {
+                    wasabi = 0;
+                }
+                if (!samuriResults.TryGetValue(yearMonth, out ulong samuri))
+                {
+                    samuri = 0;
+                }
+
+                Console.WriteLine($"{yearMonth};{otheri:0};{wasabi:0};{samuri:0}");
             }
         }
 
@@ -279,6 +319,36 @@ namespace Dumplings.Stats
                     else
                     {
                         myDic.Add(yearMonth, sum);
+                    }
+                }
+            }
+
+            return myDic;
+        }
+
+        private Dictionary<YearMonth, ulong> CalculateEquality(IEnumerable<VerboseTransactionInfo> coinJoins)
+        {
+            // CoinJoin Equality metric shows how much equality is gained for bitcoins. It is calculated separately to inputs and outputs and the results are added together.
+            // For example if 2 people mix 10 bitcoins only on the output side, then CoinJoin Equality will be 2 * 1 * 10, beause 2 people mixed, both with 1 other person 10 bitcoins on the outputs ide.
+
+            var myDic = new Dictionary<YearMonth, ulong>();
+            foreach (var tx in coinJoins)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    var blockTimeValue = blockTime.Value;
+                    var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
+
+                    var equality = tx.CalculateCoinJoinEquality();
+
+                    if (myDic.TryGetValue(yearMonth, out ulong current))
+                    {
+                        myDic[yearMonth] = current + equality;
+                    }
+                    else
+                    {
+                        myDic.Add(yearMonth, equality);
                     }
                 }
             }
