@@ -41,3 +41,26 @@ From these files you can create many kind of statistics quickly or just create t
 The expected location of the scanner folder is `Dumplings\Dumplings.Cli\bin\Debug\netcoreapp3.1\Scanner` on Windows and `Dumplings/Dumplings.Cli/Scanner/` on Linux (and probably on OSX.)
 
 After synchronization you can create statistics as follows: `dotnet run -- COMMAND --rpcuser=user --rpcpassword=password`, where the `COMMAND` is the command for the statistics you want to create.
+
+# Commands & Results
+
+## MonthlyVolumes
+
+How much bitcoins participated in CoinJoin transactions monthly.
+
+![](https://i.imgur.com/HIGDlHO.png)
+
+# FAQ
+
+## What does Wasabi, Samuri, Otheri mean?
+
+- Wasabi: Wasabi Wallet ZeroLink CoinJoins.
+- Samuri: Samourai Wallet Whirlpool CoinJoins.
+- Otheri: Other CoinJoin looking transactions.
+
+## What about JoinMarket?
+
+[JoinMarket transactions are not obvious to identify with high accuracy solely from Blockchain data.](https://github.com/nopara73/WasabiVsSamourai/issues/2) To identify JM transactions one would need to listen to JM orderbook, which is off-chain data, so that is outside the scope of Dumplings. BlockSci made the best known attempt to identify them, which had only a 94% accuracy rate, which included computationally expensive subsetsum problem solving and left out larger JoinMarket transactions. Leaving out larger JM transactions would lead to misleading results and graphs, so I opted to not do that.
+
+In summary: **Every JoinMarket transactions are otheri transactions, but not every otheri transactions are JoinMarket transactions.**
+
