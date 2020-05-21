@@ -70,28 +70,6 @@ The following is a derived metric: it's the percentage of nevermixed coins to fr
 
 ![](https://i.imgur.com/pr1TTVo.png)
 
-## CoinJoinEquality
-
-> Best proxy for overall privacy gain.
-
-CoinJoin Equality metric shows how much equality is gained for bitcoins. It is calculated separately to inputs and outputs and the results are added together. For example if 2 people mix 10 bitcoins only on the output side, then CoinJoin Equality will be 2 * 1 * 10, beause 2 people mixed, both with 1 other person (each other) 10 bitcoins on the outputs side.
-
-You may ask: why the `anonset-1` multiplier there? Consider Case 1: A single transaction where: 100 people mix 0.1BTC each on the output side and Case 2: where there are 50 coinjoins each mixed 0.1BTC with a single other on the output side. The first transaction is obviously better, yet by leaving out the `anonset-1` multiplier gives the same results:
-
-- `1TX, 100PPL, 0.1BTC -> 1 * 100 *  0.1 -> 10`
-- `50TX, 2PPL, 0.1BTC -> 50 * 2 * 0.1 -> 10`
-
-Incorporating the `anonset-1` multiplier (it's called `mixin` in Monero terms) shows the difference between the two sets of CoinJoins:
-
-- `1TX, 100PPL, 0.1BTC -> 1 * 100 * 99 * 0.1 -> 990`
-- `50TX, 2PPL, 0.1BTC -> 50 * 2 * 1 * 0.1 -> 10`
-
-![](https://i.imgur.com/VM1cwLq.png)
-
-The following is a derived metric: it's calculated as such the CoinJoin Equality score gets divided by the fresh bitcoins. Note: it's not a perfect efficiency metric as blockspace usage isn't factored in.
-
-![](https://i.imgur.com/Fgfd2yF.png)
-
 # CoinJoinIncome
 
 Note: Without sophisticated algorithms it is hard to tell how much income Wasabi makes after it changed its fee address to dynamic calculations, so that's why the data is discontinued at some point.
