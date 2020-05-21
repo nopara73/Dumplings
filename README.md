@@ -96,11 +96,11 @@ The following is a derived metric: it's calculated as such the CoinJoin Equality
 
 Note: Without sophisticated algorithms it is hard to tell how much income Wasabi makes after it changed its fee address to dynamic calculations, so that's why the data is discontinued at some point.
 
-![](https://i.imgur.com/tc49ghl.png)
+![](https://i.imgur.com/3JrPxvu.png)
 
 The next is a derived metric. It's the percentage of monthly income where the total is the fresh bitcoins coming into mix monthly.
 
-![](https://i.imgur.com/38VfOLI.png)
+![](https://i.imgur.com/2qoKZq0.png)
 
 # FAQ
 
