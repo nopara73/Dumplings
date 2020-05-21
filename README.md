@@ -84,7 +84,7 @@ The following is a derived metric: it's calculated as such the CoinJoin Equality
 
 # CoinJoinIncome
 
-Note: Without sophisticated algorithms it is hard to tell how much income Wasabi takes after it changed its fee address to dynamic calculations, so that's why the data is discontinued at some point.
+Note: Without sophisticated algorithms it is hard to tell how much income Wasabi makes after it changed its fee address to dynamic calculations, so that's why the data is discontinued at some point.
 
 ![](https://i.imgur.com/tc49ghl.png)
 
