@@ -82,6 +82,16 @@ The following is a derived metric: it's calculated as such the CoinJoin Equality
 
 ![](https://i.imgur.com/Fgfd2yF.png)
 
+# CoinJoinIncome
+
+Note: Without sophisticated algorithms it is hard to tell how much income Wasabi takes after it changed its fee address to dynamic calculations, so that's why the data is discontinued at some point.
+
+![](https://i.imgur.com/tc49ghl.png)
+
+The next is a derived metric. It's the percentage of monthly income where the total is the fresh bitcoins coming into mix monthly.
+
+![](https://i.imgur.com/38VfOLI.png)
+
 # FAQ
 
 ## What does Wasabi, Samuri, Otheri mean?
