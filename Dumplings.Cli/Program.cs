@@ -80,6 +80,12 @@ namespace Dumplings.Cli
                     var stat = new Statista(loadedScannerFiles, client);
                     stat.CalculateEquality();
                 }
+                else if (command == Command.CoinJoinIncome)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles, client);
+                    stat.CalculateIncome();
+                }
             }
 
             Console.WriteLine();

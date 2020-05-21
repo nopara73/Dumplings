@@ -25,10 +25,10 @@ namespace Dumplings.Stats
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonth, Money> otherCoinJoinVolumes = CalculateMonthlyVolumes(ScannerFiles.OtherCoinJoins);
-                Dictionary<YearMonth, Money> wasabiVolumes = CalculateMonthlyVolumes(ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonth, Money> samouraiVolumes = CalculateMonthlyVolumes(ScannerFiles.SamouraiCoinJoins);
-                DisplayResults(otherCoinJoinVolumes, wasabiVolumes, samouraiVolumes);
+                Dictionary<YearMonth, Money> otheri = CalculateMonthlyVolumes(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, Money> wasabi = CalculateMonthlyVolumes(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, Money> samuri = CalculateMonthlyVolumes(ScannerFiles.SamouraiCoinJoins);
+                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
             }
         }
 
@@ -36,10 +36,10 @@ namespace Dumplings.Stats
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonth, Money> freshOtherCoinJoins = CalculateNeverMixed(ScannerFiles.OtherCoinJoins);
-                Dictionary<YearMonth, Money> freshWasabiCoinJoins = CalculateNeverMixed(ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonth, Money> freshSamouraiCoinJoins = CalculateNeverMixedFromTx0s(ScannerFiles.SamouraiCoinJoins, ScannerFiles.SamouraiTx0s);
-                DisplayResults(freshOtherCoinJoins, freshWasabiCoinJoins, freshSamouraiCoinJoins);
+                Dictionary<YearMonth, Money> otheri = CalculateNeverMixed(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, Money> wasabi = CalculateNeverMixed(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, Money> samuri = CalculateNeverMixedFromTx0s(ScannerFiles.SamouraiCoinJoins, ScannerFiles.SamouraiTx0s);
+                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
             }
         }
 
@@ -47,10 +47,20 @@ namespace Dumplings.Stats
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonth, ulong> freshOtherCoinJoins = CalculateEquality(ScannerFiles.OtherCoinJoins);
-                Dictionary<YearMonth, ulong> freshWasabiCoinJoins = CalculateEquality(ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonth, ulong> freshSamouraiCoinJoins = CalculateEquality(ScannerFiles.SamouraiCoinJoins);
-                DisplayResults(freshOtherCoinJoins, freshWasabiCoinJoins, freshSamouraiCoinJoins);
+                Dictionary<YearMonth, ulong> otheri = CalculateEquality(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, ulong> wasabi = CalculateEquality(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, ulong> samuri = CalculateEquality(ScannerFiles.SamouraiCoinJoins);
+                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+            }
+        }
+
+        public void CalculateIncome()
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                Dictionary<YearMonth, Money> wasabi = CalculateWasabiIncome(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, Money> samuri = CalculateSamuriIncome(ScannerFiles.SamouraiTx0s);
+                DisplayWasabiSamuriResults(wasabi, samuri);
             }
         }
 
@@ -58,14 +68,14 @@ namespace Dumplings.Stats
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonth, Money> freshOtherCoinJoins = CalculateFreshBitcoins(ScannerFiles.OtherCoinJoins);
-                Dictionary<YearMonth, Money> freshWasabiCoinJoins = CalculateFreshBitcoins(ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonth, Money> freshSamouraiCoinJoins = CalculateFreshBitcoinsFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
-                DisplayResults(freshOtherCoinJoins, freshWasabiCoinJoins, freshSamouraiCoinJoins);
+                Dictionary<YearMonth, Money> otheri = CalculateFreshBitcoins(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, Money> wasabi = CalculateFreshBitcoins(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, Money> samuri = CalculateFreshBitcoinsFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
+                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
             }
         }
 
-        private void DisplayResults(Dictionary<YearMonth, Money> otheriResults, Dictionary<YearMonth, Money> wasabiResults, Dictionary<YearMonth, Money> samuriResults)
+        private void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonth, Money> otheriResults, Dictionary<YearMonth, Money> wasabiResults, Dictionary<YearMonth, Money> samuriResults)
         {
             Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
 
@@ -94,7 +104,31 @@ namespace Dumplings.Stats
             }
         }
 
-        private void DisplayResults(Dictionary<YearMonth, ulong> otheriResults, Dictionary<YearMonth, ulong> wasabiResults, Dictionary<YearMonth, ulong> samuriResults)
+        private void DisplayWasabiSamuriResults(Dictionary<YearMonth, Money> wasabiResults, Dictionary<YearMonth, Money> samuriResults)
+        {
+            Console.WriteLine($"Month;Wasabi;Samuri");
+
+            foreach (var yearMonth in wasabiResults
+                .Keys
+                .Concat(samuriResults.Keys)
+                .Distinct()
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month))
+            {
+                if (!wasabiResults.TryGetValue(yearMonth, out Money wasabi))
+                {
+                    wasabi = Money.Zero;
+                }
+                if (!samuriResults.TryGetValue(yearMonth, out Money samuri))
+                {
+                    samuri = Money.Zero;
+                }
+
+                Console.WriteLine($"{yearMonth};{wasabi.ToDecimal(MoneyUnit.BTC):0.00};{samuri.ToDecimal(MoneyUnit.BTC):0.00}");
+            }
+        }
+
+        private void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonth, ulong> otheriResults, Dictionary<YearMonth, ulong> wasabiResults, Dictionary<YearMonth, ulong> samuriResults)
         {
             Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
 
@@ -354,6 +388,126 @@ namespace Dumplings.Stats
             }
 
             return myDic;
+        }
+
+        private Dictionary<YearMonth, Money> CalculateWasabiIncome(IEnumerable<VerboseTransactionInfo> coinJoins)
+        {
+            var myDic = new Dictionary<YearMonth, Money>();
+            foreach (var tx in coinJoins)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    var blockTimeValue = blockTime.Value;
+                    var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
+
+                    var sum = Money.Zero;
+                    foreach (var output in tx.Outputs.Where(x => Constants.WasabiCoordScripts.Contains(x.ScriptPubKey)))
+                    {
+                        sum += output.Value;
+                    }
+
+                    if (myDic.TryGetValue(yearMonth, out Money current))
+                    {
+                        myDic[yearMonth] = current + sum;
+                    }
+                    else
+                    {
+                        myDic.Add(yearMonth, sum);
+                    }
+                }
+            }
+
+            return myDic;
+        }
+
+        private Dictionary<YearMonth, Money> CalculateSamuriIncome(IEnumerable<VerboseTransactionInfo> tx0s)
+        {
+            var myDic = new Dictionary<YearMonth, Money>();
+            foreach (var tx in tx0s)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    var blockTimeValue = blockTime.Value;
+                    var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
+
+                    var fee = Money.Zero;
+                    var equalOutputValues = tx.GetIndistinguishableOutputs(false).Select(x => x.value).ToHashSet();
+                    var feeCandidates = tx.Outputs.Where(x => !equalOutputValues.Contains(x.Value) && !TxNullDataTemplate.Instance.CheckScriptPubKey(x.ScriptPubKey));
+                    if (feeCandidates.Count() == 1)
+                    {
+                        fee = feeCandidates.First().Value;
+                    }
+                    else
+                    {
+                        if (equalOutputValues.Count == 0)
+                        {
+                            List<VerboseOutputInfo> closeEnoughs = FindMostLikelyMixOutputs(feeCandidates, 10);
+
+                            if (closeEnoughs.Any()) // There are like 5 tx from old time, I guess just experiemtns where it's not found.
+                            {
+                                var closeEnough = closeEnoughs.First().Value;
+                                var expectedMaxFee = closeEnough.Percentage(6m); // They do some discounts to ruin user privacy.
+                                var closest = feeCandidates.Where(x => x.Value < expectedMaxFee && x.Value != closeEnough).OrderByDescending(x => x.Value).FirstOrDefault();
+                                if (closest is { }) // There's no else here.
+                                {
+                                    fee = closest.Value;
+                                }
+                            }
+                        }
+                        else if (equalOutputValues.Count == 1)
+                        {
+                            var poolDenomination = equalOutputValues.First();
+                            var expectedMaxFee = poolDenomination.Percentage(6m); // They do some discounts to ruin user privacy.
+                            var closest = feeCandidates.Where(x => x.Value < expectedMaxFee).OrderByDescending(x => x.Value).FirstOrDefault();
+                            if (closest is { })
+                            {
+                                fee = closest.Value;
+                            }
+                        }
+                    }
+
+                    if (myDic.TryGetValue(yearMonth, out Money current))
+                    {
+                        myDic[yearMonth] = current + fee;
+                    }
+                    else
+                    {
+                        myDic.Add(yearMonth, fee);
+                    }
+                }
+            }
+
+            return myDic;
+        }
+
+        private static List<VerboseOutputInfo> FindMostLikelyMixOutputs(IEnumerable<VerboseOutputInfo> feeCandidates, int percentagePrecision)
+        {
+            var closeEnoughs = new List<VerboseOutputInfo>();
+            foreach (var denom in Constants.SamouraiPools)
+            {
+                var found = feeCandidates.FirstOrDefault(x => x.Value.Almost(denom, denom.Percentage(percentagePrecision)));
+                if (found is { })
+                {
+                    closeEnoughs.Add(found);
+                }
+            }
+
+            if (closeEnoughs.Count > 1)
+            {
+                var newCloseEnoughs = FindMostLikelyMixOutputs(closeEnoughs, percentagePrecision - 1);
+                if (newCloseEnoughs.Count == 0)
+                {
+                    closeEnoughs = closeEnoughs.Take(1).ToList();
+                }
+                else
+                {
+                    closeEnoughs = newCloseEnoughs.ToList();
+                }
+            }
+
+            return closeEnoughs;
         }
     }
 }
