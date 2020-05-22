@@ -58,9 +58,9 @@ How many non-remixed bitcoins get to CoinJoined monthly.
 
 ![](https://i.imgur.com/hWvXxux.png)
 
-Average remix count is a derived metric, which shows how many times a bitcoin participated in mixes in average: `total volume/fresh bitcoins`.
+Average count of remixes is a derived metric, which shows how many times a bitcoin participated in mixes in average: `total volume/fresh bitcoins`.
 
-![](https://i.imgur.com/Ge1znCM.png)
+![](https://i.imgur.com/lCZXywi.png)
 
 ## NeverMixed
 
