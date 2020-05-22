@@ -100,68 +100,73 @@ namespace Dumplings.Scanning
                     bool isWasabiCj = false;
                     bool isSamouraiCj = false;
                     bool isOtherCj = false;
-                    var indistinguishableOutputs = tx.GetIndistinguishableOutputs(includeSingle: false).ToArray();
-                    if (tx.Inputs.All(x => x.Coinbase is null) && indistinguishableOutputs.Any())
+                    if (tx.Inputs.All(x => x.Coinbase is null))
                     {
-                        var outputs = tx.Outputs.ToArray();
-                        var inputs = tx.Inputs.Select(x => x.PrevOutput).ToArray();
-                        var outputValues = outputs.Select(x => x.Value);
-                        var inputValues = inputs.Select(x => x.Value);
-                        var outputCount = outputs.Length;
-                        var inputCount = inputs.Length;
-                        (Money mostFrequentEqualOutputValue, int mostFrequentEqualOutputCount) = indistinguishableOutputs.OrderByDescending(x => x.count).First();
-                        // IDENTIFY WASABI COINJOINS
-                        if (block.Height >= Constants.FirstWasabiBlock)
+                        var indistinguishableOutputs = tx.GetIndistinguishableOutputs(includeSingle: false).ToArray();
+                        if (indistinguishableOutputs.Any())
                         {
-                            // Before Wasabi had constant coordinator addresses and different base denominations at the beginning.
-                            if (block.Height < Constants.FirstWasabiNoCoordAddressBlock)
+
+
+                            var outputs = tx.Outputs.ToArray();
+                            var inputs = tx.Inputs.Select(x => x.PrevOutput).ToArray();
+                            var outputValues = outputs.Select(x => x.Value);
+                            var inputValues = inputs.Select(x => x.Value);
+                            var outputCount = outputs.Length;
+                            var inputCount = inputs.Length;
+                            (Money mostFrequentEqualOutputValue, int mostFrequentEqualOutputCount) = indistinguishableOutputs.OrderByDescending(x => x.count).First();
+                            // IDENTIFY WASABI COINJOINS
+                            if (block.Height >= Constants.FirstWasabiBlock)
                             {
-                                isWasabiCj = tx.Outputs.Any(x => Constants.WasabiCoordScripts.Contains(x.ScriptPubKey)) && indistinguishableOutputs.Any(x => x.count > 2);
+                                // Before Wasabi had constant coordinator addresses and different base denominations at the beginning.
+                                if (block.Height < Constants.FirstWasabiNoCoordAddressBlock)
+                                {
+                                    isWasabiCj = tx.Outputs.Any(x => Constants.WasabiCoordScripts.Contains(x.ScriptPubKey)) && indistinguishableOutputs.Any(x => x.count > 2);
+                                }
+                                else
+                                {
+                                    isWasabiCj =
+                                        mostFrequentEqualOutputCount >= 10 // At least 10 equal outputs.
+                                        && inputCount >= mostFrequentEqualOutputCount // More inptu than outputs.
+                                        && mostFrequentEqualOutputValue.Almost(Constants.ApproximateWasabiBaseDenomination, Constants.WasabiBaseDenominationPrecision); // The most frequent equal outputs must be almost the base denomination.
+                                }
                             }
-                            else
+
+                            // IDENTIFY SAMOURAI COINJOINS
+                            if (block.Height >= Constants.FirstSamouraiBlock)
                             {
-                                isWasabiCj =
-                                    mostFrequentEqualOutputCount >= 10 // At least 10 equal outputs.
-                                    && inputCount >= mostFrequentEqualOutputCount // More inptu than outputs.
-                                    && mostFrequentEqualOutputValue.Almost(Constants.ApproximateWasabiBaseDenomination, Constants.WasabiBaseDenominationPrecision); // The most frequent equal outputs must be almost the base denomination.
+                                isSamouraiCj =
+                                   inputCount == 5 // Always have 5 inputs.
+                                   && outputCount == 5 // Always have 5 outputs.
+                                   && outputValues.Distinct().Count() == 1 // Outputs are always equal.
+                                   && Constants.SamouraiPools.Any(x => x.Almost(tx.Outputs.First().Value, Money.Coins(0.01m))); // Just to be sure match Samourai's pool sizes.
                             }
-                        }
 
-                        // IDENTIFY SAMOURAI COINJOINS
-                        if (block.Height >= Constants.FirstSamouraiBlock)
-                        {
-                            isSamouraiCj =
-                               inputCount == 5 // Always have 5 inputs.
-                               && outputCount == 5 // Always have 5 outputs.
-                               && outputValues.Distinct().Count() == 1 // Outputs are always equal.
-                               && Constants.SamouraiPools.Any(x => x.Almost(tx.Outputs.First().Value, Money.Coins(0.01m))); // Just to be sure match Samourai's pool sizes.
-                        }
+                            // IDENTIFY OTHER EQUAL OUTPUT COINJOIN LIKE TRANSACTIONS
+                            if (!isWasabiCj && !isSamouraiCj)
+                            {
+                                isOtherCj =
+                                    indistinguishableOutputs.Length == 1 // If it isn't then it'd be likely a multidenomination CJ, which only Wasabi does.                                                                 
+                                    && mostFrequentEqualOutputCount == outputCount - mostFrequentEqualOutputCount // Rarely it isn't, but it helps filtering out false positives.
+                                    && outputs.Select(x => x.ScriptPubKey).Distinct().Count() >= mostFrequentEqualOutputCount // Otherwise more participants would be single actors which makes no sense.
+                                    && inputs.Select(x => x.ScriptPubKey).Distinct().Count() >= mostFrequentEqualOutputCount // Otherwise more participants would be single actors which makes no sense.
+                                    && inputValues.Max() <= mostFrequentEqualOutputValue + outputValues.Where(x => x != mostFrequentEqualOutputValue).Max() - Money.Coins(0.0001m); // I don't want to run expensive subset sum, so this is a shortcut to at least filter out false positives.
+                            }
 
-                        // IDENTIFY OTHER EQUAL OUTPUT COINJOIN LIKE TRANSACTIONS
-                        if (!isWasabiCj && !isSamouraiCj)
-                        {
-                            isOtherCj =
-                                indistinguishableOutputs.Length == 1 // If it isn't then it'd be likely a multidenomination CJ, which only Wasabi does.                                                                 
-                                && mostFrequentEqualOutputCount == outputCount - mostFrequentEqualOutputCount // Rarely it isn't, but it helps filtering out false positives.
-                                && outputs.Select(x => x.ScriptPubKey).Distinct().Count() >= mostFrequentEqualOutputCount // Otherwise more participants would be single actors which makes no sense.
-                                && inputs.Select(x => x.ScriptPubKey).Distinct().Count() >= mostFrequentEqualOutputCount // Otherwise more participants would be single actors which makes no sense.
-                                && inputValues.Max() <= mostFrequentEqualOutputValue + outputValues.Where(x => x != mostFrequentEqualOutputValue).Max() - Money.Coins(0.0001m); // I don't want to run expensive subset sum, so this is a shortcut to at least filter out false positives.
-                        }
-
-                        if (isWasabiCj)
-                        {
-                            wasabiCoinJoins.Add(tx);
-                            allWasabiCoinJoinSet.Add(tx.Id);
-                        }
-                        else if (isSamouraiCj)
-                        {
-                            samouraiCoinJoins.Add(tx);
-                            allSamouraiCoinJoinSet.Add(tx.Id);
-                        }
-                        else if (isOtherCj)
-                        {
-                            otherCoinJoins.Add(tx);
-                            allOtherCoinJoinSet.Add(tx.Id);
+                            if (isWasabiCj)
+                            {
+                                wasabiCoinJoins.Add(tx);
+                                allWasabiCoinJoinSet.Add(tx.Id);
+                            }
+                            else if (isSamouraiCj)
+                            {
+                                samouraiCoinJoins.Add(tx);
+                                allSamouraiCoinJoinSet.Add(tx.Id);
+                            }
+                            else if (isOtherCj)
+                            {
+                                otherCoinJoins.Add(tx);
+                                allOtherCoinJoinSet.Add(tx.Id);
+                            }
                         }
 
                         foreach (var inputTxId in tx.Inputs.Select(x => x.OutPoint.Hash))
