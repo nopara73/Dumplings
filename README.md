@@ -86,9 +86,7 @@ The next is a derived metric. It's the percentage of monthly income where the to
 
 # PostMixConsolidation
 
-Average number of inputs in the first non-coinjoin transactions after coinjoins.
-
-![](https://i.imgur.com/7K48Pbk.png)
+Average number of inputs in the first non-coinjoin transactions after coinjoins. ToDo: Wasabi PostMix txs are underidentified.
 
 # FAQ
 
