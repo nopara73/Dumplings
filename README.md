@@ -58,6 +58,10 @@ How many non-remixed bitcoins get to CoinJoined monthly.
 
 ![](https://i.imgur.com/hWvXxux.png)
 
+Average remix count is a derived metric, which shows how many times a bitcoin participated in mixes in average: `total volume/fresh bitcoins`.
+
+![](https://i.imgur.com/Ge1znCM.png)
+
 ## NeverMixed
 
 How many non-mixed bitcoins (CJ change outputs in the case of Otheri and Wasabi and TX0 non-mixed outputs in the case of Samuri) were not instantly mixed.
