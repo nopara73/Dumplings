@@ -105,8 +105,6 @@ namespace Dumplings.Scanning
                         var indistinguishableOutputs = tx.GetIndistinguishableOutputs(includeSingle: false).ToArray();
                         if (indistinguishableOutputs.Any())
                         {
-
-
                             var outputs = tx.Outputs.ToArray();
                             var inputs = tx.Inputs.Select(x => x.PrevOutput).ToArray();
                             var outputValues = outputs.Select(x => x.Value);
