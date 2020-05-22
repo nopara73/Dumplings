@@ -65,6 +65,15 @@ namespace Dumplings.Stats
             }
         }
 
+        public void CalculateSmallerThanMinimumWasabiInputs()
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                Dictionary<YearMonth, decimal> wasabi = CalculateSmallerThanMinimumWasabiInputs(ScannerFiles.WasabiCoinJoins);
+                DisplayWasabiResults(wasabi);
+            }
+        }
+
         public void CalculateIncome()
         {
             using (BenchmarkLogger.Measure())
@@ -112,6 +121,25 @@ namespace Dumplings.Stats
                 }
 
                 Console.WriteLine($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
+            }
+        }
+
+        private void DisplayWasabiResults(Dictionary<YearMonth, decimal> wasabiResults)
+        {
+            Console.WriteLine($"Month;Wasabi");
+
+            foreach (var yearMonth in wasabiResults
+                .Keys
+                .Distinct()
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month))
+            {
+                if (!wasabiResults.TryGetValue(yearMonth, out decimal wasabi))
+                {
+                    wasabi = 0;
+                }
+
+                Console.WriteLine($"{yearMonth};{wasabi:0.00}");
             }
         }
 
@@ -432,9 +460,6 @@ namespace Dumplings.Stats
 
         private Dictionary<YearMonth, decimal> CalculateAveragePostMixInputs(IEnumerable<VerboseTransactionInfo> postMixes)
         {
-            // CoinJoin Equality metric shows how much equality is gained for bitcoins. It is calculated separately to inputs and outputs and the results are added together.
-            // For example if 2 people mix 10 bitcoins only on the output side, then CoinJoin Equality will be 2 * 1 * 10, beause 2 people mixed, both with 1 other person 10 bitcoins on the outputs ide.
-
             var myDic = new Dictionary<YearMonth, (int totalTxs, int totalIns, decimal avg)>();
             foreach (var tx in postMixes)
             {
@@ -448,7 +473,7 @@ namespace Dumplings.Stats
                     int tins = tx.Inputs.Count();
                     decimal average = (decimal)tins / ttxs;
 
-                    if (myDic.TryGetValue(yearMonth, out (int totalTxs, int totalIns, decimal _) current))
+                    if (myDic.TryGetValue(yearMonth, out (int totalTxs, int totalIns, decimal) current))
                     {
                         ttxs = current.totalTxs + 1;
                         tins = current.totalIns + tins;
@@ -466,6 +491,44 @@ namespace Dumplings.Stats
             foreach(var kv in myDic)
             {
                 retDic.Add(kv.Key, kv.Value.avg);
+            }
+            return retDic;
+        }
+
+        private Dictionary<YearMonth, decimal> CalculateSmallerThanMinimumWasabiInputs(IEnumerable<VerboseTransactionInfo> postMixes)
+        {
+            var myDic = new Dictionary<YearMonth, (int totalInputs, int totalSmallerInputs)>();
+            foreach (var tx in postMixes)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    var blockTimeValue = blockTime.Value;
+                    var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
+
+                    var (value, count) = tx.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count).First();                   
+
+                    int tic = tx.Inputs.Count();
+                    int sic = tic - count;
+
+                    if (myDic.TryGetValue(yearMonth, out (int tins, int tsins) current))
+                    {
+                        tic += current.tins;
+                        sic += current.tsins;
+                        myDic[yearMonth] = (tic, sic);
+                    }
+                    else
+                    {
+                        myDic.Add(yearMonth, (tic, sic));
+                    }
+                }
+            }
+
+            var retDic = new Dictionary<YearMonth, decimal>();
+            foreach (var kv in myDic)
+            {
+                var perc = (decimal)kv.Value.totalSmallerInputs / kv.Value.totalInputs;
+                retDic.Add(kv.Key, perc);
             }
             return retDic;
         }

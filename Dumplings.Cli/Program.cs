@@ -92,6 +92,12 @@ namespace Dumplings.Cli
                     var stat = new Statista(loadedScannerFiles, client);
                     stat.CalculatePostMixConsolidation();
                 }
+                else if (command == Command.SmallerThanMinimum)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles, client);
+                    stat.CalculateSmallerThanMinimumWasabiInputs();
+                }
             }
 
             Console.WriteLine();
