@@ -54,6 +54,17 @@ namespace Dumplings.Stats
             }
         }
 
+        public void CalculatePostMixConsolidation()
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                Dictionary<YearMonth, decimal> otheri = CalculateAveragePostMixInputs(ScannerFiles.OtherCoinJoinPostMixTxs);
+                Dictionary<YearMonth, decimal> wasabi = CalculateAveragePostMixInputs(ScannerFiles.WasabiPostMixTxs);
+                Dictionary<YearMonth, decimal> samuri = CalculateAveragePostMixInputs(ScannerFiles.SamouraiPostMixTxs);
+                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+            }
+        }
+
         public void CalculateIncome()
         {
             using (BenchmarkLogger.Measure())
@@ -154,6 +165,35 @@ namespace Dumplings.Stats
                 }
 
                 Console.WriteLine($"{yearMonth};{otheri:0};{wasabi:0};{samuri:0}");
+            }
+        }
+
+        private void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonth, decimal> otheriResults, Dictionary<YearMonth, decimal> wasabiResults, Dictionary<YearMonth, decimal> samuriResults)
+        {
+            Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
+
+            foreach (var yearMonth in wasabiResults
+                .Keys
+                .Concat(otheriResults.Keys)
+                .Concat(samuriResults.Keys)
+                .Distinct()
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month))
+            {
+                if (!otheriResults.TryGetValue(yearMonth, out decimal otheri))
+                {
+                    otheri = 0;
+                }
+                if (!wasabiResults.TryGetValue(yearMonth, out decimal wasabi))
+                {
+                    wasabi = 0;
+                }
+                if (!samuriResults.TryGetValue(yearMonth, out decimal samuri))
+                {
+                    samuri = 0;
+                }
+
+                Console.WriteLine($"{yearMonth};{otheri:0.0};{wasabi:0.0};{samuri:0.0}");
             }
         }
 
@@ -388,6 +428,46 @@ namespace Dumplings.Stats
             }
 
             return myDic;
+        }
+
+        private Dictionary<YearMonth, decimal> CalculateAveragePostMixInputs(IEnumerable<VerboseTransactionInfo> postMixes)
+        {
+            // CoinJoin Equality metric shows how much equality is gained for bitcoins. It is calculated separately to inputs and outputs and the results are added together.
+            // For example if 2 people mix 10 bitcoins only on the output side, then CoinJoin Equality will be 2 * 1 * 10, beause 2 people mixed, both with 1 other person 10 bitcoins on the outputs ide.
+
+            var myDic = new Dictionary<YearMonth, (int totalTxs, int totalIns, decimal avg)>();
+            foreach (var tx in postMixes)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    var blockTimeValue = blockTime.Value;
+                    var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
+
+                    int ttxs = 1;
+                    int tins = tx.Inputs.Count();
+                    decimal average = (decimal)tins / ttxs;
+
+                    if (myDic.TryGetValue(yearMonth, out (int totalTxs, int totalIns, decimal _) current))
+                    {
+                        ttxs = current.totalTxs + 1;
+                        tins = current.totalIns + tins;
+                        average = (decimal)tins / ttxs;
+                        myDic[yearMonth] = (ttxs, tins, average);
+                    }
+                    else
+                    {
+                        myDic.Add(yearMonth, (ttxs, tins, average));
+                    }
+                }
+            }
+
+            var retDic = new Dictionary<YearMonth, decimal>();
+            foreach(var kv in myDic)
+            {
+                retDic.Add(kv.Key, kv.Value.avg);
+            }
+            return retDic;
         }
 
         private Dictionary<YearMonth, Money> CalculateWasabiIncome(IEnumerable<VerboseTransactionInfo> coinJoins)

@@ -86,6 +86,12 @@ namespace Dumplings.Cli
                     var stat = new Statista(loadedScannerFiles, client);
                     stat.CalculateIncome();
                 }
+                else if (command == Command.PostMixConsolidation)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles, client);
+                    stat.CalculatePostMixConsolidation();
+                }
             }
 
             Console.WriteLine();
