@@ -84,6 +84,12 @@ The next is a derived metric. It's the percentage of monthly income where the to
 
 ![](https://i.imgur.com/2ZvyqCX.png)
 
+# PostMixConsolidation
+
+Average number of inputs in the first non-coinjoin transactions after coinjoins.
+
+![](https://i.imgur.com/7K48Pbk.png)
+
 # FAQ
 
 ## What does Wasabi, Samuri, Otheri mean?
