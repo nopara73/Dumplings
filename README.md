@@ -58,6 +58,10 @@ How many non-remixed bitcoins get to CoinJoined monthly.
 
 ![](https://i.imgur.com/hWvXxux.png)
 
+Average count of remixes is a derived metric, which shows how many times a bitcoin participated in mixes in average: `total volume/fresh bitcoins`.
+
+![](https://i.imgur.com/lCZXywi.png)
+
 ## NeverMixed
 
 How many non-mixed bitcoins (CJ change outputs in the case of Otheri and Wasabi and TX0 non-mixed outputs in the case of Samuri) were not instantly mixed.
@@ -70,17 +74,15 @@ The following is a derived metric: it's the percentage of nevermixed coins to fr
 
 ![](https://i.imgur.com/pr1TTVo.png)
 
-## CoinJoinEquality
+# CoinJoinIncome
 
-> Best proxy for overall privacy gain.
+Note: Without sophisticated algorithms it is hard to tell how much income Wasabi makes after it changed its fee address to dynamic calculations, so that's why the data is discontinued at some point.
 
-CoinJoin Equality metric shows how much equality is gained for bitcoins. It is calculated separately to inputs and outputs and the results are added together. For example if 2 people mix 10 bitcoins only on the output side, then CoinJoin Equality will be 2 * 1 * 10, beause 2 people mixed, both with 1 other person (each other) 10 bitcoins on the outputs side.
+![](https://i.imgur.com/4pvu5wa.png)
 
-![](https://i.imgur.com/VM1cwLq.png)
+The next is a derived metric. It's the percentage of monthly income where the total is the fresh bitcoins coming into mix monthly.
 
-The following is a derived metric: it's calculated as such the CoinJoin Equality score gets divided by the fresh bitcoins. Note: it's not a perfect efficiency metric as blockspace usage isn't factored in.
-
-![](https://i.imgur.com/Fgfd2yF.png)
+![](https://i.imgur.com/2ZvyqCX.png)
 
 # FAQ
 
