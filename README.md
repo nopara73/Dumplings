@@ -36,7 +36,7 @@ The software can create statistics after it synchronized. Synchronization will c
 
 ![](https://i.imgur.com/wNyMFDx.png)
 
-From these files you can create many kind of statistics quickly or just create the existing statistics. You can download a Scanner folder that's synced up to 2020-05-19 from [here](https://drive.google.com/open?id=1jKM19xMKsm1fwA_HbgXfDwYGjUpLLacU).
+From these files you can create many kind of statistics quickly or just create the existing statistics. You can download a Scanner folder that's synced up to 2020-05-22 from [here](https://drive.google.com/open?id=1IFugzv9DT8GSztw8piS3kAB2eRolhS_t).
 
 The expected location of the scanner folder is `Dumplings\Dumplings.Cli\bin\Debug\netcoreapp3.1\Scanner` on Windows and `Dumplings/Dumplings.Cli/Scanner/` on Linux (and probably on OSX.)
 
