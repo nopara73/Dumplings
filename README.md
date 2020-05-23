@@ -90,6 +90,12 @@ Average number of inputs in the first non-coinjoin transactions after coinjoins.
 
 ![](https://i.imgur.com/o1LR05C.png)
 
+# SmallerThanMinimum
+
+Percentage of inputs those are smaller than the base denomination in Wasabi coinjoins.
+
+![](https://i.imgur.com/U0NC3Oe.png)
+
 # FAQ
 
 ## What does Wasabi, Samuri, Otheri mean?
