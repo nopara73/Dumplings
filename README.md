@@ -88,7 +88,7 @@ The next is a derived metric. It's the percentage of monthly income where the to
 
 Average number of inputs in the first non-coinjoin transactions after coinjoins.
 
-![](https://i.imgur.com/o1LR05C.png)
+![](https://i.imgur.com/3lHAvkZ.png)
 
 # SmallerThanMinimum
 
