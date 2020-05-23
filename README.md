@@ -34,7 +34,7 @@ After you synchronized you probably want to do some data integrity checks too:
 
 The software can create statistics after it synchronized. Synchronization will create a folder, called `Scanner` and some files in it:
 
-![](https://i.imgur.com/wNyMFDx.png)
+![](https://i.imgur.com/h7qhWRA.png)
 
 From these files you can create many kind of statistics quickly or just create the existing statistics. You can download a Scanner folder that's synced up to 2020-05-22 from [here](https://drive.google.com/open?id=1IFugzv9DT8GSztw8piS3kAB2eRolhS_t).
 
