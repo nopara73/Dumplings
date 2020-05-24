@@ -64,7 +64,10 @@ Average count of remixes is a derived metric, which shows how many times a bitco
 
 ## NeverMixed
 
-How many non-mixed bitcoins (CJ change outputs in the case of Otheri and Wasabi and TX0 non-mixed outputs in the case of Samuri) were not instantly mixed.
+Bitcoins those were intended to be mixed, but were not.
+
+- For Wasabi and Otheri, it counts CoinJoin change outputs those have been spent, but not in other CoinJoins. (Note 1: the software does not currently examine if the change is coming from CoinJoined inputs. Note 2: more related metrics and more detailed explanation on Wasabi's inefficiency can be found under the [WasabiCjEfficiency repository](https://github.com/nopara73/WasabiCjEfficiency).)
+- For Samuri, it counts TX0 transaction outputs those have been spent, but not in other TX0 or Coinoin transactions.
 
 ![](https://i.imgur.com/ftG0jea.png)
 ![](https://i.imgur.com/x1y6DGf.png)
