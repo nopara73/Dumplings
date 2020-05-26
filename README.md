@@ -34,9 +34,9 @@ After you synchronized you probably want to do some data integrity checks too:
 
 The software can create statistics after it synchronized. Synchronization will create a folder, called `Scanner` and some files in it:
 
-![](https://i.imgur.com/wNyMFDx.png)
+![](https://i.imgur.com/h7qhWRA.png)
 
-From these files you can create many kind of statistics quickly or just create the existing statistics. You can download a Scanner folder that's synced up to 2020-05-19 from [here](https://drive.google.com/open?id=1jKM19xMKsm1fwA_HbgXfDwYGjUpLLacU).
+From these files you can create many kind of statistics quickly or just create the existing statistics. You can download a Scanner folder that's synced up to 2020-05-22 from [here](https://drive.google.com/open?id=1IFugzv9DT8GSztw8piS3kAB2eRolhS_t).
 
 The expected location of the scanner folder is `Dumplings\Dumplings.Cli\bin\Debug\netcoreapp3.1\Scanner` on Windows and `Dumplings/Dumplings.Cli/Scanner/` on Linux (and probably on OSX.)
 
@@ -64,7 +64,10 @@ Average count of remixes is a derived metric, which shows how many times a bitco
 
 ## NeverMixed
 
-How many non-mixed bitcoins (CJ change outputs in the case of Otheri and Wasabi and TX0 non-mixed outputs in the case of Samuri) were not instantly mixed.
+Bitcoins those were intended to be mixed, but were not.
+
+- For Wasabi and Otheri, it counts CoinJoin change outputs those have been spent, but not in other CoinJoins. (Note 1: the software does not currently examine if the change is coming from CoinJoined inputs. Note 2: more related metrics and more detailed explanation on Wasabi's inefficiency can be found under the [WasabiCjEfficiency repository](https://github.com/nopara73/WasabiCjEfficiency).)
+- For Samuri, it counts TX0 transaction outputs those have been spent, but not in other TX0 or Coinoin transactions.
 
 ![](https://i.imgur.com/ftG0jea.png)
 ![](https://i.imgur.com/x1y6DGf.png)
@@ -86,7 +89,15 @@ The next is a derived metric. It's the percentage of monthly income where the to
 
 # PostMixConsolidation
 
-Average number of inputs in the first non-coinjoin transactions after coinjoins. ToDo: Wasabi PostMix txs are underidentified.
+Average number of inputs in the first non-coinjoin transactions after coinjoins.
+
+![](https://i.imgur.com/3lHAvkZ.png)
+
+# SmallerThanMinimum
+
+Percentage of inputs those are smaller than the base denomination in Wasabi coinjoins.
+
+![](https://i.imgur.com/U0NC3Oe.png)
 
 # FAQ
 
