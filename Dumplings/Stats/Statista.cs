@@ -32,6 +32,17 @@ namespace Dumplings.Stats
             }
         }
 
+        public void CalculateMonthlyEqualVolumes()
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                Dictionary<YearMonth, Money> otheri = CalculateMonthlyEqualVolumes(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, Money> wasabi = CalculateMonthlyEqualVolumes(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, Money> samuri = CalculateMonthlyEqualVolumes(ScannerFiles.SamouraiCoinJoins);
+                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+            }
+        }
+
         public void CalculateNeverMixed()
         {
             using (BenchmarkLogger.Measure())
@@ -237,6 +248,32 @@ namespace Dumplings.Stats
                     var blockTimeValue = blockTime.Value;
                     var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
                     var sum = tx.Outputs.Sum(x => x.Value);
+                    if (myDic.TryGetValue(yearMonth, out Money current))
+                    {
+                        myDic[yearMonth] = current + sum;
+                    }
+                    else
+                    {
+                        myDic.Add(yearMonth, sum);
+                    }
+                }
+            }
+
+            return myDic;
+        }
+
+        private Dictionary<YearMonth, Money> CalculateMonthlyEqualVolumes(IEnumerable<VerboseTransactionInfo> txs)
+        {
+            var myDic = new Dictionary<YearMonth, Money>();
+
+            foreach (var tx in txs)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    var blockTimeValue = blockTime.Value;
+                    var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
+                    var sum = tx.GetIndistinguishableOutputs(includeSingle: false).Sum(x => x.value * x.count);
                     if (myDic.TryGetValue(yearMonth, out Money current))
                     {
                         myDic[yearMonth] = current + sum;

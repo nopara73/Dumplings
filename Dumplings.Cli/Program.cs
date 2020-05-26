@@ -98,6 +98,12 @@ namespace Dumplings.Cli
                     var stat = new Statista(loadedScannerFiles, client);
                     stat.CalculateSmallerThanMinimumWasabiInputs();
                 }
+                else if (command == Command.MonthlyEqualVolumes)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles, client);
+                    stat.CalculateMonthlyEqualVolumes();
+                }
             }
 
             Console.WriteLine();
