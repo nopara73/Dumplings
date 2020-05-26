@@ -55,7 +55,7 @@ namespace Dumplings.Rpc
             {
                 // x people mixed with x - 1 people x bitcoins
                 decimal bitcoinValue = bucket.Key.ToDecimal(MoneyUnit.BTC);
-                equality += (ulong)(bucket.Value * (bucket.Value - 1) * bitcoinValue);
+                equality += (ulong)(bucket.Value * bucket.Value * bitcoinValue);
             }
 
             return equality;

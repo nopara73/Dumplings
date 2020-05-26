@@ -468,7 +468,7 @@ namespace Dumplings.Stats
         private Dictionary<YearMonth, ulong> CalculateEquality(IEnumerable<VerboseTransactionInfo> coinJoins)
         {
             // CoinJoin Equality metric shows how much equality is gained for bitcoins. It is calculated separately to inputs and outputs and the results are added together.
-            // For example if 2 people mix 10 bitcoins only on the output side, then CoinJoin Equality will be 2 * 1 * 10, beause 2 people mixed, both with 1 other person 10 bitcoins on the outputs ide.
+            // For example if 3 people mix 10 bitcoins only on the output side, then CoinJoin Equality will be 3^2 * 10.
 
             var myDic = new Dictionary<YearMonth, ulong>();
             foreach (var tx in coinJoins)
