@@ -91,6 +91,8 @@ The metric of average fees paid is derived as the percentage of income and value
 
 ### Explanation
 
+The metric of average postmix input merging describes the number of inputs in the first non-CoinJoin transaction. This is excluding remixes in future CoinJoin transaction.
+
 ![Average number of inputs consolidated postmix](https://i.imgur.com/3lHAvkZ.png)
 
 ### Analysis
