@@ -33,6 +33,8 @@ Whirlpool transactions make a small percentage of overall volume, but neverthele
 
 ### Explanation
 
+Fresh bitcoin is calculated by the sum value of the inputs, those have not been outputs in a previous CoinJoin or tx0. This shows the value of "new" or previously unmixed bitcoin that are now entering the CoinJoin for the first time. This metric gives an intuition of user adoption.
+
 ![Cumulative monthly fresh bitcoin volume](https://i.imgur.com/hWvXxux.png)
 
 ### Analysis
