@@ -19,11 +19,15 @@ Since early discussion about the technique by Satoshi, and the proper introducti
 
 The monthly volume of CoinJoin transactions is the sum of bitcoin of all the outputs. This includes both the anonymity set equal value output, as well as the non-private change outputs. It is a metric that indicates how much bitcoin the users are willing to trust having in a hotwallet, but not all of these bitcoin will reach sufficient privacy.
 
-![](https;//i.imgur.com/HIGDlH0.png)
+![Cummulative monthly CoinJoin volume](https://i.imgur.com/HIGDlH0.png)
 
 ### Analysis
 
+JoinMarket style transactions have been rather stable over the last three years, with roughly 10000 bitcoin as a steady base, and reaching up to 25000 bitcoin in some months.
 
+Wasabi started with only a fistful of bitcoin in the early months, but then rose sharply in one month to 18000 bitcoin. Following is a volatile but steady growth, reaching new all-time heights of nearly 45000 bitcoin recently.
+
+Whirlpool transactions make a small percentage of overall volume, but nevertheless, enjoys steady growth in recent months.`
 
 ## Fresh bitcoin
 
