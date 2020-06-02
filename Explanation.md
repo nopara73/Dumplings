@@ -103,6 +103,8 @@ The metric of average postmix input merging describes the number of inputs in th
 
 ### Explanation
 
+The percentage of inputs below the minimum denomination is explicitly relevant for Wasabi. It gives an intuition of how many users need to consolidate coins in order to reach the minimum of roughly 0.1 bitcoin.
+
 ![Percentage of inputs below minimum denomination in Wasabi](https://i.imgur.com/U0NC3Oe.png)
 
 ### Analysis
