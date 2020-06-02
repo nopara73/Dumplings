@@ -57,6 +57,8 @@ Average remix count is a derived metric of the relation of 'total volume / fresh
 
 ### Explanation
 
+Never mixed coins are those who were intended to be mixed, but were not and thus did not gain any privacy. For Wasabi and Joinmarket, this is the sum value of change outputs that were spent in a non-CoinJoin transaction. Change that is remixed is not included. For whirlpool, this is the sum value of outputs of tx0 transactions that were spent in a non-CoinJoin or non-tx0 transaction. Tx0 outputs that are spent in a CoinJoin are not counted.
+
 ![Cumulative nevermixed bitcoin JoinMarket](https://i.imgur.com/ftG0jea.png)
 ![Cumulative nevermixed bitcoin Wasabi](https://i.imgur.com/x1y6DGf.png)
 ![Cumulative nevermixed bitcoin Whirlpool](https://i.imgur.com/8neqsaw.png)
