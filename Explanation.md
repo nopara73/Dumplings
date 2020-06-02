@@ -75,7 +75,12 @@ CoinJoin inefficiency is a derived matric of the percentage of the sum of neverm
 
 ### Explanation
 
+CoinJoin income is the quantity of bitcoin that the central coordinators operated by zkSNACKs [Wasabi] and Muletools [Whirlpool] earned per month. Joinmarket is excluded from this metric, as there are unknown numbers of makers earning the CoinJoin fee. Further, without sophisticated algorithms it is hard to calculate the income of Wasabi CoinJoins since it stopped using a fixed fee address, thus the calculation is discontinued at that point.
+
 ![Monthly CoinJoin income Wasabi and Whirlpool](https://i.imgur.com/4pvu5wa.png)
+
+The metric of average fees paid is derived as the percentage of income and value of fresh bitcoin of that month.
+
 ![Percentage average CoinJoin fee per user of Wasabi and Whirlpool](https://i.imgur.com/2ZvyqCX.png)
 
 ### Analysis
