@@ -19,7 +19,7 @@ Since early discussion about the technique by Satoshi, and the proper introducti
 
 The monthly volume of CoinJoin transactions is the sum of bitcoin of all the outputs. This includes both the anonymity set equal value output, as well as the non-private change outputs. It is a metric that indicates how much bitcoin the users are willing to trust having in a hotwallet, but not all of these bitcoin will reach sufficient privacy.
 
-![Cummulative monthly CoinJoin volume](https://i.imgur.com/HIGDlH0.png)
+![Cummulative monthly CoinJoin volume](https://i.imgur.com/HIGDlHO.png)
 
 ### Analysis
 
@@ -33,6 +33,8 @@ Whirlpool transactions make a small percentage of overall volume, but neverthele
 
 ### Explanation
 
+![Cumulative monthly fresh bitcoin volume](https://i.imgur.com/hWvXxux.png)
+
 ### Analysis
 
 
@@ -40,6 +42,8 @@ Whirlpool transactions make a small percentage of overall volume, but neverthele
 ## Average remix count
 
 ### Explanation
+
+![Percentage average remix count](https://i.imgur.com/lCZXywi.png)
 
 ### Analysis
 
@@ -49,6 +53,12 @@ Whirlpool transactions make a small percentage of overall volume, but neverthele
 
 ### Explanation
 
+![Cumulative nevermixed bitcoin JoinMarket](https://i.imgur.com/ftG0jea.png)
+![Cumulative nevermixed bitcoin Wasabi](https://i.imgur.com/x1y6DGf.png)
+![Cumulative nevermixed bitcoin Whirlpool](https://i.imgur.com/8neqsaw.png)
+
+![Percentage of nevermixed bitcoin](https://i.imgur.com/pr1TTVo.png)
+
 ### Analysis
 
 
@@ -56,6 +66,9 @@ Whirlpool transactions make a small percentage of overall volume, but neverthele
 ## CoinJoin income
 
 ### Explanation
+
+![Monthly CoinJoin income Wasabi and Whirlpool](https://i.imgur.com/4pvu5wa.png)
+![Percentage average CoinJoin fee per user of Wasabi and Whirlpool](https://i.imgur.com/2ZvyqCX.png)
 
 ### Analysis
 
@@ -65,6 +78,8 @@ Whirlpool transactions make a small percentage of overall volume, but neverthele
 
 ### Explanation
 
+![Average number of inputs consolidated postmix](https://i.imgur.com/3lHAvkZ.png)
+
 ### Analysis
 
 
@@ -72,6 +87,8 @@ Whirlpool transactions make a small percentage of overall volume, but neverthele
 ## Inputs smaller than the minimum
 
 ### Explanation
+
+![Percentage of inputs below minimum denomination in Wasabi](https://i.imgur.com/U0NC3Oe.png)
 
 ### Analysis
 
