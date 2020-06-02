@@ -45,6 +45,8 @@ Fresh bitcoin is calculated by the sum value of the inputs, those have not been 
 
 ### Explanation
 
+Average remix count is a derived metric of the relation of 'total volume / fresh bitcoin'. It shows how often an average user remixes his bitcoin. The higher this ratio, the better the average user privacy. However, this metric does not consider the anonymity set that is achieved by a single transaction.
+
 ![Percentage average remix count](https://i.imgur.com/lCZXywi.png)
 
 ### Analysis
