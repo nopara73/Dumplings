@@ -63,6 +63,8 @@ Never mixed coins are those who were intended to be mixed, but were not and thus
 ![Cumulative nevermixed bitcoin Wasabi](https://i.imgur.com/x1y6DGf.png)
 ![Cumulative nevermixed bitcoin Whirlpool](https://i.imgur.com/8neqsaw.png)
 
+CoinJoin inefficiency is a derived matric of the percentage of the sum of nevermixed coins to the sum of fresh bitcoin. The lower this ratio the better, because a higher percentage of bitcoin who were intended to be mixed actually received privacy.
+
 ![Percentage of nevermixed bitcoin](https://i.imgur.com/pr1TTVo.png)
 
 ### Analysis
