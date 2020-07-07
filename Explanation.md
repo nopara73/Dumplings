@@ -1,5 +1,11 @@
 # Dumplings
+Bitcoin pressingly needs transaction privacy. Chain analytic companies, intelligence agencies and other potent, possibly state-sponsored entities are continously working on deanonymizing Bitcoin users. Luckily, there are many privacy-enhancing techniques available for Bitcoin.
+
+Bitcoin users have many privay-enhancing options at their fingertips to choose from. In this blog post, we aim to compare quantitatively and objectively these available options to have a comprehensive overview about Bitcoin's privacy scene. This post will hopefully also help everyday users when they want to make informed decisions about which privacy-focused wallet they want to go with.
+
+Let's get started!
 ### Analysing historical CoinJoin metrics
+
 
 ## Reason and scope for this research
 
