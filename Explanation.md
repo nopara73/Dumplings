@@ -10,7 +10,11 @@ The art of Bitcoin privacy is to break the link between the pseudonymous identit
 Since early discussion about the technique by Satoshi, and the proper introduction by Maxwell, there have been multiple CoinJoin implementations with more or less success. The goal of our research is to analyse the usage patterns and historical trends of the three most widely used systems to date, JoinMarket, Wasabi and Whirlpool. It is limited in scope to publicly verifiable blockchain data, and thus excludes any active network level analysis. In this article we explain our methodological approach, define each metric, and compare the implementations in historical analysis. This is done in an effort to find inefficiencies of current implementations, and improve on them with future protocols.
 
 ## How to fingerprint CoinJoin transactions
+In order to be able to give a comprehensive overview of the Bitcoin privacy-enhancing scene we analyzed all CoinJoin transactions. However, first we needed to find them all!
 
+CoinJoin transactions are typically easy to detect. They consist of multiple inputs and outputs. Usually the number of outputs are slightly larger than the number of inputs as input UTXOs produce also non-mixed change outputs as well. Most of the times a CoinJoin transaction consists of dozens of inputs and outputs. For instance, have a look at [this gigantic Wasabi CoinJoin](https://blockstream.info/nojs/tx/e4a789d16a24a6643dfee06e018ad27648b896daae6a3577ae0f4eddcc4d9174) with more than 100 input UTXOs. Good luck in deanonymizing that, dear chain analysts!
+
+On the other hand, Samourai CoinJoin transactions have 5 inputs and outputs making them straightforward to detect.  
 
 
 ## Monthly volumes
@@ -38,7 +42,7 @@ Fresh bitcoin is calculated by the sum value of the inputs, those have not been 
 ![Cumulative monthly fresh bitcoin volume](https://i.imgur.com/r2YQ2Wm.png)
 
 ### Analysis
-
+One can observe a notable spike in Wasabi CoinJoin fresh bitcoin amounts around early August and mid-September of 2019. Approximately 20,000 fresh bitcoins entered Wasabi CoinJoins from the PlusToken scammers in [an attempt to mix](https://medium.com/@ErgoBTC/tracking-the-plustoken-whale-attempted-bitcoin-laundering-and-its-impact-on-wasabi-wallet-787c0d240192) their stolen wealth.
 
 
 ## Average remix count
@@ -50,8 +54,9 @@ Average remix count is a derived metric of the relation of 'total volume / fresh
 ![Percentage average remix count](https://i.imgur.com/MISX41S.png)
 
 ### Analysis
+Remixes are a vital element of CoinJoin privacy-enhancing techniques. During the course of remixing users drastically increase their anonymity sets. Therefore, for instance, Samourai and Wasabi incentivize their users to remix their funds. Generally speaking, if a coin participates in **_k_** remixes, then its gained anonymity set is **_k_** times the average anonymity set of the used CoinJoin platform. Lately, we see that Samourai achieves around 15 anonymity set for a coin in average, while Wasabi achieves TBD anonymity set for an average coin.
 
-
+Sadly, JoinMarket users do not really apply remixes to enhance transaction privacy.
 
 ## Never mixed
 
@@ -68,7 +73,7 @@ CoinJoin inefficiency is a derived matric of the percentage of the sum of neverm
 ![Percentage of nevermixed bitcoin](https://i.imgur.com/AXiyTP2.png)
 
 ### Analysis
-
+For the sake of blockvspace efficiency, it is essential that a CoinJoin transaction has as the least possible amount of unmixed UTXOs. However, the rigidity of current fixed-denomination CoinJoin transaction structures somewhat impede this. Wasabi regularly leaves more than 10% of its UTXOs unmixed.
 
 
 ## CoinJoin income
@@ -108,7 +113,7 @@ The percentage of inputs below the minimum denomination is explicitly relevant f
 ![Percentage of inputs below minimum denomination in Wasabi](https://i.imgur.com/FCtCB2K.png)
 
 ### Analysis
-
+There is a tradeoff between usability of Wasabi and opening up potential Denial of Service (DoS) attack vectors. Namely, a small base denomination would enable more users to join a CoinJoin transaction. However, on the other hand, it would make a potential DoS attack cheaper to disrupt the CoinJoin service. In current Wasabi, UTXOs with value less than the base deanonymization can enter the CoinJoin transaction, although their combined values should be more than the base denomination value. If a user registers such inputs for mixing, then the coordinator is able to link those UTXOs that they belong to the same user. This is a privacy leak and clearly unwanted.
 
 
 ## Conclusion
