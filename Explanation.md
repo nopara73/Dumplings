@@ -12,9 +12,9 @@ Since early discussion about the technique by Satoshi, and the proper introducti
 ## How to fingerprint CoinJoin transactions
 In order to be able to give a comprehensive overview of the Bitcoin privacy-enhancing scene we analyzed all CoinJoin transactions. However, first we needed to find them all!
 
-CoinJoin transactions are typically easy to detect. They consist of multiple inputs and outputs. Usually the number of outputs are slightly larger than the number of inputs as input UTXOs produce also non-mixed change outputs as well. Most of the times a CoinJoin transaction consists of dozens of inputs and outputs. For instance, have a look at [this gigantic Wasabi CoinJoin](https://blockstream.info/nojs/tx/e4a789d16a24a6643dfee06e018ad27648b896daae6a3577ae0f4eddcc4d9174) with more than 100 input UTXOs. Good luck in deanonymizing that, dear chain analysts!
+CoinJoin transactions are typically easy to detect. They consist of numerous inputs and outputs. Usually the number of outputs are slightly larger than the number of inputs as input UTXOs produce also non-mixed change outputs as well. Most of the times a CoinJoin transaction consists of dozens of inputs and outputs. For instance, have a look at [this gigantic Wasabi CoinJoin](https://blockstream.info/nojs/tx/e4a789d16a24a6643dfee06e018ad27648b896daae6a3577ae0f4eddcc4d9174) with more than 100 input UTXOs. Good luck in deanonymizing that, dear chain analysts!
 
-On the other hand, Samourai CoinJoin transactions have 5 inputs and outputs making them straightforward to detect.  
+On the other hand, Samourai CoinJoin transactions have 5 inputs and outputs making them also straightforward to detect.  
 
 
 ## Monthly volumes
@@ -68,12 +68,12 @@ Never mixed coins are those who were intended to be mixed, but were not and thus
 ![Cumulative nevermixed bitcoin Wasabi](https://i.imgur.com/RtbCS6H.png)
 ![Cumulative nevermixed bitcoin Whirlpool](https://i.imgur.com/3vAEtmW.png)
 
-CoinJoin inefficiency is a derived matric of the percentage of the sum of nevermixed coins to the sum of fresh bitcoin. The lower this ratio the better, because a higher percentage of bitcoin who were intended to be mixed actually received privacy.
+CoinJoin inefficiency is a derived metric of the percentage of the sum of nevermixed coins to the sum of fresh bitcoin. The lower this ratio the better, because a higher percentage of bitcoin who were intended to be mixed actually received privacy.
 
 ![Percentage of nevermixed bitcoin](https://i.imgur.com/AXiyTP2.png)
 
 ### Analysis
-For the sake of blockvspace efficiency, it is essential that a CoinJoin transaction has as the least possible amount of unmixed UTXOs. However, the rigidity of current fixed-denomination CoinJoin transaction structures somewhat impede this. Wasabi regularly leaves more than 10% of its UTXOs unmixed.
+For the sake of block space efficiency, it is essential that a CoinJoin transaction has the least possible amount of unmixed UTXOs. However, the rigidity of current fixed-denomination CoinJoin transaction structures somewhat impede this. Wasabi regularly leaves more than 10% of its UTXOs unmixed.
 
 
 ## CoinJoin income
@@ -113,7 +113,7 @@ The percentage of inputs below the minimum denomination is explicitly relevant f
 ![Percentage of inputs below minimum denomination in Wasabi](https://i.imgur.com/FCtCB2K.png)
 
 ### Analysis
-There is a tradeoff between usability of Wasabi and opening up potential Denial of Service (DoS) attack vectors. Namely, a small base denomination would enable more users to join a CoinJoin transaction. However, on the other hand, it would make a potential DoS attack cheaper to disrupt the CoinJoin service. In current Wasabi, UTXOs with value less than the base deanonymization can enter the CoinJoin transaction, although their combined values should be more than the base denomination value. If a user registers such inputs for mixing, then the coordinator is able to link those UTXOs that they belong to the same user. This is a privacy leak and clearly unwanted.
+There is a tradeoff between usability of Wasabi and opening up potential Denial of Service (DoS) attack vectors. Namely, a small base denomination would enable more users to join a CoinJoin transaction. However, on the other hand, it would make a potential DoS attack cheaper to disrupt the CoinJoin service. In current Wasabi, UTXOs with value less than the base denomination can enter the CoinJoin transaction, although their combined values should be more than the base denomination value. If a user registers such inputs for mixing, then the coordinator is able to link those UTXOs that infer they belong to the same user. This is a privacy leak and clearly unwanted.
 
 
 ## Conclusion
@@ -121,5 +121,4 @@ There is a tradeoff between usability of Wasabi and opening up potential Denial 
 
 
 ## WabiSabi fixes this
-
 
