@@ -48,7 +48,7 @@ After synchronization you can create statistics as follows: `dotnet run -- COMMA
 
 Total monthly volume of CoinJoin transactions.
 
-![](https://i.imgur.com/HIGDlHO.png)
+![](https://i.imgur.com/ZN6z4Ar.png)
 
 ## FreshBitcoins
 
@@ -56,11 +56,11 @@ Total monthly volume of CoinJoin transactions.
 
 How many non-remixed bitcoins get to CoinJoined monthly.
 
-![](https://i.imgur.com/hWvXxux.png)
+![](https://i.imgur.com/T89kdIH.png)
 
 Average count of remixes is a derived metric, which shows how many times a bitcoin participated in mixes in average: `total volume/fresh bitcoins`.
 
-![](https://i.imgur.com/lCZXywi.png)
+![](https://i.imgur.com/X8v90Q9.png)
 
 ## NeverMixed
 
@@ -69,35 +69,35 @@ Bitcoins those were intended to be mixed, but were not.
 - For Wasabi and Otheri, it counts CoinJoin change outputs those have been spent, but not in other CoinJoins. (Note 1: the software does not currently examine if the change is coming from CoinJoined inputs. Note 2: more related metrics and more detailed explanation on Wasabi's inefficiency can be found under the [WasabiCjEfficiency repository](https://github.com/nopara73/WasabiCjEfficiency).)
 - For Samuri, it counts TX0 transaction outputs those have been spent, but not in other TX0 or Coinoin transactions.
 
-![](https://i.imgur.com/ftG0jea.png)
-![](https://i.imgur.com/x1y6DGf.png)
-![](https://i.imgur.com/8neqsaw.png)
+![](https://i.imgur.com/hjyHA6R.png)
+![](https://i.imgur.com/Ckaf0mq.png)
+![](https://i.imgur.com/1KmX3lm.png)
 
 The following is a derived metric: it's the percentage of nevermixed coins to fresh bitcoins.
 
-![](https://i.imgur.com/pr1TTVo.png)
+![](https://i.imgur.com/eo9ywaw.png)
 
 # CoinJoinIncome
 
 Note: Without sophisticated algorithms it is hard to tell how much income Wasabi makes after it changed its fee address to dynamic calculations, so that's why the data is discontinued at some point.
 
-![](https://i.imgur.com/4pvu5wa.png)
+![](https://i.imgur.com/OWcpZSU.png)
 
 The next is a derived metric. It's the percentage of monthly income where the total is the fresh bitcoins coming into mix monthly.
 
-![](https://i.imgur.com/2ZvyqCX.png)
+![](https://i.imgur.com/7eTYqLa.png)
 
 # PostMixConsolidation
 
 Average number of inputs in the first non-coinjoin transactions after coinjoins.
 
-![](https://i.imgur.com/3lHAvkZ.png)
+![](https://i.imgur.com/EB6qKLe.png)
 
 # SmallerThanMinimum
 
 Percentage of inputs those are smaller than the base denomination in Wasabi coinjoins.
 
-![](https://i.imgur.com/U0NC3Oe.png)
+![](https://i.imgur.com/G8d8Le5.png)
 
 # FAQ
 
