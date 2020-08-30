@@ -68,6 +68,12 @@ namespace Dumplings.Cli
                     var stat = new Statista(loadedScannerFiles, client);
                     stat.CalculateFreshBitcoins();
                 }
+                else if (command == Command.FreshBitcoinsDaily)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles, client);
+                    stat.CalculateFreshBitcoinsDaily();
+                }
                 else if (command == Command.NeverMixed)
                 {
                     var loadedScannerFiles = Scanner.Load();

@@ -106,6 +106,17 @@ namespace Dumplings.Stats
             }
         }
 
+        public void CalculateFreshBitcoinsDaily()
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                Dictionary<YearMonthDay, Money> otheri = CalculateFreshBitcoinsDaily(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonthDay, Money> wasabi = CalculateFreshBitcoinsDaily(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonthDay, Money> samuri = CalculateFreshBitcoinsDailyFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
+                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+            }
+        }
+
         private void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonth, Money> otheriResults, Dictionary<YearMonth, Money> wasabiResults, Dictionary<YearMonth, Money> samuriResults)
         {
             Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
@@ -132,6 +143,35 @@ namespace Dumplings.Stats
                 }
 
                 Console.WriteLine($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
+            }
+        }
+
+        private void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonthDay, Money> otheriResults, Dictionary<YearMonthDay, Money> wasabiResults, Dictionary<YearMonthDay, Money> samuriResults)
+        {
+            Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
+
+            foreach (var yearMonthDay in wasabiResults
+                .Keys
+                .Concat(otheriResults.Keys)
+                .Concat(samuriResults.Keys)
+                .Distinct()
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month))
+            {
+                if (!otheriResults.TryGetValue(yearMonthDay, out Money otheri))
+                {
+                    otheri = Money.Zero;
+                }
+                if (!wasabiResults.TryGetValue(yearMonthDay, out Money wasabi))
+                {
+                    wasabi = Money.Zero;
+                }
+                if (!samuriResults.TryGetValue(yearMonthDay, out Money samuri))
+                {
+                    samuri = Money.Zero;
+                }
+
+                Console.WriteLine($"{yearMonthDay};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
             }
         }
 
@@ -291,6 +331,44 @@ namespace Dumplings.Stats
         private Dictionary<YearMonth, Money> CalculateFreshBitcoins(IEnumerable<VerboseTransactionInfo> txs)
         {
             var myDic = new Dictionary<YearMonth, Money>();
+            foreach (var day in CalculateFreshBitcoinsDaily(txs))
+            {
+                var yearMonth = day.Key.ToYearMonth();
+                var sum = day.Value;
+                if (myDic.TryGetValue(yearMonth, out Money current))
+                {
+                    myDic[yearMonth] = current + sum;
+                }
+                else
+                {
+                    myDic.Add(yearMonth, sum);
+                }
+            }
+            return myDic;
+        }
+
+        private Dictionary<YearMonth, Money> CalculateFreshBitcoinsFromTX0s(IEnumerable<VerboseTransactionInfo> tx0s, IEnumerable<uint256> cjHashes)
+        {
+            var myDic = new Dictionary<YearMonth, Money>();
+            foreach (var day in CalculateFreshBitcoinsDailyFromTX0s(tx0s, cjHashes))
+            {
+                var yearMonth = day.Key.ToYearMonth();
+                var sum = day.Value;
+                if (myDic.TryGetValue(yearMonth, out Money current))
+                {
+                    myDic[yearMonth] = current + sum;
+                }
+                else
+                {
+                    myDic.Add(yearMonth, sum);
+                }
+            }
+            return myDic;
+        }
+
+        private Dictionary<YearMonthDay, Money> CalculateFreshBitcoinsDaily(IEnumerable<VerboseTransactionInfo> txs)
+        {
+            var myDic = new Dictionary<YearMonthDay, Money>();
             var txHashes = txs.Select(x => x.Id).ToHashSet();
 
             foreach (var tx in txs)
@@ -299,7 +377,7 @@ namespace Dumplings.Stats
                 if (blockTime.HasValue)
                 {
                     var blockTimeValue = blockTime.Value;
-                    var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
+                    var yearMonthDay = new YearMonthDay(blockTimeValue.Year, blockTimeValue.Month, blockTimeValue.Day);
 
                     var sum = Money.Zero;
                     foreach (var input in tx.Inputs.Where(x => !txHashes.Contains(x.OutPoint.Hash)))
@@ -307,13 +385,13 @@ namespace Dumplings.Stats
                         sum += input.PrevOutput.Value;
                     }
 
-                    if (myDic.TryGetValue(yearMonth, out Money current))
+                    if (myDic.TryGetValue(yearMonthDay, out Money current))
                     {
-                        myDic[yearMonth] = current + sum;
+                        myDic[yearMonthDay] = current + sum;
                     }
                     else
                     {
-                        myDic.Add(yearMonth, sum);
+                        myDic.Add(yearMonthDay, sum);
                     }
                 }
             }
@@ -321,9 +399,9 @@ namespace Dumplings.Stats
             return myDic;
         }
 
-        private Dictionary<YearMonth, Money> CalculateFreshBitcoinsFromTX0s(IEnumerable<VerboseTransactionInfo> tx0s, IEnumerable<uint256> cjHashes)
+        private Dictionary<YearMonthDay, Money> CalculateFreshBitcoinsDailyFromTX0s(IEnumerable<VerboseTransactionInfo> tx0s, IEnumerable<uint256> cjHashes)
         {
-            var myDic = new Dictionary<YearMonth, Money>();
+            var myDic = new Dictionary<YearMonthDay, Money>();
             // In Samourai in order to identify fresh bitcoins the tx0 input shouldn't come from other samuri coinjoins, nor tx0s.
             var txHashes = tx0s.Select(x => x.Id).Union(cjHashes).ToHashSet();
 
@@ -333,7 +411,7 @@ namespace Dumplings.Stats
                 if (blockTime.HasValue)
                 {
                     var blockTimeValue = blockTime.Value;
-                    var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
+                    var yearMonthDay = new YearMonthDay(blockTimeValue.Year, blockTimeValue.Month, blockTimeValue.Day);
 
                     var sum = Money.Zero;
                     foreach (var input in tx.Inputs.Where(x => !txHashes.Contains(x.OutPoint.Hash)))
@@ -341,13 +419,13 @@ namespace Dumplings.Stats
                         sum += input.PrevOutput.Value;
                     }
 
-                    if (myDic.TryGetValue(yearMonth, out Money current))
+                    if (myDic.TryGetValue(yearMonthDay, out Money current))
                     {
-                        myDic[yearMonth] = current + sum;
+                        myDic[yearMonthDay] = current + sum;
                     }
                     else
                     {
-                        myDic.Add(yearMonth, sum);
+                        myDic.Add(yearMonthDay, sum);
                     }
                 }
             }
@@ -525,7 +603,7 @@ namespace Dumplings.Stats
             }
 
             var retDic = new Dictionary<YearMonth, decimal>();
-            foreach(var kv in myDic)
+            foreach (var kv in myDic)
             {
                 retDic.Add(kv.Key, kv.Value.avg);
             }
@@ -543,7 +621,7 @@ namespace Dumplings.Stats
                     var blockTimeValue = blockTime.Value;
                     var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
 
-                    var (value, count) = tx.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count).First();                   
+                    var (value, count) = tx.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count).First();
 
                     int tic = tx.Inputs.Count();
                     int sic = tic - count;
