@@ -117,6 +117,43 @@ namespace Dumplings.Stats
             }
         }
 
+        public void CalculateWasabiCoordStats(ExtPubKey xpub)
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                var scripts = Constants.WasabiCoordScripts.ToHashSet();
+                for (int i = 0; i < 1_000_000; i++)
+                {
+                    scripts.Add(xpub.Derive(0, false).Derive(i, false).PubKey.WitHash.ScriptPubKey);
+                }
+
+                foreach (var tx in ScannerFiles.WasabiCoinJoins)
+                {
+                    var coordOutput = tx.Outputs.FirstOrDefault(x => scripts.Contains(x.ScriptPubKey));
+                    if (coordOutput is null)
+                    {
+                        continue;
+                    }
+
+                    var blockTime = tx.BlockInfo.BlockTime;
+                    Console.Write($"{blockTime};");
+                    Console.Write($"{tx.Id};");
+                    Console.Write($"{tx.Inputs.Sum(x => x.PrevOutput.Value) - tx.Outputs.Sum(x => x.Value)};");
+                    Console.Write($"{coordOutput.ScriptPubKey.GetDestinationAddress(Network.Main)};");
+                    Console.Write($"{coordOutput.Value};");
+
+                    var outputs = tx.GetIndistinguishableOutputs(includeSingle: false);
+                    var currentDenom = outputs.OrderByDescending(x => x.count).First().value;
+                    foreach (var (value, count) in outputs.Where(x => x.value >= currentDenom))
+                    {
+                        Console.Write($"{value};{count};");
+                    }
+                    Console.WriteLine();
+                }
+            }
+        }
+
         private void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonth, Money> otheriResults, Dictionary<YearMonth, Money> wasabiResults, Dictionary<YearMonth, Money> samuriResults)
         {
             Console.WriteLine($"Month;Otheri;Wasabi;Samuri");

@@ -110,11 +110,34 @@ namespace Dumplings.Cli
                     var stat = new Statista(loadedScannerFiles, client);
                     stat.CalculateMonthlyEqualVolumes();
                 }
+                else if (command == Command.WasabiCoordStats)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles, client);
+                    stat.CalculateWasabiCoordStats(GetXpub(args));
+                }
             }
 
             Console.WriteLine();
             Console.WriteLine("Press a button to exit...");
             Console.ReadKey();
+        }
+
+        private static ExtPubKey GetXpub(string[] args)
+        {
+            string xpub = null;
+
+            var xpubUserArg = "--xpub=";
+            foreach (var arg in args)
+            {
+                var idx = arg.IndexOf(xpubUserArg, StringComparison.Ordinal);
+                if (idx == 0)
+                {
+                    xpub = arg.Substring(idx + xpubUserArg.Length);
+                }
+            }
+
+            return ExtPubKey.Parse(xpub, Network.Main);
         }
 
         private static void ParseArgs(string[] args, out Command command, out NetworkCredential cred)
