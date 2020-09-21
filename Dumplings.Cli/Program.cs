@@ -54,6 +54,7 @@ namespace Dumplings.Cli
                     {
                         fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write);
                         writer = new StreamWriter(fileStream);
+                        Console.WriteLine($"Console output redirected to: {filePath}.");
                         Console.SetOut(writer);
                     }
                     catch (Exception ex)
