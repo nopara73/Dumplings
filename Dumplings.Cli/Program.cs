@@ -141,8 +141,6 @@ namespace Dumplings.Cli
                         var stat = new Statista(loadedScannerFiles, client);
                         stat.CalculateWasabiCoordStats(GetXpub(args));
                     }
-
-                    Console.SetOut(oldOut);
                 }
                 finally
                 {
@@ -150,6 +148,7 @@ namespace Dumplings.Cli
                     fileStream?.Close();
                 }
 
+                Console.SetOut(oldOut);
             }
 
             Console.WriteLine();
