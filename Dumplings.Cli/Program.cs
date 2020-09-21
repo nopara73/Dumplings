@@ -5,6 +5,7 @@ using Dumplings.Stats;
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -40,6 +41,26 @@ namespace Dumplings.Cli
 
             using (BenchmarkLogger.Measure(operationName: $"{command} Command"))
             {
+                var outputFolder = GetOutputFolder(args);
+
+                StreamWriter writer = null;
+                TextWriter oldOut = Console.Out;
+
+                if (!string.IsNullOrEmpty(outputFolder))
+                {
+                    var filePath = Path.Combine(outputFolder,$"DumplingsResult{DateTime.Now:yyMMddHHmmss}.txt");
+                    try
+                    {
+                        writer = new StreamWriter(new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write));
+                        Console.SetOut(writer);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Cannot open file: {filePath}.");
+                        Console.WriteLine(ex.Message);
+                    }
+                }
+
                 if (command == Command.Resync)
                 {
                     var scanner = new Scanner(client);
@@ -116,6 +137,10 @@ namespace Dumplings.Cli
                     var stat = new Statista(loadedScannerFiles, client);
                     stat.CalculateWasabiCoordStats(GetXpub(args));
                 }
+
+                Console.SetOut(oldOut);
+
+                writer?.Close();
             }
 
             Console.WriteLine();
@@ -138,6 +163,23 @@ namespace Dumplings.Cli
             }
 
             return ExtPubKey.Parse(xpub, Network.Main);
+        }
+
+        private static string GetOutputFolder(string[] args)
+        {
+            string folderPath = null;
+
+            var folderPathArg = "--outfolder=";
+            foreach (var arg in args)
+            {
+                var idx = arg.IndexOf(folderPathArg, StringComparison.Ordinal);
+                if (idx == 0)
+                {
+                    folderPath = arg.Substring(idx + folderPathArg.Length);
+                }
+            }
+
+            return folderPath;
         }
 
         private static void ParseArgs(string[] args, out Command command, out NetworkCredential cred)
