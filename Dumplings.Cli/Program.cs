@@ -43,6 +43,7 @@ namespace Dumplings.Cli
             {
                 var outputFolder = GetOutputFolder(args);
 
+                FileStream fileStream = null;
                 StreamWriter writer = null;
                 TextWriter oldOut = Console.Out;
 
@@ -51,7 +52,8 @@ namespace Dumplings.Cli
                     var filePath = Path.Combine(outputFolder,$"DumplingsResult{DateTime.Now:yyMMddHHmmss}.txt");
                     try
                     {
-                        writer = new StreamWriter(new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write));
+                        fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write);
+                        writer = new StreamWriter(fileStream);
                         Console.SetOut(writer);
                     }
                     catch (Exception ex)
@@ -61,86 +63,93 @@ namespace Dumplings.Cli
                     }
                 }
 
-                if (command == Command.Resync)
+                try
                 {
-                    var scanner = new Scanner(client);
-                    await scanner.ScanAsync(rescan: true);
+                    if (command == Command.Resync)
+                    {
+                        var scanner = new Scanner(client);
+                        await scanner.ScanAsync(rescan: true);
+                    }
+                    else if (command == Command.Sync)
+                    {
+                        var scanner = new Scanner(client);
+                        await scanner.ScanAsync(rescan: false);
+                    }
+                    else if (command == Command.Check)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var checker = new Checker(loadedScannerFiles);
+                        checker.Check();
+                    }
+                    else if (command == Command.MonthlyVolumes)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.CalculateMonthlyVolumes();
+                    }
+                    else if (command == Command.FreshBitcoins)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.CalculateFreshBitcoins();
+                    }
+                    else if (command == Command.FreshBitcoinsDaily)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.CalculateFreshBitcoinsDaily();
+                    }
+                    else if (command == Command.NeverMixed)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.CalculateNeverMixed();
+                    }
+                    else if (command == Command.CoinJoinEquality)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.CalculateEquality();
+                    }
+                    else if (command == Command.CoinJoinIncome)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.CalculateIncome();
+                    }
+                    else if (command == Command.PostMixConsolidation)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.CalculatePostMixConsolidation();
+                    }
+                    else if (command == Command.SmallerThanMinimum)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.CalculateSmallerThanMinimumWasabiInputs();
+                    }
+                    else if (command == Command.MonthlyEqualVolumes)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.CalculateMonthlyEqualVolumes();
+                    }
+                    else if (command == Command.WasabiCoordStats)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.CalculateWasabiCoordStats(GetXpub(args));
+                    }
+
+                    Console.SetOut(oldOut);
                 }
-                else if (command == Command.Sync)
+                finally
                 {
-                    var scanner = new Scanner(client);
-                    await scanner.ScanAsync(rescan: false);
-                }
-                else if (command == Command.Check)
-                {
-                    var loadedScannerFiles = Scanner.Load();
-                    var checker = new Checker(loadedScannerFiles);
-                    checker.Check();
-                }
-                else if (command == Command.MonthlyVolumes)
-                {
-                    var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
-                    stat.CalculateMonthlyVolumes();
-                }
-                else if (command == Command.FreshBitcoins)
-                {
-                    var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
-                    stat.CalculateFreshBitcoins();
-                }
-                else if (command == Command.FreshBitcoinsDaily)
-                {
-                    var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
-                    stat.CalculateFreshBitcoinsDaily();
-                }
-                else if (command == Command.NeverMixed)
-                {
-                    var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
-                    stat.CalculateNeverMixed();
-                }
-                else if (command == Command.CoinJoinEquality)
-                {
-                    var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
-                    stat.CalculateEquality();
-                }
-                else if (command == Command.CoinJoinIncome)
-                {
-                    var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
-                    stat.CalculateIncome();
-                }
-                else if (command == Command.PostMixConsolidation)
-                {
-                    var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
-                    stat.CalculatePostMixConsolidation();
-                }
-                else if (command == Command.SmallerThanMinimum)
-                {
-                    var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
-                    stat.CalculateSmallerThanMinimumWasabiInputs();
-                }
-                else if (command == Command.MonthlyEqualVolumes)
-                {
-                    var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
-                    stat.CalculateMonthlyEqualVolumes();
-                }
-                else if (command == Command.WasabiCoordStats)
-                {
-                    var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
-                    stat.CalculateWasabiCoordStats(GetXpub(args));
+                    writer?.Close();
+                    fileStream?.Close();
                 }
 
-                Console.SetOut(oldOut);
-
-                writer?.Close();
             }
 
             Console.WriteLine();
