@@ -153,8 +153,12 @@ namespace Dumplings.Cli
             }
 
             Console.WriteLine();
-            Console.WriteLine("Press a button to exit...");
-            Console.ReadKey();
+
+            if (!GetNoWaitOnExit(args))
+            {
+                Console.WriteLine("Press a button to exit...");
+                Console.ReadKey();
+            }
         }
 
         private static ExtPubKey GetXpub(string[] args)
@@ -172,6 +176,19 @@ namespace Dumplings.Cli
             }
 
             return ExtPubKey.Parse(xpub, Network.Main);
+        }
+
+        private static bool GetNoWaitOnExit(string[] args)
+        {
+            foreach (var arg in args)
+            {
+                if (arg.Contains("--nowaitonexit", StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static string GetOutputFolder(string[] args)
