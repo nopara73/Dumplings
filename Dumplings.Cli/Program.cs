@@ -49,7 +49,7 @@ namespace Dumplings.Cli
 
                 if (!string.IsNullOrEmpty(outputFolder))
                 {
-                    var filePath = Path.Combine(outputFolder,$"DumplingsResult{DateTime.Now:yyMMddHHmmss}.txt");
+                    var filePath = Path.Combine(outputFolder,$"Dump{DateTime.Now:yyMMdd_HHmmss}.txt");
                     try
                     {
                         fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write);
