@@ -621,7 +621,8 @@ namespace Dumplings.Stats
                     var blockTimeValue = blockTime.Value;
                     var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
 
-                    var (value, count) = tx.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count).First();
+                    var (value, _) = tx.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count).First();
+                    var count = tx.Outputs.Count(x => x.Value < value);
 
                     int tic = tx.Inputs.Count();
                     int sic = tic - count;
