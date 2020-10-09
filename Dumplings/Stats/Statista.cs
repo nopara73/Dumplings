@@ -621,21 +621,20 @@ namespace Dumplings.Stats
                     var blockTimeValue = blockTime.Value;
                     var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
 
-                    var (value, _) = tx.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count).First();
-                    var count = tx.Outputs.Count(x => x.Value < value);
-
-                    int tic = tx.Inputs.Count();
-                    int sic = tic - count;
+                    var (value, tpc) = tx.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count).First();
+                    var almostValue = value - Money.Coins(0.0001m);
+                    var smallerSum = tx.Outputs.Select(x => x.Value).Where(x => x < almostValue).Sum();
+                    var spc = (int)(smallerSum.Satoshi / value.Satoshi);
 
                     if (myDic.TryGetValue(yearMonth, out (int tins, int tsins) current))
                     {
-                        tic += current.tins;
-                        sic += current.tsins;
-                        myDic[yearMonth] = (tic, sic);
+                        tpc += current.tins;
+                        spc += current.tsins;
+                        myDic[yearMonth] = (tpc, spc);
                     }
                     else
                     {
-                        myDic.Add(yearMonth, (tic, sic));
+                        myDic.Add(yearMonth, (tpc, spc));
                     }
                 }
             }
