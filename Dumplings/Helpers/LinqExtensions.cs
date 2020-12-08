@@ -67,5 +67,21 @@ namespace System.Linq
                 .Select(x => (x.Key, x.Value))
                 .Where(x => includeSingle || x.Value > 1);
         }
+
+        /// <summary>
+        /// Count the set bits in a ulong using 24 arithmetic operations (shift, add, and)..
+        /// </summary>
+        /// <param name="x">The ulong of which we like to count the set bits.</param>
+        /// <returns>Amount of set bits.</returns>
+        public static int HammingWeight(this ulong x)
+        {
+            x = (x & 0x5555555555555555) + ((x >> 1) & 0x5555555555555555); //put count of each  2 bits into those  2 bits
+            x = (x & 0x3333333333333333) + ((x >> 2) & 0x3333333333333333); //put count of each  4 bits into those  4 bits
+            x = (x & 0x0f0f0f0f0f0f0f0f) + ((x >> 4) & 0x0f0f0f0f0f0f0f0f); //put count of each  8 bits into those  8 bits
+            x = (x & 0x00ff00ff00ff00ff) + ((x >> 8) & 0x00ff00ff00ff00ff); //put count of each 16 bits into those 16 bits
+            x = (x & 0x0000ffff0000ffff) + ((x >> 16) & 0x0000ffff0000ffff); //put count of each 32 bits into those 32 bits
+            x = (x & 0x00000000ffffffff) + ((x >> 32) & 0x00000000ffffffff); //put count of each 64 bits into those 64 bits
+            return (int)x;
+        }
     }
 }

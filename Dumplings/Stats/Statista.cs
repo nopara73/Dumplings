@@ -109,10 +109,21 @@ namespace Dumplings.Stats
         public void CalculateFreshBitcoinAmounts()
         {
             var wasabi = GetFreshBitcoinAmounts(ScannerFiles.WasabiCoinJoins);
-            foreach (var item in wasabi.SelectMany(x => x.Value).Select(x => x.ToDecimal(MoneyUnit.BTC)).Reverse().Take(8000).Reverse())
-            {
-                Console.WriteLine(item);
-            }
+            var lastAmounts = wasabi.SelectMany(x => x.Value).Select(x => x.ToDecimal(MoneyUnit.BTC)).Reverse().Take(100000).Reverse().ToArray();
+            Console.WriteLine("Calculations for the last 100 000 Wasabi coinjoins' fresh bitcoin input amounts.");
+            Console.WriteLine($"Average:    {lastAmounts.Average()}");
+            Console.WriteLine($"Median:     {lastAmounts.Median()}");
+            Console.WriteLine($"8 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 8).Count()}");
+            Console.WriteLine($"7 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 7).Count()}");
+            Console.WriteLine($"6 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 6).Count()}");
+            Console.WriteLine($"5 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 5).Count()}");
+            Console.WriteLine($"4 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 4).Count()}");
+            Console.WriteLine($"3 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 3).Count()}");
+            Console.WriteLine($"2 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 2).Count()}");
+            Console.WriteLine($"1 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 1).Count()}");
+            Console.WriteLine($"0 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 0).Count()}");
+            Console.WriteLine($"Average Hamming Weight: {lastAmounts.Select(x => ((ulong)(x * 100000000)).HammingWeight()).Average()}");
+            Console.WriteLine($"Median Hamming Weight:  {lastAmounts.Select(x => ((ulong)(x * 100000000)).HammingWeight()).Median()}");
         }
 
         public void CalculateFreshBitcoinsDaily()
