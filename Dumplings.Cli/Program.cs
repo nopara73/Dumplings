@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 
 namespace Dumplings.Cli
 {
-    class Program
+    internal class Program
     {
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             Logger.InitializeDefaults();
 
@@ -67,6 +67,12 @@ namespace Dumplings.Cli
                     var loadedScannerFiles = Scanner.Load();
                     var stat = new Statista(loadedScannerFiles, client);
                     stat.CalculateFreshBitcoins();
+                }
+                else if (command == Command.FreshBitcoinAmounts)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles, client);
+                    stat.CalculateFreshBitcoinAmounts();
                 }
                 else if (command == Command.FreshBitcoinsDaily)
                 {

@@ -11,6 +11,7 @@ namespace Dumplings.Cli
         Check,                     // Cross checks the Scanner files to make sure of no bugs.
         MonthlyVolumes,            // Calculate the monthly volumes of different kind of coinjoins.
         FreshBitcoins,             // Calculate how much previously not coinjoined bitcoins come to different kind of coinjoins monthly.
+        FreshBitcoinAmounts,       // Create a list of amounts for backport release.
         FreshBitcoinsDaily,        // Calculate how much previously not coinjoined bitcoins come to different kind of coinjoins daily.
         NeverMixed,                // Calculate monthly volume of bitcoins those were intended to be mixed, but never got mixed.
         CoinJoinEquality,          // Calculate monthly volume of equality gained on bitcoins.

@@ -106,6 +106,15 @@ namespace Dumplings.Stats
             }
         }
 
+        public void CalculateFreshBitcoinAmounts()
+        {
+            var wasabi = GetFreshBitcoinAmounts(ScannerFiles.WasabiCoinJoins);
+            foreach (var item in wasabi.SelectMany(x => x.Value).Select(x => x.ToDecimal(MoneyUnit.BTC)).Reverse().Take(8000).Reverse())
+            {
+                Console.WriteLine(item);
+            }
+        }
+
         public void CalculateFreshBitcoinsDaily()
         {
             using (BenchmarkLogger.Measure())
@@ -426,6 +435,63 @@ namespace Dumplings.Stats
                     else
                     {
                         myDic.Add(yearMonthDay, sum);
+                    }
+                }
+            }
+
+            return myDic;
+        }
+
+        private Dictionary<YearMonth, List<Money>> GetFreshBitcoinAmounts(IEnumerable<VerboseTransactionInfo> txs)
+        {
+            var myDic = new Dictionary<YearMonth, List<Money>>();
+            foreach (var day in GetFreshBitcoinAmountsDaily(txs))
+            {
+                var yearMonth = day.Key.ToYearMonth();
+                if (myDic.ContainsKey(yearMonth))
+                {
+                    myDic[yearMonth].AddRange(day.Value);
+                }
+                else
+                {
+                    var l = new List<Money>();
+                    l.AddRange(day.Value);
+                    myDic.Add(yearMonth, l);
+                }
+            }
+            return myDic;
+        }
+
+        private Dictionary<YearMonthDay, List<Money>> GetFreshBitcoinAmountsDaily(IEnumerable<VerboseTransactionInfo> txs)
+        {
+            var myDic = new Dictionary<YearMonthDay, List<Money>>();
+            var txHashes = txs.Select(x => x.Id).ToHashSet();
+
+            foreach (var tx in txs)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    var blockTimeValue = blockTime.Value;
+                    var yearMonthDay = new YearMonthDay(blockTimeValue.Year, blockTimeValue.Month, blockTimeValue.Day);
+
+                    var amounts = new List<Money>();
+                    foreach (var input in tx.Inputs.Where(x => !txHashes.Contains(x.OutPoint.Hash)))
+                    {
+                        if (input.PrevOutput.Value.ToDecimal(MoneyUnit.BTC) == 0.05005067m)
+                        {
+                            ;
+                        }
+                        amounts.Add(input.PrevOutput.Value);
+                    }
+
+                    if (myDic.ContainsKey(yearMonthDay))
+                    {
+                        myDic[yearMonthDay].AddRange(amounts);
+                    }
+                    else
+                    {
+                        myDic.Add(yearMonthDay, amounts);
                     }
                 }
             }
