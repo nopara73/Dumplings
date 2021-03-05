@@ -33,6 +33,7 @@ namespace Dumplings
 
         public static IEnumerable<Money> SamouraiPools = new Money[]
         {
+            Money.Coins(0.001m),
             Money.Coins(0.01m),
             Money.Coins(0.05m),
             Money.Coins(0.5m)
