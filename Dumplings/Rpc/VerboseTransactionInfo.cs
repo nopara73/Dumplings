@@ -29,6 +29,7 @@ namespace Dumplings.Rpc
                 .Select(x => (x.Key, x.Value))
                 .Where(x => includeSingle || x.Value > 1);
         }
+        public Money NetworkFee => Inputs.Sum(x => x.PrevOutput.Value) - Outputs.Sum(x => x.Value);
 
         public ulong CalculateCoinJoinEquality() => CalculateEquality(Inputs.Select(x => x.PrevOutput.Value)) + CalculateEquality(Outputs.Select(x => x.Value));
 

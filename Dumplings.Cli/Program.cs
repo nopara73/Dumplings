@@ -26,18 +26,6 @@ namespace Dumplings.Cli
             };
             var client = new RPCClient(rpcConf, Network.Main);
 
-            Logger.LogInfo("Checking Bitcoin Knots sync status...");
-
-            var bci = await client.GetBlockchainInfoAsync();
-
-            var missingBlocks = bci.Headers - bci.Blocks;
-            if (missingBlocks != 0)
-            {
-                throw new InvalidOperationException($"Knots is not synchronized. Blocks missing: {missingBlocks}.");
-            }
-
-            Logger.LogInfo($"Bitcoin Knots is synchronized. Current height: {bci.Blocks}.");
-
             using (BenchmarkLogger.Measure(operationName: $"{command} Command"))
             {
                 if (command == Command.Resync)
@@ -59,62 +47,74 @@ namespace Dumplings.Cli
                 else if (command == Command.MonthlyVolumes)
                 {
                     var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
+                    var stat = new Statista(loadedScannerFiles);
                     stat.CalculateMonthlyVolumes();
                 }
                 else if (command == Command.FreshBitcoins)
                 {
                     var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
+                    var stat = new Statista(loadedScannerFiles);
                     stat.CalculateFreshBitcoins();
                 }
                 else if (command == Command.FreshBitcoinAmounts)
                 {
                     var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
+                    var stat = new Statista(loadedScannerFiles);
                     stat.CalculateFreshBitcoinAmounts();
                 }
                 else if (command == Command.FreshBitcoinsDaily)
                 {
                     var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
+                    var stat = new Statista(loadedScannerFiles);
                     stat.CalculateFreshBitcoinsDaily();
                 }
                 else if (command == Command.NeverMixed)
                 {
                     var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
-                    stat.CalculateNeverMixed();
+                    var stat = new Statista(loadedScannerFiles);
+                    stat.CalculateNeverMixed(client);
                 }
                 else if (command == Command.CoinJoinEquality)
                 {
                     var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
+                    var stat = new Statista(loadedScannerFiles);
                     stat.CalculateEquality();
                 }
                 else if (command == Command.CoinJoinIncome)
                 {
                     var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
+                    var stat = new Statista(loadedScannerFiles);
                     stat.CalculateIncome();
                 }
                 else if (command == Command.PostMixConsolidation)
                 {
                     var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
+                    var stat = new Statista(loadedScannerFiles);
                     stat.CalculatePostMixConsolidation();
                 }
                 else if (command == Command.SmallerThanMinimum)
                 {
                     var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
+                    var stat = new Statista(loadedScannerFiles);
                     stat.CalculateSmallerThanMinimumWasabiInputs();
                 }
                 else if (command == Command.MonthlyEqualVolumes)
                 {
                     var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client);
+                    var stat = new Statista(loadedScannerFiles);
                     stat.CalculateMonthlyEqualVolumes();
+                }
+                else if (command == Command.AverageUserCount)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles);
+                    stat.CalculateMonthlyAverageMonthlyUserCounts();
+                }
+                else if (command == Command.AverageNetworkFeePaidByUserPerCoinjoin)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles);
+                    stat.CalculateMonthlyNetworkFeePaidByUserPerCoinjoin();
                 }
             }
 
@@ -122,6 +122,7 @@ namespace Dumplings.Cli
             Console.WriteLine("Press a button to exit...");
             Console.ReadKey();
         }
+
 
         private static void ParseArgs(string[] args, out Command command, out NetworkCredential cred)
         {

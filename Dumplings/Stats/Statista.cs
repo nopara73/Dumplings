@@ -1,4 +1,5 @@
-﻿using Dumplings.Helpers;
+﻿using Dumplings.Displaying;
+using Dumplings.Helpers;
 using Dumplings.Rpc;
 using Dumplings.Scanning;
 using NBitcoin;
@@ -12,14 +13,12 @@ namespace Dumplings.Stats
 {
     public class Statista
     {
-        public Statista(ScannerFiles scannerFiles, RPCClient rpc)
+        public Statista(ScannerFiles scannerFiles)
         {
             ScannerFiles = scannerFiles;
-            Rpc = rpc;
         }
 
         public ScannerFiles ScannerFiles { get; }
-        public RPCClient Rpc { get; }
 
         public void CalculateMonthlyVolumes()
         {
@@ -28,7 +27,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, Money> otheri = CalculateMonthlyVolumes(ScannerFiles.OtherCoinJoins);
                 Dictionary<YearMonth, Money> wasabi = CalculateMonthlyVolumes(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, Money> samuri = CalculateMonthlyVolumes(ScannerFiles.SamouraiCoinJoins);
-                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
             }
         }
 
@@ -39,18 +38,18 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, Money> otheri = CalculateMonthlyEqualVolumes(ScannerFiles.OtherCoinJoins);
                 Dictionary<YearMonth, Money> wasabi = CalculateMonthlyEqualVolumes(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, Money> samuri = CalculateMonthlyEqualVolumes(ScannerFiles.SamouraiCoinJoins);
-                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
             }
         }
 
-        public void CalculateNeverMixed()
+        public void CalculateNeverMixed(RPCClient rpc)
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonth, Money> otheri = CalculateNeverMixed(ScannerFiles.OtherCoinJoins);
-                Dictionary<YearMonth, Money> wasabi = CalculateNeverMixed(ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonth, Money> samuri = CalculateNeverMixedFromTx0s(ScannerFiles.SamouraiCoinJoins, ScannerFiles.SamouraiTx0s);
-                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Dictionary<YearMonth, Money> otheri = CalculateNeverMixed(rpc, ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, Money> wasabi = CalculateNeverMixed(rpc, ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, Money> samuri = CalculateNeverMixedFromTx0s(rpc, ScannerFiles.SamouraiCoinJoins, ScannerFiles.SamouraiTx0s);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
             }
         }
 
@@ -61,7 +60,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, ulong> otheri = CalculateEquality(ScannerFiles.OtherCoinJoins);
                 Dictionary<YearMonth, ulong> wasabi = CalculateEquality(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, ulong> samuri = CalculateEquality(ScannerFiles.SamouraiCoinJoins);
-                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
             }
         }
 
@@ -72,7 +71,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, decimal> otheri = CalculateAveragePostMixInputs(ScannerFiles.OtherCoinJoinPostMixTxs);
                 Dictionary<YearMonth, decimal> wasabi = CalculateAveragePostMixInputs(ScannerFiles.WasabiPostMixTxs);
                 Dictionary<YearMonth, decimal> samuri = CalculateAveragePostMixInputs(ScannerFiles.SamouraiPostMixTxs);
-                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
             }
         }
 
@@ -81,7 +80,7 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonth, decimal> wasabi = CalculateSmallerThanMinimumWasabiInputs(ScannerFiles.WasabiCoinJoins);
-                DisplayWasabiResults(wasabi);
+                Display.DisplayWasabiResults(wasabi);
             }
         }
 
@@ -91,7 +90,7 @@ namespace Dumplings.Stats
             {
                 Dictionary<YearMonth, Money> wasabi = CalculateWasabiIncome(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, Money> samuri = CalculateSamuriIncome(ScannerFiles.SamouraiTx0s);
-                DisplayWasabiSamuriResults(wasabi, samuri);
+                Display.DisplayWasabiSamuriResults(wasabi, samuri);
             }
         }
 
@@ -102,7 +101,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, Money> otheri = CalculateFreshBitcoins(ScannerFiles.OtherCoinJoins);
                 Dictionary<YearMonth, Money> wasabi = CalculateFreshBitcoins(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, Money> samuri = CalculateFreshBitcoinsFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
-                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
             }
         }
 
@@ -126,6 +125,92 @@ namespace Dumplings.Stats
             Console.WriteLine($"Median Hamming Weight:  {lastAmounts.Select(x => ((ulong)(x * 100000000)).HammingWeight()).Median()}");
         }
 
+        public void CalculateMonthlyAverageMonthlyUserCounts()
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                IDictionary<YearMonth, int> otheri = CalculateAverageUserCounts(ScannerFiles.OtherCoinJoins);
+                IDictionary<YearMonth, int> wasabi = CalculateAverageUserCounts(ScannerFiles.WasabiCoinJoins);
+                IDictionary<YearMonth, int> samuri = CalculateAverageUserCounts(ScannerFiles.SamouraiCoinJoins);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+            }
+        }
+
+        public void CalculateMonthlyNetworkFeePaidByUserPerCoinjoin()
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                IDictionary<YearMonth, Money> otheri = CalculateAverageNetworkFeePaidByUserPerCoinjoin(ScannerFiles.OtherCoinJoins);
+                IDictionary<YearMonth, Money> wasabi = CalculateAverageNetworkFeePaidByUserPerCoinjoin(ScannerFiles.WasabiCoinJoins);
+                IDictionary<YearMonth, Money> samuri = CalculateAverageNetworkFeePaidByUserPerCoinjoin(ScannerFiles.SamouraiCoinJoins);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+            }
+        }
+        private IDictionary<YearMonth, Money> CalculateAverageNetworkFeePaidByUserPerCoinjoin(IEnumerable<VerboseTransactionInfo> txs)
+        {
+            var myDic = new Dictionary<YearMonth, List<Money>>();
+            foreach (var tx in txs)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    var blockTimeValue = blockTime.Value;
+                    var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
+                    var userCount = tx.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count).First().count;
+                    var feePerUser = tx.NetworkFee / userCount;
+
+                    if (myDic.TryGetValue(yearMonth, out var current))
+                    {
+                        myDic[yearMonth].Add(feePerUser);
+                    }
+                    else
+                    {
+                        myDic.Add(yearMonth, new List<Money> { feePerUser });
+                    }
+                }
+            }
+
+            var retDic = new Dictionary<YearMonth, Money>();
+            foreach (var kv in myDic)
+            {
+                decimal decVal = kv.Value.Select(x => x.ToDecimal(MoneyUnit.BTC)).Average();
+                Money val = Money.Coins(decVal);
+                retDic.Add(kv.Key, val);
+            }
+            return retDic;
+        }
+
+        private IDictionary<YearMonth, int> CalculateAverageUserCounts(IEnumerable<VerboseTransactionInfo> txs)
+        {
+            var myDic = new Dictionary<YearMonth, List<int>>();
+            foreach (var tx in txs)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    var blockTimeValue = blockTime.Value;
+                    var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
+                    var userCount = tx.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count).First().count;
+
+                    if (myDic.TryGetValue(yearMonth, out var current))
+                    {
+                        myDic[yearMonth].Add(userCount);
+                    }
+                    else
+                    {
+                        myDic.Add(yearMonth, new List<int> { userCount });
+                    }
+                }
+            }
+
+            var retDic = new Dictionary<YearMonth, int>();
+            foreach (var kv in myDic)
+            {
+                retDic.Add(kv.Key, (int)kv.Value.Average());
+            }
+            return retDic;
+        }
+
         public void CalculateFreshBitcoinsDaily()
         {
             using (BenchmarkLogger.Measure())
@@ -133,166 +218,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonthDay, Money> otheri = CalculateFreshBitcoinsDaily(ScannerFiles.OtherCoinJoins);
                 Dictionary<YearMonthDay, Money> wasabi = CalculateFreshBitcoinsDaily(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonthDay, Money> samuri = CalculateFreshBitcoinsDailyFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
-                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
-            }
-        }
-
-        private void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonth, Money> otheriResults, Dictionary<YearMonth, Money> wasabiResults, Dictionary<YearMonth, Money> samuriResults)
-        {
-            Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
-
-            foreach (var yearMonth in wasabiResults
-                .Keys
-                .Concat(otheriResults.Keys)
-                .Concat(samuriResults.Keys)
-                .Distinct()
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month))
-            {
-                if (!otheriResults.TryGetValue(yearMonth, out Money otheri))
-                {
-                    otheri = Money.Zero;
-                }
-                if (!wasabiResults.TryGetValue(yearMonth, out Money wasabi))
-                {
-                    wasabi = Money.Zero;
-                }
-                if (!samuriResults.TryGetValue(yearMonth, out Money samuri))
-                {
-                    samuri = Money.Zero;
-                }
-
-                Console.WriteLine($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
-            }
-        }
-
-        private void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonthDay, Money> otheriResults, Dictionary<YearMonthDay, Money> wasabiResults, Dictionary<YearMonthDay, Money> samuriResults)
-        {
-            Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
-
-            foreach (var yearMonthDay in wasabiResults
-                .Keys
-                .Concat(otheriResults.Keys)
-                .Concat(samuriResults.Keys)
-                .Distinct()
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month))
-            {
-                if (!otheriResults.TryGetValue(yearMonthDay, out Money otheri))
-                {
-                    otheri = Money.Zero;
-                }
-                if (!wasabiResults.TryGetValue(yearMonthDay, out Money wasabi))
-                {
-                    wasabi = Money.Zero;
-                }
-                if (!samuriResults.TryGetValue(yearMonthDay, out Money samuri))
-                {
-                    samuri = Money.Zero;
-                }
-
-                Console.WriteLine($"{yearMonthDay};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
-            }
-        }
-
-        private void DisplayWasabiResults(Dictionary<YearMonth, decimal> wasabiResults)
-        {
-            Console.WriteLine($"Month;Wasabi");
-
-            foreach (var yearMonth in wasabiResults
-                .Keys
-                .Distinct()
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month))
-            {
-                if (!wasabiResults.TryGetValue(yearMonth, out decimal wasabi))
-                {
-                    wasabi = 0;
-                }
-
-                Console.WriteLine($"{yearMonth};{wasabi:0.00}");
-            }
-        }
-
-        private void DisplayWasabiSamuriResults(Dictionary<YearMonth, Money> wasabiResults, Dictionary<YearMonth, Money> samuriResults)
-        {
-            Console.WriteLine($"Month;Wasabi;Samuri");
-
-            foreach (var yearMonth in wasabiResults
-                .Keys
-                .Concat(samuriResults.Keys)
-                .Distinct()
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month))
-            {
-                if (!wasabiResults.TryGetValue(yearMonth, out Money wasabi))
-                {
-                    wasabi = Money.Zero;
-                }
-                if (!samuriResults.TryGetValue(yearMonth, out Money samuri))
-                {
-                    samuri = Money.Zero;
-                }
-
-                Console.WriteLine($"{yearMonth};{wasabi.ToDecimal(MoneyUnit.BTC):0.00};{samuri.ToDecimal(MoneyUnit.BTC):0.00}");
-            }
-        }
-
-        private void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonth, ulong> otheriResults, Dictionary<YearMonth, ulong> wasabiResults, Dictionary<YearMonth, ulong> samuriResults)
-        {
-            Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
-
-            foreach (var yearMonth in wasabiResults
-                .Keys
-                .Concat(otheriResults.Keys)
-                .Concat(samuriResults.Keys)
-                .Distinct()
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month))
-            {
-                if (!otheriResults.TryGetValue(yearMonth, out ulong otheri))
-                {
-                    otheri = 0;
-                }
-                if (!wasabiResults.TryGetValue(yearMonth, out ulong wasabi))
-                {
-                    wasabi = 0;
-                }
-                if (!samuriResults.TryGetValue(yearMonth, out ulong samuri))
-                {
-                    samuri = 0;
-                }
-
-                Console.WriteLine($"{yearMonth};{otheri:0};{wasabi:0};{samuri:0}");
-            }
-        }
-
-        private void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonth, decimal> otheriResults, Dictionary<YearMonth, decimal> wasabiResults, Dictionary<YearMonth, decimal> samuriResults)
-        {
-            Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
-
-            foreach (var yearMonth in wasabiResults
-                .Keys
-                .Concat(otheriResults.Keys)
-                .Concat(samuriResults.Keys)
-                .Distinct()
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month))
-            {
-                if (!otheriResults.TryGetValue(yearMonth, out decimal otheri))
-                {
-                    otheri = 0;
-                }
-                if (!wasabiResults.TryGetValue(yearMonth, out decimal wasabi))
-                {
-                    wasabi = 0;
-                }
-                if (!samuriResults.TryGetValue(yearMonth, out decimal samuri))
-                {
-                    samuri = 0;
-                }
-
-                Console.WriteLine($"{yearMonth};{otheri:0.0};{wasabi:0.0};{samuri:0.0}");
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
             }
         }
 
@@ -510,8 +436,9 @@ namespace Dumplings.Stats
             return myDic;
         }
 
-        private Dictionary<YearMonth, Money> CalculateNeverMixed(IEnumerable<VerboseTransactionInfo> coinJoins)
+        private Dictionary<YearMonth, Money> CalculateNeverMixed(RPCClient rpc, IEnumerable<VerboseTransactionInfo> coinJoins)
         {
+            KnotsStatus.CheckAsync(rpc).GetAwaiter().GetResult();
             // Go through all the coinjoins.
             // If a change output is spent and didn't go to coinjoins, then it didn't get remixed.
             var coinJoinInputs =
@@ -544,7 +471,7 @@ namespace Dumplings.Stats
                         var output = outputArray[j];
                         // If it's a change and it didn't get remixed right away.
                         OutPoint outPoint = new OutPoint(tx.Id, j);
-                        if (changeOutputValues.Contains(output.Value) && !coinJoinInputs.Contains(outPoint) && Rpc.GetTxOut(outPoint.Hash, (int)outPoint.N, includeMempool: false) is null)
+                        if (changeOutputValues.Contains(output.Value) && !coinJoinInputs.Contains(outPoint) && rpc.GetTxOut(outPoint.Hash, (int)outPoint.N, includeMempool: false) is null)
                         {
                             sum += output.Value;
                         }
@@ -564,8 +491,10 @@ namespace Dumplings.Stats
             return myDic;
         }
 
-        private Dictionary<YearMonth, Money> CalculateNeverMixedFromTx0s(IEnumerable<VerboseTransactionInfo> samuriCjs, IEnumerable<VerboseTransactionInfo> samuriTx0s)
+        private Dictionary<YearMonth, Money> CalculateNeverMixedFromTx0s(RPCClient rpc, IEnumerable<VerboseTransactionInfo> samuriCjs, IEnumerable<VerboseTransactionInfo> samuriTx0s)
         {
+            KnotsStatus.CheckAsync(rpc).GetAwaiter().GetResult();
+
             // Go through all the outputs of TX0 transactions.
             // If an output is spent and didn't go to coinjoins or other TX0s, then it didn't get remixed.
             var samuriTx0CjInputs =
@@ -600,7 +529,7 @@ namespace Dumplings.Stats
                     {
                         var output = outputArray[j];
                         OutPoint outPoint = new OutPoint(tx.Id, j);
-                        if (!samuriTx0CjInputs.Contains(outPoint) && Rpc.GetTxOut(outPoint.Hash, (int)outPoint.N, includeMempool: false) is null)
+                        if (!samuriTx0CjInputs.Contains(outPoint) && rpc.GetTxOut(outPoint.Hash, (int)outPoint.N, includeMempool: false) is null)
                         {
                             sum += output.Value;
                         }

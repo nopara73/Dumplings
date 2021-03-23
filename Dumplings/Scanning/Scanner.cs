@@ -20,6 +20,7 @@ namespace Dumplings.Scanning
         {
             Rpc = rpc;
             Directory.CreateDirectory(WorkFolder);
+            KnotsStatus.CheckAsync(rpc).GetAwaiter().GetResult();
         }
 
         public const string WorkFolder = "Scanner";

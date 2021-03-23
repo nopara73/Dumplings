@@ -18,6 +18,8 @@ namespace Dumplings.Cli
         CoinJoinIncome,            // Calculate monthly income of Wasabi and Samuri.
         PostMixConsolidation,      // Calculate monthly average post-mix consolidation input count.
         SmallerThanMinimum,        // Calculate monthly average percentage of smaller than minimum utxos in Wasabi coinjoins.
-        MonthlyEqualVolumes        // Calculate the monthly volumes of different kind of coinjoins of equal values.
+        MonthlyEqualVolumes,        // Calculate the monthly volumes of different kind of coinjoins of equal values.
+        AverageUserCount,
+        AverageNetworkFeePaidByUserPerCoinjoin
     }
 }
