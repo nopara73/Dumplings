@@ -63,7 +63,7 @@ namespace Dumplings.Displaying
                     samuri = Money.Zero;
                 }
 
-                Console.WriteLine($"{yearMonth};{otheri.ToString(false, false)};{wasabi.ToString(false, false)};{samuri.ToString(false, false)}");
+                Console.WriteLine($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
             }
         }
 
