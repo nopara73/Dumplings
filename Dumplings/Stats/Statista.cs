@@ -123,12 +123,12 @@ namespace Dumplings.Stats
             {
                 Console.ForegroundColor = ConsoleColor.Green;
                 var scripts = Constants.WasabiCoordScripts.ToHashSet();
-                for (int i = 0; i < 100_000; i++)
+                for (int i = 0; i < 10_00_000; i++)
                 {
                     scripts.Add(xpub.Derive(0, false).Derive(i, false).PubKey.WitHash.ScriptPubKey);
                 }
 
-                foreach (var tx in ScannerFiles.WasabiCoinJoins)
+                foreach (var tx in ScannerFiles.WasabiCoinJoins.Skip(5000))
                 {
                     var coordOutput = tx.Outputs.FirstOrDefault(x => scripts.Contains(x.ScriptPubKey));
                     if (coordOutput is null)
