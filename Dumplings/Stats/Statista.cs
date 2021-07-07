@@ -123,7 +123,7 @@ namespace Dumplings.Stats
             {
                 Console.ForegroundColor = ConsoleColor.Green;
                 var scripts = Constants.WasabiCoordScripts.ToHashSet();
-                for (int i = 0; i < 1_000_000; i++)
+                for (int i = 0; i < 100_000; i++)
                 {
                     scripts.Add(xpub.Derive(0, false).Derive(i, false).PubKey.WitHash.ScriptPubKey);
                 }
@@ -136,10 +136,15 @@ namespace Dumplings.Stats
                         continue;
                     }
 
+                    double vSizeEstimation = 10.75 + tx.Outputs.Count() * 31 + tx.Inputs.Count() * 67.75;
+
                     var blockTime = tx.BlockInfo.BlockTime;
-                    Console.Write($"{blockTime};");
+                    Console.Write($"{blockTime.Value.UtcDateTime.ToString("o", System.Globalization.CultureInfo.InvariantCulture)};");
                     Console.Write($"{tx.Id};");
-                    Console.Write($"{tx.Inputs.Sum(x => x.PrevOutput.Value) - tx.Outputs.Sum(x => x.Value)};");
+
+                    var totalFee = (tx.Inputs.Sum(x => x.PrevOutput.Value) - tx.Outputs.Sum(x => x.Value));
+                     
+                    Console.Write($"{string.Format("{0:0.00}", (double)(totalFee / vSizeEstimation))};");
                     Console.Write($"{coordOutput.ScriptPubKey.GetDestinationAddress(Network.Main)};");
                     Console.Write($"{coordOutput.Value};");
 
@@ -151,6 +156,7 @@ namespace Dumplings.Stats
                     }
                     Console.WriteLine();
                 }
+                
             }
         }
 
