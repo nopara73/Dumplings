@@ -5,9 +5,11 @@ using Dumplings.Stats;
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Dumplings.Cli
@@ -17,6 +19,8 @@ namespace Dumplings.Cli
         static async Task Main(string[] args)
         {
             Logger.InitializeDefaults();
+
+            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
             Logger.LogInfo("Parsing arguments...");
             ParseArgs(args, out Command command, out NetworkCredential rpcCred);
