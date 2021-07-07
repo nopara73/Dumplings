@@ -202,6 +202,8 @@ namespace Dumplings.Cli
                 if (idx == 0)
                 {
                     folderPath = arg.Substring(idx + folderPathArg.Length);
+                    Directory.CreateDirectory(folderPath);
+                    return folderPath;
                 }
             }
 
