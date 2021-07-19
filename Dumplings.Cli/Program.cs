@@ -168,8 +168,6 @@ namespace Dumplings.Cli
 
         private static ExtPubKey[] GetXpub(string[] args)
         {
-            string xpub = null;
-
             var xpubUserArg = "--xpub=";
             foreach (var arg in args)
             {

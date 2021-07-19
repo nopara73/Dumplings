@@ -125,13 +125,15 @@ namespace Dumplings.Stats
                 var scripts = Constants.WasabiCoordScripts.ToHashSet();
                 foreach (var xpub in xpubs)
                 {
-                    for (int i = 0; i < 10_000; i++)
+                    for (int i = 0; i < 100_000; i++)
                     {
                         scripts.Add(xpub.Derive(0, false).Derive(i, false).PubKey.WitHash.ScriptPubKey);
                     }
                 }
 
-                foreach (var tx in ScannerFiles.WasabiCoinJoins)
+                DateTimeOffset? lastCoinJoinTime = null;
+
+                foreach (var tx in ScannerFiles.WasabiCoinJoins.Skip(5))
                 {
                     var coordOutput = tx.Outputs.FirstOrDefault(x => scripts.Contains(x.ScriptPubKey));
                     if (coordOutput is null)
@@ -142,6 +144,14 @@ namespace Dumplings.Stats
                     double vSizeEstimation = 10.75 + tx.Outputs.Count() * 31 + tx.Inputs.Count() * 67.75;
 
                     var blockTime = tx.BlockInfo.BlockTime;
+
+                    if (lastCoinJoinTime.HasValue && (lastCoinJoinTime - blockTime).Value.Duration() > TimeSpan.FromDays(7))
+                    {
+                        throw new InvalidOperationException("No CoinJoin for a week");
+                    }
+
+                    lastCoinJoinTime = blockTime;
+
                     Console.Write($"{blockTime.Value.UtcDateTime.ToString("o", System.Globalization.CultureInfo.InvariantCulture)};");
                     Console.Write($"{tx.Id};");
 
