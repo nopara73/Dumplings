@@ -7,6 +7,7 @@ using NBitcoin.RPC;
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -165,7 +166,7 @@ namespace Dumplings.Cli
             }
         }
 
-        private static ExtPubKey GetXpub(string[] args)
+        private static ExtPubKey[] GetXpub(string[] args)
         {
             string xpub = null;
 
@@ -175,11 +176,12 @@ namespace Dumplings.Cli
                 var idx = arg.IndexOf(xpubUserArg, StringComparison.Ordinal);
                 if (idx == 0)
                 {
-                    xpub = arg.Substring(idx + xpubUserArg.Length);
+                    return arg.Substring(idx + xpubUserArg.Length).Split(',')
+                        .Select(str => ExtPubKey.Parse(str, Network.Main)).ToArray();
                 }
             }
 
-            return ExtPubKey.Parse(xpub, Network.Main);
+            return null;
         }
 
         private static bool GetNoWaitOnExit(string[] args)
