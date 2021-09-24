@@ -112,7 +112,9 @@ namespace Dumplings.Scanning
                             var inputValues = inputs.Select(x => x.Value);
                             var outputCount = outputs.Length;
                             var inputCount = inputs.Length;
-                            (Money mostFrequentEqualOutputValue, int mostFrequentEqualOutputCount) = indistinguishableOutputs.OrderByDescending(x => x.count).First();
+                            (Money mostFrequentEqualOutputValue, int mostFrequentEqualOutputCount) = indistinguishableOutputs.OrderByDescending(x => x.count).First(); // Segwit only inputs.
+                            var isNativeSegwitOnly = tx.Inputs.All(x => x.PrevOutput.ScriptPubKey.IsScriptType(ScriptType.P2WPKH)) && tx.Outputs.All(x => x.ScriptPubKey.IsScriptType(ScriptType.P2WPKH)); // Segwit only outputs.
+
                             // IDENTIFY WASABI COINJOINS
                             if (block.Height >= Constants.FirstWasabiBlock)
                             {
@@ -123,21 +125,38 @@ namespace Dumplings.Scanning
                                 }
                                 else
                                 {
+                                    var uniqueOutputCount = tx.GetIndistinguishableOutputs(includeSingle: true).Count(x => x.count == 1);
                                     isWasabiCj =
-                                        mostFrequentEqualOutputCount >= 10 // At least 10 equal outputs.
+                                        isNativeSegwitOnly
+                                        && mostFrequentEqualOutputCount >= 10 // At least 10 equal outputs.
                                         && inputCount >= mostFrequentEqualOutputCount // More inptu than outputs.
-                                        && mostFrequentEqualOutputValue.Almost(Constants.ApproximateWasabiBaseDenomination, Constants.WasabiBaseDenominationPrecision); // The most frequent equal outputs must be almost the base denomination.
+                                        && mostFrequentEqualOutputValue.Almost(Constants.ApproximateWasabiBaseDenomination, Constants.WasabiBaseDenominationPrecision) // The most frequent equal outputs must be almost the base denomination.
+                                        && uniqueOutputCount >= 2; // It's very likely there's at least one change and at least one coord output those are distinct.
+                                        
                                 }
                             }
 
                             // IDENTIFY SAMOURAI COINJOINS
                             if (block.Height >= Constants.FirstSamouraiBlock)
                             {
+                                // Pinpointing and Measuring Wasabi and Samourai CoinJoins in the Bitcoin Ecosystem
+                                // Slightly improved on SCDH
+                                // Samourai CoinJoin Detection Heuristic (SCDH) If a transaction t has exactly
+                                // five uniform outputs that equal p BTC and if it has precisely five inputs, with at
+                                // least one and at most three equal p BTC, while the remaining two to four inputs
+                                // are between p and p +0.0011 BTC, then t is a Samourai Whirlpool CoinJoin
+                                // transaction.
+                                var poolSize = tx.Outputs.First().Value;
+                                var poolSizedInputCount = tx.Inputs.Count(x => x.PrevOutput.Value == poolSize);                                
                                 isSamouraiCj =
-                                   inputCount == 5 // Always have 5 inputs.
+                                   isNativeSegwitOnly
+                                   && inputCount == 5 // Always have 5 inputs.
                                    && outputCount == 5 // Always have 5 outputs.
                                    && outputValues.Distinct().Count() == 1 // Outputs are always equal.
-                                   && Constants.SamouraiPools.Any(x => x.Almost(tx.Outputs.First().Value, Money.Coins(0.01m))); // Just to be sure match Samourai's pool sizes.
+                                   && Constants.SamouraiPools.Any(x => x == poolSize) // Just to be sure match Samourai's pool sizes.
+                                   && poolSizedInputCount >= 1
+                                   && poolSizedInputCount <= 3
+                                   && tx.Inputs.Where(x => x.PrevOutput.Value != poolSize).All(x=>x.PrevOutput.Value.Almost(poolSize, Money.Coins(0.0011m)));
                             }
 
                             // IDENTIFY OTHER EQUAL OUTPUT COINJOIN LIKE TRANSACTIONS
