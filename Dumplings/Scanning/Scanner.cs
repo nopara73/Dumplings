@@ -63,7 +63,7 @@ namespace Dumplings.Scanning
 
             var opreturnTransactionCache = new MemoryCache(new MemoryCacheOptions() { SizeLimit = 100000 });
 
-            ulong startingHeight = Constants.FirstWasabi2Block;
+            ulong startingHeight = Constants.FirstWasabiBlock;
             ulong height = startingHeight;
             if (File.Exists(LastProcessedBlockHeightPath))
             {
@@ -130,11 +130,12 @@ namespace Dumplings.Scanning
                             {
                                 isWasabi2Cj =
                                     isNativeSegwitOnly
+                                    && inputCount >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
                                     && outputValues.Count(x=>Wasabi2Denominations.Contains(x.Satoshi)) > outputCount * 0.8; // Most of the outputs contains the denomination.
                             }
 
                             // IDENTIFY WASABI COINJOINS
-                            if (block.Height >= Constants.FirstWasabiBlock)
+                            if (!isWasabi2Cj && block.Height >= Constants.FirstWasabiBlock)
                             {
                                 // Before Wasabi had constant coordinator addresses and different base denominations at the beginning.
                                 if (block.Height < Constants.FirstWasabiNoCoordAddressBlock)
