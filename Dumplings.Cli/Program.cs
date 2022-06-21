@@ -33,12 +33,12 @@ namespace Dumplings.Cli
                     var scanner = new Scanner(client);
                     await scanner.ScanAsync(rescan: true);
                 }
-                else if (command == Command.Sync)
+                //else if (command == Command.Sync)
                 {
                     var scanner = new Scanner(client);
                     await scanner.ScanAsync(rescan: false);
                 }
-                else if (command == Command.Check)
+                if (command == Command.Check)
                 {
                     var loadedScannerFiles = Scanner.Load();
                     var checker = new Checker(loadedScannerFiles);

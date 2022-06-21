@@ -12,6 +12,10 @@ namespace Dumplings
         /// </summary>
         public const ulong FirstJoinMarketBlock = 392300;
         /// <summary>
+        /// July 06, 2018 Twitter announcement - https://twitter.com/wasabiwallet/status/1537911130718228480
+        /// </summary>
+        public const ulong FirstWasabi2Block = 741213;
+        /// <summary>
         /// July 06, 2018 Reddit announcement - https://old.reddit.com/r/Bitcoin/comments/8wk63k/wasabi_privacy_focused_bitcoin_wallet_for_desktop/
         /// </summary>
         public const ulong FirstWasabiBlock = 530500;

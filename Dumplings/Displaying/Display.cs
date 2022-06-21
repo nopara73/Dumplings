@@ -10,11 +10,23 @@ namespace Dumplings.Displaying
     public static class Display
     {
         public static void DisplayOtheriWasabiSamuriResults(IDictionary<YearMonth, int> otheriResults, IDictionary<YearMonth, int> wasabiResults, IDictionary<YearMonth, int> samuriResults)
+            => DisplayOtheriWasabiSamuriResults(otheriResults, null, wasabiResults, samuriResults);
+        public static void DisplayOtheriWasabiSamuriResults(IDictionary<YearMonth, int> otheriResults, IDictionary<YearMonth, int> wasabi2Results, IDictionary<YearMonth, int> wasabiResults, IDictionary<YearMonth, int> samuriResults)
         {
-            Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
+            var isWW2 = wasabi2Results != null;
 
-            foreach (var yearMonth in wasabiResults
+            if (isWW2)
+            {
+                Console.WriteLine($"Month;Otheri;Wasabi2;Samuri");
+            }
+            else
+            {
+                Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
+            }
+
+            foreach (var yearMonth in wasabi2Results
                 .Keys
+                .Concat(wasabiResults.Keys)
                 .Concat(otheriResults.Keys)
                 .Concat(samuriResults.Keys)
                 .Distinct()
@@ -34,16 +46,40 @@ namespace Dumplings.Displaying
                     samuri = 0;
                 }
 
-                Console.WriteLine($"{yearMonth};{otheri};{wasabi};{samuri}");
+                if (isWW2)
+                {
+                    if (!wasabi2Results.TryGetValue(yearMonth, out var wasabi2))
+                    {
+                        wasabi2 = 0;
+                    }
+                    Console.WriteLine($"{yearMonth};{otheri};{wasabi2};{wasabi};{samuri}");
+
+                }
+                else
+                {
+                    Console.WriteLine($"{yearMonth};{otheri};{wasabi};{samuri}");
+                }
             }
         }
 
         public static void DisplayOtheriWasabiSamuriResults(IDictionary<YearMonth, Money> otheriResults, IDictionary<YearMonth, Money> wasabiResults, IDictionary<YearMonth, Money> samuriResults)
+            => DisplayOtheriWasabiSamuriResults(otheriResults, null, otheriResults, samuriResults);
+        public static void DisplayOtheriWasabiSamuriResults(IDictionary<YearMonth, Money> otheriResults, IDictionary<YearMonth, Money> wasabi2Results, IDictionary<YearMonth, Money> wasabiResults, IDictionary<YearMonth, Money> samuriResults)
         {
-            Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
+            var isWW2 = wasabi2Results != null;
 
-            foreach (var yearMonth in wasabiResults
+            if (isWW2)
+            {
+                Console.WriteLine($"Month;Otheri;Wasabi2;Wasabi;Samuri");
+            }
+            else
+            {
+                Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
+            }
+
+            foreach (var yearMonth in wasabi2Results
                 .Keys
+                .Concat(wasabiResults.Keys)
                 .Concat(otheriResults.Keys)
                 .Concat(samuriResults.Keys)
                 .Distinct()
@@ -63,16 +99,39 @@ namespace Dumplings.Displaying
                     samuri = Money.Zero;
                 }
 
-                Console.WriteLine($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
+                if (isWW2)
+                {
+                    if (!wasabi2Results.TryGetValue(yearMonth, out var wasabi2))
+                    {
+                        wasabi2 = Money.Zero;
+                    }
+                    Console.WriteLine($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi2.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
+
+                }
+                else
+                {
+                    Console.WriteLine($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
+                }
+
             }
         }
 
-        public static void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonthDay, Money> otheriResults, Dictionary<YearMonthDay, Money> wasabiResults, Dictionary<YearMonthDay, Money> samuriResults)
+        public static void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonthDay, Money> otheriResults, Dictionary<YearMonthDay, Money> wasabi2Results, Dictionary<YearMonthDay, Money> wasabiResults, Dictionary<YearMonthDay, Money> samuriResults)
         {
-            Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
+            var isWW2 = wasabi2Results != null;
 
-            foreach (var yearMonthDay in wasabiResults
+            if (isWW2)
+            {
+                Console.WriteLine($"Month;Otheri;Wasabi2;Wasabi;Samuri");
+            }
+            else
+            {
+                Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
+            }
+
+            foreach (var yearMonthDay in wasabi2Results
                 .Keys
+                .Concat(wasabiResults.Keys)
                 .Concat(otheriResults.Keys)
                 .Concat(samuriResults.Keys)
                 .Distinct()
@@ -92,7 +151,20 @@ namespace Dumplings.Displaying
                     samuri = Money.Zero;
                 }
 
-                Console.WriteLine($"{yearMonthDay};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
+                if (isWW2)
+                {
+                    if (!wasabi2Results.TryGetValue(yearMonthDay, out var wasabi2))
+                    {
+                        wasabi2 = Money.Zero;
+                    }
+                    Console.WriteLine($"{yearMonthDay};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi2.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
+
+                }
+                else
+                {
+                    Console.WriteLine($"{yearMonthDay};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
+                }
+
             }
         }
 
@@ -140,11 +212,23 @@ namespace Dumplings.Displaying
         }
 
         public static void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonth, ulong> otheriResults, Dictionary<YearMonth, ulong> wasabiResults, Dictionary<YearMonth, ulong> samuriResults)
+            => DisplayOtheriWasabiSamuriResults(otheriResults, null, wasabiResults, samuriResults);
+        public static void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonth, ulong> otheriResults, Dictionary<YearMonth, ulong> wasabi2Results, Dictionary<YearMonth, ulong> wasabiResults, Dictionary<YearMonth, ulong> samuriResults)
         {
-            Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
+            var isWW2 = wasabi2Results != null;
 
-            foreach (var yearMonth in wasabiResults
+            if (isWW2)
+            {
+                Console.WriteLine($"Month;Otheri;Wasabi2;Wasabi;Samuri");
+            }
+            else
+            {
+                Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
+            }
+
+            foreach (var yearMonth in wasabi2Results
                 .Keys
+                .Concat(wasabiResults.Keys)
                 .Concat(otheriResults.Keys)
                 .Concat(samuriResults.Keys)
                 .Distinct()
@@ -164,16 +248,41 @@ namespace Dumplings.Displaying
                     samuri = 0;
                 }
 
-                Console.WriteLine($"{yearMonth};{otheri:0};{wasabi:0};{samuri:0}");
+                if (isWW2)
+                {
+                    if (!wasabi2Results.TryGetValue(yearMonth, out var wasabi2))
+                    {
+                        wasabi2 = Money.Zero;
+                    }
+                    Console.WriteLine($"{yearMonth};{otheri:0};{wasabi2:0};{wasabi:0};{samuri:0}");
+
+                }
+                else
+                {
+                    Console.WriteLine($"{yearMonth};{otheri:0};{wasabi:0};{samuri:0}");
+                }
+
             }
         }
 
         public static void DisplayOtheriWasabiSamuriResults(IDictionary<YearMonth, decimal> otheriResults, IDictionary<YearMonth, decimal> wasabiResults, IDictionary<YearMonth, decimal> samuriResults)
+            => DisplayOtheriWasabiSamuriResults(otheriResults, null, wasabiResults, samuriResults);
+        public static void DisplayOtheriWasabiSamuriResults(IDictionary<YearMonth, decimal> otheriResults, IDictionary<YearMonth, decimal> wasabi2Results, IDictionary<YearMonth, decimal> wasabiResults, IDictionary<YearMonth, decimal> samuriResults)
         {
-            Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
+            var isWW2 = wasabi2Results != null;
 
-            foreach (var yearMonth in wasabiResults
+            if (isWW2)
+            {
+                Console.WriteLine($"Month;Otheri;Wasabi2;Wasabi;Samuri");
+            }
+            else
+            {
+                Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
+            }
+
+            foreach (var yearMonth in wasabi2Results
                 .Keys
+                .Concat(wasabiResults.Keys)
                 .Concat(otheriResults.Keys)
                 .Concat(samuriResults.Keys)
                 .Distinct()
@@ -193,7 +302,20 @@ namespace Dumplings.Displaying
                     samuri = 0;
                 }
 
-                Console.WriteLine($"{yearMonth};{otheri:0.0};{wasabi:0.0};{samuri:0.0}");
+
+                if (isWW2)
+                {
+                    if (!wasabi2Results.TryGetValue(yearMonth, out var wasabi2))
+                    {
+                        wasabi2 = 0;
+                    }
+                    Console.WriteLine($"{yearMonth};{otheri:0.0};{wasabi2:0.0};{wasabi:0.0};{samuri:0.0}");
+
+                }
+                else
+                {
+                    Console.WriteLine($"{yearMonth};{otheri:0.0};{wasabi:0.0};{samuri:0.0}");
+                }
             }
         }
     }
