@@ -25,6 +25,7 @@ namespace Dumplings.Scanning
             Wasabi2Denominations = CreateWasabi2Denominations().ToHashSet();
         }
 
+        //public const string WorkFolder = @"C:\Users\user\source\repos\Dumplings\Dumplings.Cli\bin\Release\netcoreapp3.1\Scanner";        
         public const string WorkFolder = "Scanner";
 
         public static readonly string LastProcessedBlockHeightPath = Path.Combine(WorkFolder, "LastProcessedBlockHeight.txt");
