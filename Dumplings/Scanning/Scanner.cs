@@ -63,14 +63,14 @@ namespace Dumplings.Scanning
 
             var opreturnTransactionCache = new MemoryCache(new MemoryCacheOptions() { SizeLimit = 100000 });
 
-            ulong startingHeight = Constants.FirstWasabiBlock;
+            ulong startingHeight = Constants.FirstWasabi2Block;
             ulong height = startingHeight;
             if (File.Exists(LastProcessedBlockHeightPath))
             {
                 height = ReadBestHeight() + 1;
                 allSamouraiCoinJoinSet = Enumerable.ToHashSet(ReadSamouraiCoinJoins().Select(x => x.Id));
-                allWasabiCoinJoinSet = Enumerable.ToHashSet(ReadWasabiCoinJoins().Select(x => x.Id));
                 allWasabi2CoinJoinSet = Enumerable.ToHashSet(ReadWasabi2CoinJoins().Select(x => x.Id));
+                allWasabiCoinJoinSet = Enumerable.ToHashSet(ReadWasabiCoinJoins().Select(x => x.Id));
                 allOtherCoinJoinSet = Enumerable.ToHashSet(ReadOtherCoinJoins().Select(x => x.Id));
                 allSamouraiTx0Set = Enumerable.ToHashSet(ReadSamouraiTx0s().Select(x => x.Id));
                 Logger.LogWarning($"{height - startingHeight + 1} blocks already processed. Continue scanning...");
