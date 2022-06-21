@@ -129,14 +129,17 @@ namespace Dumplings.Displaying
                 Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
             }
 
-            foreach (var yearMonthDay in wasabi2Results
-                .Keys
-                .Concat(wasabiResults.Keys)
-                .Concat(otheriResults.Keys)
-                .Concat(samuriResults.Keys)
-                .Distinct()
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month))
+            YearMonthDay[] yearMonthDays = wasabi2Results
+                            .Keys
+                            .Concat(wasabiResults.Keys)
+                            .Concat(otheriResults.Keys)
+                            .Concat(samuriResults.Keys)
+                            .Distinct()
+                            .OrderBy(x => x.Year)
+                            .ThenBy(x => x.Month)
+                            .ThenBy(x=>x.Day)
+                            .ToArray();
+            foreach (var yearMonthDay in yearMonthDays)
             {
                 if (!otheriResults.TryGetValue(yearMonthDay, out Money otheri))
                 {
