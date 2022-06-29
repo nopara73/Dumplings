@@ -20,6 +20,7 @@ namespace Dumplings.Cli
         SmallerThanMinimum,        // Calculate monthly average percentage of smaller than minimum utxos in Wasabi coinjoins.
         MonthlyEqualVolumes,        // Calculate the monthly volumes of different kind of coinjoins of equal values.
         AverageUserCount,
-        AverageNetworkFeePaidByUserPerCoinjoin
+        AverageNetworkFeePaidByUserPerCoinjoin,
+        Records
     }
 }

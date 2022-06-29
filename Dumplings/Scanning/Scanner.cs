@@ -21,8 +21,6 @@ namespace Dumplings.Scanning
             Rpc = rpc;
             Directory.CreateDirectory(WorkFolder);
             KnotsStatus.CheckAsync(rpc).GetAwaiter().GetResult();
-
-            Wasabi2Denominations = CreateWasabi2Denominations().ToHashSet();
         }
 
         //public const string WorkFolder = @"C:\Users\user\source\repos\Dumplings\Dumplings.Cli\bin\Release\netcoreapp3.1\Scanner";        
@@ -43,7 +41,7 @@ namespace Dumplings.Scanning
 
         private decimal PercentageDone { get; set; } = 0;
         private decimal PreviousPercentageDone { get; set; } = -1;
-        public HashSet<long> Wasabi2Denominations { get; }
+        public static HashSet<long> Wasabi2Denominations { get; } = CreateWasabi2Denominations().ToHashSet();
 
         public async Task ScanAsync(bool rescan)
         {
@@ -424,7 +422,7 @@ namespace Dumplings.Scanning
             return processedBlocks;
         }
 
-        private IOrderedEnumerable<long> CreateWasabi2Denominations()
+        private static IOrderedEnumerable<long> CreateWasabi2Denominations()
         {
             long maxSatoshis = 134375000000;
             long minSatoshis = 5000;

@@ -1,4 +1,5 @@
-﻿using Dumplings.Stats;
+﻿using Dumplings.Rpc;
+using Dumplings.Stats;
 using NBitcoin;
 using System;
 using System.Collections.Generic;
@@ -137,7 +138,7 @@ namespace Dumplings.Displaying
                             .Distinct()
                             .OrderBy(x => x.Year)
                             .ThenBy(x => x.Month)
-                            .ThenBy(x=>x.Day)
+                            .ThenBy(x => x.Day)
                             .ToArray();
             foreach (var yearMonthDay in yearMonthDays)
             {
@@ -319,6 +320,52 @@ namespace Dumplings.Displaying
                 {
                     Console.WriteLine($"{yearMonth};{otheri:0.0};{wasabi:0.0};{samuri:0.0}");
                 }
+            }
+        }
+
+        public static void DisplayRecords(Dictionary<int, VerboseTransactionInfo> mostInputs, Dictionary<int, VerboseTransactionInfo> mostOutputs, Dictionary<int, VerboseTransactionInfo> mostInputsAndOutputs, Dictionary<Money, VerboseTransactionInfo> largestVolumes, Dictionary<ulong, VerboseTransactionInfo> largestCjEqualities, Dictionary<int, VerboseTransactionInfo> smallestUnequalOutputs, Dictionary<int, VerboseTransactionInfo> smallestUnequalInputs)
+        {
+            Console.WriteLine();
+            Console.WriteLine("Input count records:");
+            foreach (var cj in mostInputs)
+            {
+                Console.WriteLine($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
+            }
+            Console.WriteLine();
+            Console.WriteLine("Output count records:");
+            foreach (var cj in mostOutputs)
+            {
+                Console.WriteLine($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
+            }
+            Console.WriteLine();
+            Console.WriteLine("Input count + output count records:");
+            foreach (var cj in mostInputsAndOutputs)
+            {
+                Console.WriteLine($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
+            }
+            Console.WriteLine();
+            Console.WriteLine("Volume records:");
+            foreach (var cj in largestVolumes)
+            {
+                Console.WriteLine($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key.ToDecimal(MoneyUnit.BTC):0}\t{cj.Value.Id}");
+            }
+            Console.WriteLine();
+            Console.WriteLine("Equality records:");
+            foreach (var cj in largestCjEqualities)
+            {
+                Console.WriteLine($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
+            }
+            Console.WriteLine();
+            Console.WriteLine("Unique output count records:");
+            foreach (var cj in smallestUnequalOutputs)
+            {
+                Console.WriteLine($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
+            }
+            Console.WriteLine();
+            Console.WriteLine("Unique input count records:");
+            foreach (var cj in smallestUnequalInputs)
+            {
+                Console.WriteLine($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
             }
         }
     }

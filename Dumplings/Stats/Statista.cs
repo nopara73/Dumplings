@@ -111,6 +111,65 @@ namespace Dumplings.Stats
             }
         }
 
+        public void CalculateRecords()
+        {
+            var mostInputs = new Dictionary<int, VerboseTransactionInfo>();
+            var mostOutputs = new Dictionary<int, VerboseTransactionInfo>();
+            var mostInputsAndOutputs = new Dictionary<int, VerboseTransactionInfo>();
+            var largestVolumes = new Dictionary<Money, VerboseTransactionInfo>();
+            var largestCjEqualities = new Dictionary<ulong, VerboseTransactionInfo>();
+
+            var smallestUnequalOutputs = new Dictionary<int, VerboseTransactionInfo>();
+            var smallestUnequalInputs = new Dictionary<int, VerboseTransactionInfo>();
+
+            // IsWasabi2Cj is because there were false positives and I don't want to spend a week to run the algo from the beginning to scan everything.
+            foreach (var cj in ScannerFiles.Wasabi2CoinJoins.Where(x => x.IsWasabi2Cj()))
+            {
+                var inputCount = cj.Inputs.Count();
+                var outputCount = cj.Outputs.Count();
+                var inOutSum = inputCount + outputCount;
+                var totalVolume = cj.Inputs.Sum(x => x.PrevOutput.Value);
+                var cjEquality = cj.CalculateCoinJoinEquality();
+
+                var unequalOutputs = cj.GetIndistinguishableOutputs(true).Count(x => x.count == 1);
+                var unequalInputs = cj.GetIndistinguishableInputs(true).Count(x => x.count == 1);
+                var unequalOutputVol = cj.GetIndistinguishableOutputs(true).Where(x => x.count == 1).Sum(x => x.value);
+                var unequalInputVol = cj.GetIndistinguishableInputs(true).Where(x => x.count == 1).Sum(x => x.value);
+
+                if (!mostInputs.Keys.Any(x => x >= inputCount))
+                {
+                    mostInputs.Add(inputCount, cj);
+                }
+                if (!mostOutputs.Keys.Any(x => x >= outputCount))
+                {
+                    mostOutputs.Add(outputCount, cj);
+                }
+                if (!mostInputsAndOutputs.Keys.Any(x => x >= inOutSum))
+                {
+                    mostInputsAndOutputs.Add(inOutSum, cj);
+                }
+                if (!largestVolumes.Keys.Any(x => x >= totalVolume))
+                {
+                    largestVolumes.Add(totalVolume, cj);
+                }
+                if (!largestCjEqualities.Keys.Any(x => x >= cjEquality))
+                {
+                    largestCjEqualities.Add(cjEquality, cj);
+                }
+
+                if (!smallestUnequalOutputs.Keys.Any(x => x <= unequalOutputs))
+                {
+                    smallestUnequalOutputs.Add(unequalOutputs, cj);
+                }
+                if (!smallestUnequalInputs.Keys.Any(x => x <= unequalInputs))
+                {
+                    smallestUnequalInputs.Add(unequalInputs, cj);
+                }
+            }
+
+            Display.DisplayRecords(mostInputs, mostOutputs, mostInputsAndOutputs, largestVolumes, largestCjEqualities, smallestUnequalOutputs, smallestUnequalInputs);
+        }
+
         public void CalculateFreshBitcoinAmounts()
         {
             var wasabi = GetFreshBitcoinAmounts(ScannerFiles.WasabiCoinJoins);

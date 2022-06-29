@@ -116,6 +116,12 @@ namespace Dumplings.Cli
                     var stat = new Statista(loadedScannerFiles);
                     stat.CalculateMonthlyNetworkFeePaidByUserPerCoinjoin();
                 }
+                else if (command == Command.Records)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles);
+                    stat.CalculateRecords();
+                }
             }
 
             Console.WriteLine();
