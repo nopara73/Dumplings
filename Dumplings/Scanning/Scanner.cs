@@ -132,6 +132,8 @@ namespace Dumplings.Scanning
                                 isWasabi2Cj =
                                     isNativeSegwitOnly
                                     && inputCount >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
+                                    && inputValues.SequenceEqual(inputValues.OrderByDescending(x => x)) // Inputs are ordered descending.
+                                    && outputValues.SequenceEqual(outputValues.OrderByDescending(x => x)) // Outputs are ordered descending.
                                     && outputValues.Count(x=>Wasabi2Denominations.Contains(x.Satoshi)) > outputCount * 0.8; // Most of the outputs contains the denomination.
                             }
 
