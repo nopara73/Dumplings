@@ -68,21 +68,11 @@ Average count of remixes is a derived metric, which shows how many times a bitco
 Bitcoins those were intended to be mixed, but were not.
 
 - For Wasabi and Otheri, it counts CoinJoin change outputs those have been spent, but not in other CoinJoins. (Note 1: the software does not currently examine if the change is coming from CoinJoined inputs. Note 2: more related metrics and more detailed explanation on Wasabi's inefficiency can be found under the [WasabiCjEfficiency repository](https://github.com/nopara73/WasabiCjEfficiency).)
-- For Samuri, it counts TX0 transaction outputs those have been spent, but not in other TX0 or Coinoin transactions.
+- For Samuri, it counts TX0 transaction outputs those have been spent, but not in other TX0 or coinjoin transactions.
 
 The following is a derived metric: it's the percentage of nevermixed coins to fresh bitcoins.
 
 ![](https://i.imgur.com/aGD81yP.png)
-
-# CoinJoinIncome
-
-Note: Without sophisticated algorithms it is hard to tell how much income Wasabi makes after it changed its fee address to dynamic calculations, so that's why the data is discontinued at some point.
-
-![](https://i.imgur.com/AJXqBS6.png)
-
-The next is a derived metric. It's the percentage of monthly income where the total is the fresh bitcoins coming into mix monthly.
-
-![](https://i.imgur.com/uYyAsUY.png)
 
 # PostMixConsolidation
 
