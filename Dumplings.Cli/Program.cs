@@ -122,6 +122,12 @@ namespace Dumplings.Cli
                     var stat = new Statista(loadedScannerFiles);
                     stat.CalculateRecords();
                 }
+                else if (command == Command.UniqueCountPercent)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles);
+                    stat.CalculateUniqueCountPercent();
+                }
             }
 
             Console.WriteLine();

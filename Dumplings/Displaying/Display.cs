@@ -171,6 +171,16 @@ namespace Dumplings.Displaying
 
             }
         }
+        public static void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonthDay, List<(int uniqueOutCount, int uniqueInCount, double uniqueOutCountPercent, double uniqueInCountPercent)>> uniqueCountPercents)
+        {
+            Console.WriteLine($"Date;uniqueOutCount;uniqueInCount;uniqueOutCountPercent;uniqueInCountPercent");
+
+            foreach (var record in uniqueCountPercents.OrderBy(x => x.Key.Year).ThenBy(x => x.Key.Month).ThenBy(x => x.Key.Day))
+            {
+                Console.WriteLine($"{record.Key};{record.Value.Median(x=>x.uniqueOutCount):0.0};{record.Value.Median(x => x.uniqueInCount):0.0};{record.Value.Median(x => x.uniqueOutCountPercent):0.0};{record.Value.Median(x => x.uniqueInCountPercent):0.0}");
+
+            }
+        }
 
         public static void DisplayWasabiResults(Dictionary<YearMonth, decimal> wasabiResults)
         {

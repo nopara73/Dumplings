@@ -111,6 +111,35 @@ namespace Dumplings.Stats
             }
         }
 
+        public void CalculateUniqueCountPercent()
+        {
+            var uniqueCountPercents = new Dictionary<YearMonthDay, List<(int uniqueOutCount, int uniqueInCount, double uniqueOutCountPercent, double uniqueInCountPercent)>>();
+
+            // IsWasabi2Cj is because there were false positives and I don't want to spend a week to run the algo from the beginning to scan everything.
+            foreach (var cj in ScannerFiles.Wasabi2CoinJoins.Where(x => x.IsWasabi2Cj()))
+            {
+                int uniqueOutCount = cj.GetIndistinguishableOutputs(includeSingle: true).Count(x => x.count == 1);
+                int uniqueInCount = cj.GetIndistinguishableInputs(includeSingle: true).Count(x => x.count == 1);
+
+                double uniqueOutCountPercent = uniqueOutCount / (cj.Outputs.Count() / 100d);
+                double uniqueInCountPercent = uniqueInCount / (cj.Inputs.Count() / 100d);
+
+                var key = cj.BlockInfo.YearMonthDay;
+                if (uniqueCountPercents.ContainsKey(key))
+                {
+                    uniqueCountPercents[key].Add((uniqueOutCount, uniqueInCount, uniqueOutCountPercent, uniqueInCountPercent));
+
+                }
+                else
+                {
+
+                    uniqueCountPercents.Add(key, new List<(int uniqueOutCount, int uniqueInCount, double uniqueOutCountPercent, double uniqueInCountPercent)> { (uniqueOutCount, uniqueInCount, uniqueOutCountPercent, uniqueInCountPercent) });
+                }
+            }
+
+            Display.DisplayOtheriWasabiSamuriResults(uniqueCountPercents);
+        }
+
         public void CalculateRecords()
         {
             var mostInputs = new Dictionary<int, VerboseTransactionInfo>();

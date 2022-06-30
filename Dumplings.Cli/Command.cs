@@ -21,6 +21,7 @@ namespace Dumplings.Cli
         MonthlyEqualVolumes,        // Calculate the monthly volumes of different kind of coinjoins of equal values.
         AverageUserCount,
         AverageNetworkFeePaidByUserPerCoinjoin,
-        Records
+        Records,
+        UniqueCountPercent
     }
 }
