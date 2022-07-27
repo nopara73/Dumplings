@@ -147,6 +147,12 @@ namespace Dumplings.Cli
                         var stat = new Statista(loadedScannerFiles, client);
                         stat.CalculateWasabiCoordStats(GetXpub(args));
                     }
+                    else if (command == Command.WabiSabiCoordStats)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.CalculateWabiSabiCoordStats(GetXpub(args));
+                    }
                 }
                 finally
                 {

@@ -22,10 +22,11 @@ namespace Dumplings.Scanning
             Directory.CreateDirectory(WorkFolder);
         }
 
-        public const string WorkFolder = "Scanner";
+        public static string WorkFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WasabiDumplings", "Scanner");
 
         public static readonly string LastProcessedBlockHeightPath = Path.Combine(WorkFolder, "LastProcessedBlockHeight.txt");
         public static readonly string WasabiCoinJoinsPath = Path.Combine(WorkFolder, "WasabiCoinJoins.txt");
+        public static readonly string WabiSabiCoinJoinsPath = Path.Combine(WorkFolder, "WabiSabiCoinJoins.txt");
         public static readonly string SamouraiCoinJoinsPath = Path.Combine(WorkFolder, "SamouraiCoinJoins.txt");
         public static readonly string SamouraiTx0sPath = Path.Combine(WorkFolder, "SamouraiTx0s.txt");
         public static readonly string OtherCoinJoinsPath = Path.Combine(WorkFolder, "OtherCoinJoins.txt");
@@ -50,6 +51,7 @@ namespace Dumplings.Scanning
             }
             Directory.CreateDirectory(WorkFolder);
             var allWasabiCoinJoinSet = new HashSet<uint256>();
+            var allWabiSabiCoinJoinSet = new HashSet<uint256>();
             var allSamouraiCoinJoinSet = new HashSet<uint256>();
             var allOtherCoinJoinSet = new HashSet<uint256>();
             var allSamouraiTx0Set = new HashSet<uint256>();
@@ -83,6 +85,7 @@ namespace Dumplings.Scanning
                 var block = await Rpc.GetVerboseBlockAsync(height, safe: false).ConfigureAwait(false);
 
                 var wasabiCoinJoins = new List<VerboseTransactionInfo>();
+                var wabiSabiCoinJoins = new List<VerboseTransactionInfo>();
                 var samouraiCoinJoins = new List<VerboseTransactionInfo>();
                 var samouraiTx0s = new List<VerboseTransactionInfo>();
                 var otherCoinJoins = new List<VerboseTransactionInfo>();
@@ -98,6 +101,7 @@ namespace Dumplings.Scanning
                     }
 
                     bool isWasabiCj = false;
+                    bool isWabiSabiCj = false;
                     bool isSamouraiCj = false;
                     bool isOtherCj = false;
                     if (tx.Inputs.All(x => x.Coinbase is null))
@@ -129,6 +133,14 @@ namespace Dumplings.Scanning
                                 }
                             }
 
+                            // IDENTIFY WABISABI COINJOINS
+                            if (block.Height >= Constants.FirstWabiSabiBlock)
+                            {
+                                isWabiSabiCj = inputCount > 50  // 50 was the minimum input count at the beginning of Wasabi 2.
+                                    && outputValues.Count(x => Constants.StdDenoms.Contains(x.Satoshi)) > outputValues.Count() * 0.8 // Most of the outputs contains the denomination.
+                                    && outputValues.OrderByDescending(value => value).SequenceEqual(outputValues); // Outputs are ordered descending.
+                            }
+
                             // IDENTIFY SAMOURAI COINJOINS
                             if (block.Height >= Constants.FirstSamouraiBlock)
                             {
@@ -140,7 +152,7 @@ namespace Dumplings.Scanning
                             }
 
                             // IDENTIFY OTHER EQUAL OUTPUT COINJOIN LIKE TRANSACTIONS
-                            if (!isWasabiCj && !isSamouraiCj)
+                            if (!isWasabiCj && !isSamouraiCj && !isWabiSabiCj)
                             {
                                 isOtherCj =
                                     indistinguishableOutputs.Length == 1 // If it isn't then it'd be likely a multidenomination CJ, which only Wasabi does.                                                                 
@@ -150,7 +162,12 @@ namespace Dumplings.Scanning
                                     && inputValues.Max() <= mostFrequentEqualOutputValue + outputValues.Where(x => x != mostFrequentEqualOutputValue).Max() - Money.Coins(0.0001m); // I don't want to run expensive subset sum, so this is a shortcut to at least filter out false positives.
                             }
 
-                            if (isWasabiCj)
+                            if (isWabiSabiCj)
+                            {
+                                wabiSabiCoinJoins.Add(tx);
+                                allWabiSabiCoinJoinSet.Add(tx.Id);
+                            }
+                            else if (isWasabiCj)
                             {
                                 wasabiCoinJoins.Add(tx);
                                 allWasabiCoinJoinSet.Add(tx.Id);
@@ -287,6 +304,7 @@ namespace Dumplings.Scanning
 
                 File.WriteAllText(LastProcessedBlockHeightPath, height.ToString());
                 File.AppendAllLines(WasabiCoinJoinsPath, wasabiCoinJoins.Select(x => RpcParser.ToLine(x)));
+                File.AppendAllLines(WabiSabiCoinJoinsPath, wabiSabiCoinJoins.Select(x => RpcParser.ToLine(x)));
                 File.AppendAllLines(SamouraiCoinJoinsPath, samouraiCoinJoins.Select(x => RpcParser.ToLine(x)));
                 File.AppendAllLines(SamouraiTx0sPath, samouraiTx0s.Select(x => RpcParser.ToLine(x)));
                 File.AppendAllLines(OtherCoinJoinsPath, otherCoinJoins.Select(x => RpcParser.ToLine(x)));
@@ -326,6 +344,10 @@ namespace Dumplings.Scanning
         {
             return File.ReadAllLines(OtherCoinJoinPostMixTxsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
         }
+        private static IEnumerable<VerboseTransactionInfo> ReadWabiSabiCoinJoins()
+        {
+            return File.ReadAllLines(WabiSabiCoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+        }
 
         private static ulong ReadBestHeight()
         {
@@ -337,6 +359,7 @@ namespace Dumplings.Scanning
             return new ScannerFiles(
                 ReadBestHeight(),
                 ReadWasabiCoinJoins(),
+                ReadWabiSabiCoinJoins(),
                 ReadSamouraiCoinJoins(),
                 ReadOtherCoinJoins(),
                 ReadSamouraiTx0s(),

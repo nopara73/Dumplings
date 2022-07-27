@@ -173,6 +173,58 @@ namespace Dumplings.Stats
             }
         }
 
+        public void CalculateWabiSabiCoordStats(ExtPubKey[] xpubs)
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                var scripts = new HashSet<Script>();
+                foreach (var xpub in xpubs)
+                {
+                    for (int i = 0; i < 100_000; i++)
+                    {
+                        scripts.Add(xpub.Derive(0, false).Derive(i, false).PubKey.WitHash.ScriptPubKey);
+                    }
+                }
+
+                DateTimeOffset? lastCoinJoinTime = null;
+
+                foreach (var tx in ScannerFiles.WabiSabiCoinJoins)
+                {
+                    // It's OK if it's null, because there are rounds with no coord fee.
+                    var coordOutput = tx.Outputs.SingleOrDefault(x => scripts.Contains(x.ScriptPubKey)); 
+
+                    double vSizeEstimation = 10.75 + tx.Outputs.Count() * 31 + tx.Inputs.Count() * 67.75;
+
+                    var blockTime = tx.BlockInfo.BlockTime;
+
+                    if (lastCoinJoinTime.HasValue && (lastCoinJoinTime - blockTime).Value.Duration() > TimeSpan.FromDays(7))
+                    {
+                        throw new InvalidOperationException("No CoinJoin for a week");
+                    }
+
+                    lastCoinJoinTime = blockTime;
+
+                    Console.Write($"{blockTime.Value.UtcDateTime.ToString("o", System.Globalization.CultureInfo.InvariantCulture)};");
+                    Console.Write($"{tx.Id};");
+
+                    var totalFee = (tx.Inputs.Sum(x => x.PrevOutput.Value) - tx.Outputs.Sum(x => x.Value));
+
+                    Console.Write($"{string.Format("{0:0.00}", (double)(totalFee / vSizeEstimation))};");
+                    Console.Write($"{(coordOutput is null ? "" : coordOutput.ScriptPubKey.GetDestinationAddress(Network.Main).ToString())};");
+                    Console.Write($"{(coordOutput is null ? Money.Zero : coordOutput.Value)};");
+
+                    var outputs = tx.GetIndistinguishableOutputs(includeSingle: false);
+                    var currentDenom = outputs.OrderByDescending(x => x.count).First().value;
+                    foreach (var (value, count) in outputs.Where(x => x.value >= currentDenom))
+                    {
+                        Console.Write($"{value};{count};");
+                    }
+                    Console.WriteLine();
+                }
+            }
+        }
+
         private void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonth, Money> otheriResults, Dictionary<YearMonth, Money> wasabiResults, Dictionary<YearMonth, Money> samuriResults)
         {
             Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
