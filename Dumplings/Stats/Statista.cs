@@ -178,7 +178,7 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Console.ForegroundColor = ConsoleColor.Green;
-                var scripts = Constants.WabiSabiCoordScripts.ToHashSet();
+                var scripts = new HashSet<Script>();
                 foreach (var xpub in xpubs)
                 {
                     for (int i = 0; i < 100_000; i++)

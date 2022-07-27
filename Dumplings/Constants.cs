@@ -30,12 +30,6 @@ namespace Dumplings
             BitcoinAddress.Create("bc1qa24tsgchvuxsaccp8vrnkfd85hrcpafg20kmjw", Network.Main).ScriptPubKey
         };
 
-        public static IEnumerable<Script> WabiSabiCoordScripts = new Script[]
-        {
-            BitcoinAddress.Create("bc1qsnynr0nfa233q7s8k495ank2nwc0xw4zq2c6d2", Network.Main).ScriptPubKey,
-            BitcoinAddress.Create("bc1qqgfu8x6c4fg8vtt0zfjl0uj6m9c853p9lfs9c8", Network.Main).ScriptPubKey
-        };
-
         public static Money ApproximateWasabiBaseDenomination = Money.Coins(0.1m);
         public static Money WasabiBaseDenominationPrecision = Money.Coins(0.02m);
 
