@@ -205,13 +205,13 @@ namespace Dumplings.Stats
 
                     lastCoinJoinTime = blockTime;
 
-                    Console.Write($"{blockTime.Value.UtcDateTime.ToString("o", System.Globalization.CultureInfo.InvariantCulture)};");
+                    Console.Write($"{blockTime.Value.UtcDateTime.ToString("MM.dd.yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)};");
                     Console.Write($"{tx.Id};");
 
                     var totalFee = (tx.Inputs.Sum(x => x.PrevOutput.Value) - tx.Outputs.Sum(x => x.Value));
 
                     Console.Write($"{string.Format("{0:0.00}", (double)(totalFee / vSizeEstimation))};");
-                    Console.Write($"{(coordOutput is null ? "" : coordOutput.ScriptPubKey.GetDestinationAddress(Network.Main).ToString())};");
+                    Console.Write($"{(coordOutput is null ? "therewasnocoordinatoroutput" : coordOutput.ScriptPubKey.GetDestinationAddress(Network.Main).ToString())};");
                     Console.Write($"{(coordOutput is null ? Money.Zero : coordOutput.Value)};");
 
                     var outputs = tx.GetIndistinguishableOutputs(includeSingle: false);
