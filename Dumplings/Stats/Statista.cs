@@ -211,7 +211,7 @@ namespace Dumplings.Stats
                     var totalFee = (tx.Inputs.Sum(x => x.PrevOutput.Value) - tx.Outputs.Sum(x => x.Value));
 
                     Console.Write($"{string.Format("{0:0.00}", (double)(totalFee / vSizeEstimation))};");
-                    Console.Write($"{(coordOutput is null ? "0" : coordOutput.ScriptPubKey.GetDestinationAddress(Network.Main).ToString())};");
+                    Console.Write($"{(coordOutput is null ? "therewasnocoordinatoroutput" : coordOutput.ScriptPubKey.GetDestinationAddress(Network.Main).ToString())};");
                     Console.Write($"{(coordOutput is null ? Money.Zero : coordOutput.Value)};");
 
                     var outputs = tx.GetIndistinguishableOutputs(includeSingle: false);
