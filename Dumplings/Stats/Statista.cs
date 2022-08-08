@@ -152,7 +152,7 @@ namespace Dumplings.Stats
 
                     lastCoinJoinTime = blockTime;
 
-                    Console.Write($"{blockTime.Value.UtcDateTime.ToString("o", System.Globalization.CultureInfo.InvariantCulture)};");
+                    Console.Write($"{blockTime.Value.UtcDateTime.ToString("MM.dd.yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)};");
                     Console.Write($"{tx.Id};");
 
                     var totalFee = (tx.Inputs.Sum(x => x.PrevOutput.Value) - tx.Outputs.Sum(x => x.Value));
