@@ -23,7 +23,7 @@ namespace Dumplings.Scanning
             KnotsStatus.CheckAsync(rpc).GetAwaiter().GetResult();
         }
 
-        //public const string WorkFolder = @"C:\Users\user\source\repos\Dumplings\Dumplings.Cli\bin\Release\netcoreapp3.1\Scanner";        
+        //public const string WorkFolder = @"C:\Users\user\source\repos\Dumplings\Dumplings.Cli\bin\Release\netcoreapp3.1\Scanner";
         public const string WorkFolder = "Scanner";
 
         public static readonly string LastProcessedBlockHeightPath = Path.Combine(WorkFolder, "LastProcessedBlockHeight.txt");
@@ -132,7 +132,7 @@ namespace Dumplings.Scanning
                                     && inputCount >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
                                     && inputValues.SequenceEqual(inputValues.OrderByDescending(x => x)) // Inputs are ordered descending.
                                     && outputValues.SequenceEqual(outputValues.OrderByDescending(x => x)) // Outputs are ordered descending.
-                                    && outputValues.Count(x=>Wasabi2Denominations.Contains(x.Satoshi)) > outputCount * 0.8; // Most of the outputs contains the denomination.
+                                    && outputValues.Count(x => Wasabi2Denominations.Contains(x.Satoshi)) > outputCount * 0.8; // Most of the outputs contains the denomination.
                             }
 
                             // IDENTIFY WASABI COINJOINS
@@ -152,7 +152,6 @@ namespace Dumplings.Scanning
                                         && inputCount >= mostFrequentEqualOutputCount // More inptuts than most frequent equal outputs.
                                         && mostFrequentEqualOutputValue.Almost(Constants.ApproximateWasabiBaseDenomination, Constants.WasabiBaseDenominationPrecision) // The most frequent equal outputs must be almost the base denomination.
                                         && uniqueOutputCount >= 2; // It's very likely there's at least one change and at least one coord output those have unique values.
-
                                 }
                             }
 
@@ -183,7 +182,7 @@ namespace Dumplings.Scanning
                             if (!isWasabi2Cj && !isWasabiCj && !isSamouraiCj)
                             {
                                 isOtherCj =
-                                    indistinguishableOutputs.Length == 1 // If it isn't then it'd be likely a multidenomination CJ, which only Wasabi does.                                                                 
+                                    indistinguishableOutputs.Length == 1 // If it isn't then it'd be likely a multidenomination CJ, which only Wasabi does.
                                     && mostFrequentEqualOutputCount == outputCount - mostFrequentEqualOutputCount // Rarely it isn't, but it helps filtering out false positives.
                                     && outputs.Select(x => x.ScriptPubKey).Distinct().Count() >= mostFrequentEqualOutputCount // Otherwise more participants would be single actors which makes no sense.
                                     && inputs.Select(x => x.ScriptPubKey).Distinct().Count() >= mostFrequentEqualOutputCount // Otherwise more participants would be single actors which makes no sense.
@@ -362,34 +361,42 @@ namespace Dumplings.Scanning
         {
             return File.ReadAllLines(Wasabi2CoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
         }
+
         private static IEnumerable<VerboseTransactionInfo> ReadWasabiCoinJoins()
         {
             return File.ReadAllLines(WasabiCoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
         }
+
         private static IEnumerable<VerboseTransactionInfo> ReadSamouraiCoinJoins()
         {
             return File.ReadAllLines(SamouraiCoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
         }
+
         private static IEnumerable<VerboseTransactionInfo> ReadOtherCoinJoins()
         {
             return File.ReadAllLines(OtherCoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
         }
+
         private static IEnumerable<VerboseTransactionInfo> ReadSamouraiTx0s()
         {
             return File.ReadAllLines(SamouraiTx0sPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
         }
+
         private static IEnumerable<VerboseTransactionInfo> ReadWasabi2PostMixTxs()
         {
             return File.ReadAllLines(Wasabi2PostMixTxsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
         }
+
         private static IEnumerable<VerboseTransactionInfo> ReadWasabiPostMixTxs()
         {
             return File.ReadAllLines(WasabiPostMixTxsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
         }
+
         private static IEnumerable<VerboseTransactionInfo> ReadSamouraiPostMixTxs()
         {
             return File.ReadAllLines(SamouraiPostMixTxsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
         }
+
         private static IEnumerable<VerboseTransactionInfo> ReadOtherCoinJoinPostMixTxs()
         {
             return File.ReadAllLines(OtherCoinJoinPostMixTxsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));

@@ -8,6 +8,7 @@ namespace Dumplings.Analysis
     {
         public Guid Id { get; }
         public decimal Value { get; }
+
         public Coin(Guid id, decimal value)
         {
             Id = id;

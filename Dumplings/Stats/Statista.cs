@@ -128,11 +128,9 @@ namespace Dumplings.Stats
                 if (uniqueCountPercents.ContainsKey(key))
                 {
                     uniqueCountPercents[key].Add((uniqueOutCount, uniqueInCount, uniqueOutCountPercent, uniqueInCountPercent));
-
                 }
                 else
                 {
-
                     uniqueCountPercents.Add(key, new List<(int uniqueOutCount, int uniqueInCount, double uniqueOutCountPercent, double uniqueInCountPercent)> { (uniqueOutCount, uniqueInCount, uniqueOutCountPercent, uniqueInCountPercent) });
                 }
             }
@@ -240,6 +238,7 @@ namespace Dumplings.Stats
                 Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
             }
         }
+
         private IDictionary<YearMonth, Money> CalculateAverageNetworkFeePaidByUserPerCoinjoin(IEnumerable<VerboseTransactionInfo> txs)
         {
             var myDic = new Dictionary<YearMonth, List<Money>>();

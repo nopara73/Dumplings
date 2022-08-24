@@ -135,7 +135,6 @@ namespace Dumplings.Cli
             Console.ReadKey();
         }
 
-
         private static void ParseArgs(string[] args, out Command command, out NetworkCredential cred)
         {
             string rpcUser = null;
