@@ -133,12 +133,6 @@ namespace Dumplings.Helpers
             return me.ToDecimal(MoneyUnit.BTC) * btcExchangeRate;
         }
 
-        public static bool VerifyMessage(this BitcoinWitPubKeyAddress address, uint256 messageHash, byte[] signature)
-        {
-            PubKey pubKey = PubKey.RecoverCompact(messageHash, signature);
-            return pubKey.WitHash == address.Hash;
-        }
-
         /// <summary>
         /// If scriptpubkey is already present, just add the value.
         /// </summary>
