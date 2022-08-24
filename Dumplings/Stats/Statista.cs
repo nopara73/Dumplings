@@ -1,11 +1,14 @@
-﻿using Dumplings.Displaying;
+﻿using Dumplings.Analysis;
+using Dumplings.Displaying;
 using Dumplings.Helpers;
 using Dumplings.Rpc;
 using Dumplings.Scanning;
 using NBitcoin;
+using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -866,6 +869,46 @@ namespace Dumplings.Stats
             }
 
             return closeEnoughs;
+        }
+
+        public void ListFreshBitcoins()
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                ListFreshBitcoins("freshotheri.txt", ScannerFiles.OtherCoinJoins);
+                ListFreshBitcoins("freshwasabi2.txt", ScannerFiles.Wasabi2CoinJoins);
+                ListFreshBitcoins("freshwasabi.txt", ScannerFiles.WasabiCoinJoins);
+                ListFreshBitcoins("freshsamuri.txt", ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
+            }
+        }
+
+        private void ListFreshBitcoins(string filePath, IEnumerable<VerboseTransactionInfo> samouraiTx0s, IEnumerable<uint256> samouraiCoinJoinHashes)
+        {
+            // In Samourai in order to identify fresh bitcoins the tx0 input shouldn't come from other samuri coinjoins, nor tx0s.
+            var txHashes = samouraiTx0s.Select(x => x.Id).Union(samouraiCoinJoinHashes).ToHashSet();
+
+            foreach (var tx in samouraiTx0s)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    File.AppendAllLines(filePath, tx.Inputs.Where(x => !txHashes.Contains(x.OutPoint.Hash)).Select(x => new Coin(blockTime.Value, x.OutPoint.Hash, x.OutPoint.N, x.PrevOutput.ScriptPubKey, x.PrevOutput.Value).ToString()));
+                }
+            }
+        }
+
+        private void ListFreshBitcoins(string filePath, IEnumerable<VerboseTransactionInfo> coinjoins)
+        {
+            var txHashes = coinjoins.Select(x => x.Id).ToHashSet();
+
+            foreach (var tx in coinjoins)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    File.AppendAllLines(filePath, tx.Inputs.Where(x => !txHashes.Contains(x.OutPoint.Hash)).Select(x => new Coin(blockTime.Value, x.OutPoint.Hash, x.OutPoint.N, x.PrevOutput.ScriptPubKey, x.PrevOutput.Value).ToString()));
+                }
+            }
         }
     }
 }

@@ -33,7 +33,7 @@ namespace Dumplings.Cli
                     var scanner = new Scanner(client);
                     await scanner.ScanAsync(rescan: true);
                 }
-                //else if (command == Command.Sync)
+                else if (command == Command.Sync)
                 {
                     var scanner = new Scanner(client);
                     await scanner.ScanAsync(rescan: false);
@@ -127,6 +127,12 @@ namespace Dumplings.Cli
                     var loadedScannerFiles = Scanner.Load();
                     var stat = new Statista(loadedScannerFiles);
                     stat.CalculateUniqueCountPercent();
+                }
+                else if (command == Command.ListFreshBitcoins)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles);
+                    stat.ListFreshBitcoins();
                 }
             }
 
