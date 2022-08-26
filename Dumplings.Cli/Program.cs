@@ -33,7 +33,7 @@ namespace Dumplings.Cli
                     var scanner = new Scanner(client);
                     await scanner.ScanAsync(rescan: true);
                 }
-                else if (command == Command.Sync)
+                //else if (command == Command.Sync)
                 {
                     var scanner = new Scanner(client);
                     await scanner.ScanAsync(rescan: false);
@@ -135,10 +135,6 @@ namespace Dumplings.Cli
                     stat.ListFreshBitcoins();
                 }
             }
-
-            Console.WriteLine();
-            Console.WriteLine("Press a button to exit...");
-            Console.ReadKey();
         }
 
         private static void ParseArgs(string[] args, out Command command, out NetworkCredential cred)
