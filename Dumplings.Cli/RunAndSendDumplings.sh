@@ -15,20 +15,12 @@ FILE9='WasabiCoinJoins.txt'
 # HOST = FTP server address,
 # FTPUSER & FTPPASSWD = FTP login credentials,
 # RPCUSER & RPCPASSWD = RPC credentials for Bitcoin Kntos,
-# OLDCORDXPUB(two keys, divided by ',') & WABISABIXPUB = Coordinator XPUBs,
-# OUTFOLDER = Where to save processed dumplings,
 # SCANNERFOLDER = Where to look for the coinjoin stat files to send
 
 source Config.txt
 
 echo "Syncronizing blockchain"
 dotnet run -c Release -- sync --rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD --nowaitonexit
-
-echo "Processing Wasabi Coordinator Stats"
-dotnet run -c Release -- WasabiCoordStats --xpub=$OLDCORDXPUB --outfolder=$OUTFOLDER --rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD --nowaitonexit
-
-echo "Processing WabiSabi Coordinator Stats"
-dotnet run -c Release -- WabiSabiCoordStats --xpub=$WABISABIXPUB --outfolder=$OUTFOLDER --rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD --nowaitonexit
 
 cd $SCANNERFOLDER
 
