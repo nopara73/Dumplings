@@ -340,3 +340,4 @@ ASALocalRun/
 healthchecksdb
 /Dumplings.Cli/Properties/launchSettings.json
 /Dumplings.Cli/Scanner
+/Dumplings.Cli/Config.txt
