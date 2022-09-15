@@ -24,6 +24,10 @@ dotnet run -c Release -- sync --rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD --nowa
 
 cd $SCANNERFOLDER
 
+cat > UPDATEREADY.txt << EOF
+true
+EOF
+
 echo "Starting FTP upload"
 
 ftp -n $HOST <<END_SCRIPT
@@ -38,7 +42,20 @@ put $FILE6
 put $FILE7
 put $FILE8
 put $FILE9
+put UPDATEREADY.txt
 quit
 END_SCRIPT
 
-echo "Finished"
+echo "Finished FTP upload!"
+echo "Removing files"
+rm $FILE2
+rm $FILE3
+rm $FILE4
+rm $FILE5
+rm $FILE6
+rm $FILE7
+rm $FILE8
+rm $FILE9
+rm UPDATEREADY.txt
+
+echo "Files removed!"
