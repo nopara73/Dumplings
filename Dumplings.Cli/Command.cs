@@ -23,6 +23,7 @@ namespace Dumplings.Cli
         AverageNetworkFeePaidByUserPerCoinjoin,
         Records,
         UniqueCountPercent,
-        ListFreshBitcoins          // Lists fresh bitcoins by wallet.
+        ListFreshBitcoins,          // Lists fresh bitcoins by wallet.
+        UnspentCapacity
     }
 }

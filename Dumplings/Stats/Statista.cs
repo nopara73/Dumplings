@@ -910,5 +910,52 @@ namespace Dumplings.Stats
                 }
             }
         }
+
+        public void CalculateUnspentCapacity(RPCClient rpc)
+        {
+            var ucWW1 = Money.Zero;
+            var ucWW2 = Money.Zero;
+            var ucSW = Money.Zero;
+
+            YearMonthDay prevYMD = null;
+            foreach (var tx in ScannerFiles.WasabiCoinJoins
+                .Concat(ScannerFiles.Wasabi2CoinJoins)
+                .Concat(ScannerFiles.SamouraiCoinJoins)
+                .OrderBy(x => x.BlockInfo.BlockTime))
+            {
+                if (prevYMD is null)
+                {
+                    prevYMD = tx.BlockInfo.YearMonthDay;
+                }
+                else if (prevYMD != tx.BlockInfo.YearMonthDay)
+                {
+                    Console.WriteLine($"{prevYMD}\t{ucWW2.ToString(false, false)}\t{ucWW1.ToString(false, false)}\t{ucSW.ToString(false, false)}");
+                    prevYMD = tx.BlockInfo.YearMonthDay;
+                }
+
+                var outs = tx.Outputs.ToArray();
+                for (int i = 0; i < outs.Length; i++)
+                {
+                    var o = outs[i];
+                    if (rpc.GetTxOut(tx.Id, i) is not null)
+                    {
+                        if (ScannerFiles.WasabiCoinJoinHashes.Contains(tx.Id))
+                        {
+                            ucWW1 += o.Value;
+                        }
+                        else if (ScannerFiles.Wasabi2CoinJoinHashes.Contains(tx.Id))
+                        {
+                            ucWW2 += o.Value;
+                        }
+                        else if (ScannerFiles.SamouraiCoinJoinHashes.Contains(tx.Id))
+                        {
+                            ucSW += o.Value;
+                        }
+                    }
+                }
+            }
+
+            Console.WriteLine($"{prevYMD}\t{ucWW2.ToString(false, false)}\t{ucWW1.ToString(false, false)}\t{ucSW.ToString(false, false)}");
+        }
     }
 }

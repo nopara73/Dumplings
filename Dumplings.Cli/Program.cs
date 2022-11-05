@@ -134,7 +134,19 @@ namespace Dumplings.Cli
                     var stat = new Statista(loadedScannerFiles);
                     stat.ListFreshBitcoins();
                 }
+                else if (command == Command.UnspentCapacity)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles);
+                    stat.CalculateUnspentCapacity(client);
+                }
             }
+
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine("Press enter to exit...");
+            Console.ReadLine();
         }
 
         private static void ParseArgs(string[] args, out Command command, out NetworkCredential cred)
