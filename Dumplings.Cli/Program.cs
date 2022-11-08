@@ -245,20 +245,14 @@ namespace Dumplings.Cli
                     rpcPassword = arg.Substring(idx + rpcPasswordArg.Length);
                 }
 
-                idx = arg.IndexOf(rpcPasswordArg, StringComparison.Ordinal);
-                if (idx == 0)
-                {
-                    rpcPassword = arg.Substring(idx + rpcPasswordArg.Length);
-                }
-
                 idx = arg.IndexOf(hostArg, StringComparison.Ordinal);
                 if (idx == 0)
                 {
-                    host = arg.Substring(idx + hostArg.Length);
+                    host = arg.Substring(idx + hostArg.Length).Trim();
                 }
             }
 
-            cred = new NetworkCredential(rpcUser, rpcPassword);
+            cred = new NetworkCredential(rpcUser.Trim(), rpcPassword.Trim());
         }
     }
 }
