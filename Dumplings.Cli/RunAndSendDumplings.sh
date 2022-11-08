@@ -20,7 +20,7 @@ FILE9='WasabiCoinJoins.txt'
 source Config.txt
 
 echo "Syncronizing blockchain"
-dotnet run -c Release -- sync --rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD --nowaitonexit
+dotnet run -c Release -- sync --rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD --host=$RPCHOST --nowaitonexit
 
 cd $SCANNERFOLDER
 
