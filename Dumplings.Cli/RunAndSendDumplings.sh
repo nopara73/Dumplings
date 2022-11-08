@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# exit when any command fails
+set -e
+
 FILE1='LastProcessedBlockHeight.txt'
 FILE2='OtherCoinJoins.txt'
 FILE3='SamouraiPostMixTxs.txt'
