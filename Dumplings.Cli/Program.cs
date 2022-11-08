@@ -24,13 +24,14 @@ namespace Dumplings.Cli
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
             Logger.LogInfo("Parsing arguments...");
-            ParseArgs(args, out Command command, out NetworkCredential rpcCred);
+            ParseArgs(args, out Command command, out NetworkCredential rpcCred, out var host);
 
             var rpcConf = new RPCCredentialString
             {
                 UserPassword = rpcCred
             };
-            var client = new RPCClient(rpcConf, Network.Main);
+
+            var client = new RPCClient(rpcConf, host, Network.Main);
 
             Logger.LogInfo("Checking Bitcoin Knots sync status...");
 
@@ -220,14 +221,16 @@ namespace Dumplings.Cli
             return folderPath;
         }
 
-        private static void ParseArgs(string[] args, out Command command, out NetworkCredential cred)
+        private static void ParseArgs(string[] args, out Command command, out NetworkCredential cred, out string host)
         {
             string rpcUser = null;
             string rpcPassword = null;
+            host = null;
             command = (Command)Enum.Parse(typeof(Command), args[0], ignoreCase: true);
 
             var rpcUserArg = "--rpcuser=";
             var rpcPasswordArg = "--rpcpassword=";
+            var hostArg = "--host=";
             foreach (var arg in args)
             {
                 var idx = arg.IndexOf(rpcUserArg, StringComparison.Ordinal);
@@ -240,6 +243,18 @@ namespace Dumplings.Cli
                 if (idx == 0)
                 {
                     rpcPassword = arg.Substring(idx + rpcPasswordArg.Length);
+                }
+
+                idx = arg.IndexOf(rpcPasswordArg, StringComparison.Ordinal);
+                if (idx == 0)
+                {
+                    rpcPassword = arg.Substring(idx + rpcPasswordArg.Length);
+                }
+
+                idx = arg.IndexOf(hostArg, StringComparison.Ordinal);
+                if (idx == 0)
+                {
+                    host = arg.Substring(idx + hostArg.Length);
                 }
             }
 
