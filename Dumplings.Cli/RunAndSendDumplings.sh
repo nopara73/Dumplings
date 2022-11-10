@@ -32,11 +32,10 @@ cat > UPDATEREADY.txt << EOF
 true
 EOF
 
-echo "Starting FTP upload"
+echo "Starting FTP upload..."
 
-ftp -n $HOST <<END_SCRIPT
-quote USER $FTPUSER
-quote PASS $FTPPASSWD
+ftp -inv $HOST <<EOF
+user $FTPUSER $FTPPASSWD
 put $FILE1
 put $FILE2
 put $FILE3
@@ -47,11 +46,11 @@ put $FILE7
 put $FILE8
 put $FILE9
 put UPDATEREADY.txt
-quit
-END_SCRIPT
+bye
+EOF
 
 echo "Finished FTP upload!"
-echo "Removing files"
+echo "Removing files..."
 rm $FILE2
 rm $FILE3
 rm $FILE4
@@ -63,3 +62,4 @@ rm $FILE9
 rm UPDATEREADY.txt
 
 echo "Files removed!"
+echo "Script Ended!"
