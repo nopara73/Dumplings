@@ -535,7 +535,7 @@ namespace Dumplings.Stats
 
         private Dictionary<YearMonth, Money> CalculateNeverMixed(RPCClient rpc, IEnumerable<VerboseTransactionInfo> coinJoins)
         {
-            KnotsStatus.CheckAsync(rpc).GetAwaiter().GetResult();
+            BitcoinStatus.CheckAsync(rpc).GetAwaiter().GetResult();
             // Go through all the coinjoins.
             // If a change output is spent and didn't go to coinjoins, then it didn't get remixed.
             var coinJoinInputs =
@@ -590,7 +590,7 @@ namespace Dumplings.Stats
 
         private Dictionary<YearMonth, Money> CalculateNeverMixedFromTx0s(RPCClient rpc, IEnumerable<VerboseTransactionInfo> samuriCjs, IEnumerable<VerboseTransactionInfo> samuriTx0s)
         {
-            KnotsStatus.CheckAsync(rpc).GetAwaiter().GetResult();
+            BitcoinStatus.CheckAsync(rpc).GetAwaiter().GetResult();
 
             // Go through all the outputs of TX0 transactions.
             // If an output is spent and didn't go to coinjoins or other TX0s, then it didn't get remixed.

@@ -20,7 +20,7 @@ namespace Dumplings.Scanning
         {
             Rpc = rpc;
             Directory.CreateDirectory(WorkFolder);
-            KnotsStatus.CheckAsync(rpc).GetAwaiter().GetResult();
+            BitcoinStatus.CheckAsync(rpc).GetAwaiter().GetResult();
         }
 
         //public const string WorkFolder = @"C:\Users\user\source\repos\Dumplings\Dumplings.Cli\bin\Release\netcoreapp3.1\Scanner";
