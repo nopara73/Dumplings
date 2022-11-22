@@ -2,16 +2,16 @@
 
 1. Get Git: https://git-scm.com/downloads
 1. Get .NET Core SDK: https://www.microsoft.com/net/download
-1. Get Bitcoin Knots: https://bitcoinknots.org/
+1. Get Bitcoin Core: https://bitcoincore.org/ or Bitcoin Knots: https://bitcoinknots.org/
 1. Make sure your bitcoin.conf has the following entries: `txindex = 1`, `server = 1`, `rpcuser = user`, `rpcpassword = password`, `listen = 1`, `rpcworkqueue = 128`
-1. Run Knots and wait until it's synchronized.
+1. Run Bitcoin and wait until it's synchronized.
 1. `git clone https://github.com/nopara73/Dumplings.git`
 1. `cd Dumplings/Dumplings.Cli`
 1. `dotnet run -- sync --rpcuser=user --rpcpassword=password`
 
 # Usage
 
-1. Run Knots, wait until it's synchronized.
+1. Run Bitcoin, wait until it's synchronized.
 1. `cd Dumplings/Dumplings.Cli`
 
 ## 1. Synchronization
@@ -48,7 +48,8 @@ After synchronization you can create statistics as follows: `dotnet run -- COMMA
 
 Total monthly volume of CoinJoin transactions.
 
-![](https://i.imgur.com/Au987Cc.png)
+![](https://i.imgur.com/RG5rfmD.png)
+![](https://i.imgur.com/edcV7Vg.png)
 
 ## FreshBitcoins
 
@@ -56,48 +57,28 @@ Total monthly volume of CoinJoin transactions.
 
 How many non-remixed bitcoins get to CoinJoined monthly.
 
-![](https://i.imgur.com/AM15zV1.png)
+![](https://i.imgur.com/IPg0F8c.png)
 
 Average count of remixes is a derived metric, which shows how many times a bitcoin participated in mixes in average: `total volume/fresh bitcoins`.
 
-![](https://i.imgur.com/0Qs4Glf.png)
+![](https://i.imgur.com/8MlTyWr.png)
 
 ## NeverMixed
 
 Bitcoins those were intended to be mixed, but were not.
 
 - For Wasabi and Otheri, it counts CoinJoin change outputs those have been spent, but not in other CoinJoins. (Note 1: the software does not currently examine if the change is coming from CoinJoined inputs. Note 2: more related metrics and more detailed explanation on Wasabi's inefficiency can be found under the [WasabiCjEfficiency repository](https://github.com/nopara73/WasabiCjEfficiency).)
-- For Samuri, it counts TX0 transaction outputs those have been spent, but not in other TX0 or Coinoin transactions.
-
-![](https://i.imgur.com/5FLjdRu.png)
-![](https://i.imgur.com/Y6bPNi8.png)
-![](https://i.imgur.com/ObAe8Xw.png)
+- For Samuri, it counts TX0 transaction outputs those have been spent, but not in other TX0 or coinjoin transactions.
 
 The following is a derived metric: it's the percentage of nevermixed coins to fresh bitcoins.
 
-![](https://i.imgur.com/kzJmjSo.png)
-
-# CoinJoinIncome
-
-Note: Without sophisticated algorithms it is hard to tell how much income Wasabi makes after it changed its fee address to dynamic calculations, so that's why the data is discontinued at some point.
-
-![](https://i.imgur.com/KM4TMSC.png)
-
-The next is a derived metric. It's the percentage of monthly income where the total is the fresh bitcoins coming into mix monthly.
-
-![](https://i.imgur.com/7PUyw3v.png)
+![](https://i.imgur.com/aGD81yP.png)
 
 # PostMixConsolidation
 
 Average number of inputs in the first non-coinjoin transactions after coinjoins.
 
-![](https://i.imgur.com/b7IOdew.png)
-
-# SmallerThanMinimum
-
-Percentage of inputs those are smaller than the base denomination in Wasabi coinjoins.
-
-![](https://i.imgur.com/pUuA0fh.png)
+![](https://i.imgur.com/GT2pwu9.png)
 
 # FAQ
 

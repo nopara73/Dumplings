@@ -33,12 +33,12 @@ namespace Dumplings.Cli
                     var scanner = new Scanner(client);
                     await scanner.ScanAsync(rescan: true);
                 }
-                else if (command == Command.Sync)
+                //else if (command == Command.Sync)
                 {
                     var scanner = new Scanner(client);
                     await scanner.ScanAsync(rescan: false);
                 }
-                else if (command == Command.Check)
+                if (command == Command.Check)
                 {
                     var loadedScannerFiles = Scanner.Load();
                     var checker = new Checker(loadedScannerFiles);
@@ -116,13 +116,38 @@ namespace Dumplings.Cli
                     var stat = new Statista(loadedScannerFiles);
                     stat.CalculateMonthlyNetworkFeePaidByUserPerCoinjoin();
                 }
+                else if (command == Command.Records)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles);
+                    stat.CalculateRecords();
+                }
+                else if (command == Command.UniqueCountPercent)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles);
+                    stat.CalculateUniqueCountPercent();
+                }
+                else if (command == Command.ListFreshBitcoins)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles);
+                    stat.ListFreshBitcoins();
+                }
+                else if (command == Command.UnspentCapacity)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles);
+                    stat.CalculateUnspentCapacity(client);
+                }
             }
 
             Console.WriteLine();
-            Console.WriteLine("Press a button to exit...");
-            Console.ReadKey();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine("Press enter to exit...");
+            Console.ReadLine();
         }
-
 
         private static void ParseArgs(string[] args, out Command command, out NetworkCredential cred)
         {

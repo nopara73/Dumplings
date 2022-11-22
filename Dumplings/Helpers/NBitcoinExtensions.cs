@@ -133,12 +133,6 @@ namespace Dumplings.Helpers
             return me.ToDecimal(MoneyUnit.BTC) * btcExchangeRate;
         }
 
-        public static bool VerifyMessage(this BitcoinWitPubKeyAddress address, uint256 messageHash, byte[] signature)
-        {
-            PubKey pubKey = PubKey.RecoverCompact(messageHash, signature);
-            return pubKey.WitHash == address.Hash;
-        }
-
         /// <summary>
         /// If scriptpubkey is already present, just add the value.
         /// </summary>
@@ -204,6 +198,7 @@ namespace Dumplings.Helpers
 
         private static Dictionary<uint256, RawTransactionInfo> RawTransactionInfoCache { get; } = new Dictionary<uint256, RawTransactionInfo>();
         private static object RawTransactionInfoCacheLock { get; } = new object();
+
         public static async Task<RawTransactionInfo> GetRawTransactionInfoWithCacheAsync(this RPCClient rpc, uint256 txid)
         {
             lock (RawTransactionInfoCacheLock)
@@ -267,7 +262,7 @@ namespace Dumplings.Helpers
             return await me.GetVerboseBlockAsync(blockId, safe).ConfigureAwait(false);
         }
 
-        private async static Task<string> SendCommandAsyncCore(this RPCClient me, RPCRequest request)
+        private static async Task<string> SendCommandAsyncCore(this RPCClient me, RPCRequest request)
         {
             string response = null;
             var writer = new StringWriter();

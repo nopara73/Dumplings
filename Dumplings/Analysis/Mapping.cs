@@ -29,7 +29,6 @@ namespace Dumplings.Analysis
         public Mapping(SubSet subSet)
           : this(new List<SubSet> { subSet })
         {
-
         }
 
         public Mapping(IEnumerable<SubSet> subSets)

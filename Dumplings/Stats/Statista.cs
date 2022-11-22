@@ -1,11 +1,14 @@
-﻿using Dumplings.Displaying;
+﻿using Dumplings.Analysis;
+using Dumplings.Displaying;
 using Dumplings.Helpers;
 using Dumplings.Rpc;
 using Dumplings.Scanning;
 using NBitcoin;
+using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -25,9 +28,10 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonth, Money> otheri = CalculateMonthlyVolumes(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, Money> wasabi2 = CalculateMonthlyVolumes(ScannerFiles.Wasabi2CoinJoins);
                 Dictionary<YearMonth, Money> wasabi = CalculateMonthlyVolumes(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, Money> samuri = CalculateMonthlyVolumes(ScannerFiles.SamouraiCoinJoins);
-                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
             }
         }
 
@@ -36,9 +40,10 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonth, Money> otheri = CalculateMonthlyEqualVolumes(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, Money> wasabi2 = CalculateMonthlyEqualVolumes(ScannerFiles.Wasabi2CoinJoins);
                 Dictionary<YearMonth, Money> wasabi = CalculateMonthlyEqualVolumes(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, Money> samuri = CalculateMonthlyEqualVolumes(ScannerFiles.SamouraiCoinJoins);
-                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
             }
         }
 
@@ -47,9 +52,10 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonth, Money> otheri = CalculateNeverMixed(rpc, ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, Money> wasabi2 = CalculateNeverMixed(rpc, ScannerFiles.Wasabi2CoinJoins);
                 Dictionary<YearMonth, Money> wasabi = CalculateNeverMixed(rpc, ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, Money> samuri = CalculateNeverMixedFromTx0s(rpc, ScannerFiles.SamouraiCoinJoins, ScannerFiles.SamouraiTx0s);
-                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
             }
         }
 
@@ -58,9 +64,10 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonth, ulong> otheri = CalculateEquality(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, ulong> wasabi2 = CalculateEquality(ScannerFiles.Wasabi2CoinJoins);
                 Dictionary<YearMonth, ulong> wasabi = CalculateEquality(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, ulong> samuri = CalculateEquality(ScannerFiles.SamouraiCoinJoins);
-                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
             }
         }
 
@@ -69,9 +76,10 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonth, decimal> otheri = CalculateAveragePostMixInputs(ScannerFiles.OtherCoinJoinPostMixTxs);
+                Dictionary<YearMonth, decimal> wasabi2 = CalculateAveragePostMixInputs(ScannerFiles.Wasabi2PostMixTxs);
                 Dictionary<YearMonth, decimal> wasabi = CalculateAveragePostMixInputs(ScannerFiles.WasabiPostMixTxs);
                 Dictionary<YearMonth, decimal> samuri = CalculateAveragePostMixInputs(ScannerFiles.SamouraiPostMixTxs);
-                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
             }
         }
 
@@ -99,10 +107,97 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonth, Money> otheri = CalculateFreshBitcoins(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, Money> wasabi2 = CalculateFreshBitcoins(ScannerFiles.Wasabi2CoinJoins);
                 Dictionary<YearMonth, Money> wasabi = CalculateFreshBitcoins(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, Money> samuri = CalculateFreshBitcoinsFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
-                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
             }
+        }
+
+        public void CalculateUniqueCountPercent()
+        {
+            var uniqueCountPercents = new Dictionary<YearMonthDay, List<(int uniqueOutCount, int uniqueInCount, double uniqueOutCountPercent, double uniqueInCountPercent)>>();
+
+            // IsWasabi2Cj is because there were false positives and I don't want to spend a week to run the algo from the beginning to scan everything.
+            foreach (var cj in ScannerFiles.Wasabi2CoinJoins.Where(x => x.IsWasabi2Cj()))
+            {
+                int uniqueOutCount = cj.GetIndistinguishableOutputs(includeSingle: true).Count(x => x.count == 1);
+                int uniqueInCount = cj.GetIndistinguishableInputs(includeSingle: true).Count(x => x.count == 1);
+
+                double uniqueOutCountPercent = uniqueOutCount / (cj.Outputs.Count() / 100d);
+                double uniqueInCountPercent = uniqueInCount / (cj.Inputs.Count() / 100d);
+
+                var key = cj.BlockInfo.YearMonthDay;
+                if (uniqueCountPercents.ContainsKey(key))
+                {
+                    uniqueCountPercents[key].Add((uniqueOutCount, uniqueInCount, uniqueOutCountPercent, uniqueInCountPercent));
+                }
+                else
+                {
+                    uniqueCountPercents.Add(key, new List<(int uniqueOutCount, int uniqueInCount, double uniqueOutCountPercent, double uniqueInCountPercent)> { (uniqueOutCount, uniqueInCount, uniqueOutCountPercent, uniqueInCountPercent) });
+                }
+            }
+
+            Display.DisplayOtheriWasabiSamuriResults(uniqueCountPercents);
+        }
+
+        public void CalculateRecords()
+        {
+            var mostInputs = new Dictionary<int, VerboseTransactionInfo>();
+            var mostOutputs = new Dictionary<int, VerboseTransactionInfo>();
+            var mostInputsAndOutputs = new Dictionary<int, VerboseTransactionInfo>();
+            var largestVolumes = new Dictionary<Money, VerboseTransactionInfo>();
+            var largestCjEqualities = new Dictionary<ulong, VerboseTransactionInfo>();
+
+            var smallestUnequalOutputs = new Dictionary<int, VerboseTransactionInfo>();
+            var smallestUnequalInputs = new Dictionary<int, VerboseTransactionInfo>();
+
+            // IsWasabi2Cj is because there were false positives and I don't want to spend a week to run the algo from the beginning to scan everything.
+            foreach (var cj in ScannerFiles.Wasabi2CoinJoins.Where(x => x.IsWasabi2Cj()))
+            {
+                var inputCount = cj.Inputs.Count();
+                var outputCount = cj.Outputs.Count();
+                var inOutSum = inputCount + outputCount;
+                var totalVolume = cj.Inputs.Sum(x => x.PrevOutput.Value);
+                var cjEquality = cj.CalculateCoinJoinEquality();
+
+                var unequalOutputs = cj.GetIndistinguishableOutputs(true).Count(x => x.count == 1);
+                var unequalInputs = cj.GetIndistinguishableInputs(true).Count(x => x.count == 1);
+                var unequalOutputVol = cj.GetIndistinguishableOutputs(true).Where(x => x.count == 1).Sum(x => x.value);
+                var unequalInputVol = cj.GetIndistinguishableInputs(true).Where(x => x.count == 1).Sum(x => x.value);
+
+                if (!mostInputs.Keys.Any(x => x >= inputCount))
+                {
+                    mostInputs.Add(inputCount, cj);
+                }
+                if (!mostOutputs.Keys.Any(x => x >= outputCount))
+                {
+                    mostOutputs.Add(outputCount, cj);
+                }
+                if (!mostInputsAndOutputs.Keys.Any(x => x >= inOutSum))
+                {
+                    mostInputsAndOutputs.Add(inOutSum, cj);
+                }
+                if (!largestVolumes.Keys.Any(x => x >= totalVolume))
+                {
+                    largestVolumes.Add(totalVolume, cj);
+                }
+                if (!largestCjEqualities.Keys.Any(x => x >= cjEquality))
+                {
+                    largestCjEqualities.Add(cjEquality, cj);
+                }
+
+                if (!smallestUnequalOutputs.Keys.Any(x => x <= unequalOutputs))
+                {
+                    smallestUnequalOutputs.Add(unequalOutputs, cj);
+                }
+                if (!smallestUnequalInputs.Keys.Any(x => x <= unequalInputs))
+                {
+                    smallestUnequalInputs.Add(unequalInputs, cj);
+                }
+            }
+
+            Display.DisplayRecords(mostInputs, mostOutputs, mostInputsAndOutputs, largestVolumes, largestCjEqualities, smallestUnequalOutputs, smallestUnequalInputs);
         }
 
         public void CalculateFreshBitcoinAmounts()
@@ -146,6 +241,7 @@ namespace Dumplings.Stats
                 Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
             }
         }
+
         private IDictionary<YearMonth, Money> CalculateAverageNetworkFeePaidByUserPerCoinjoin(IEnumerable<VerboseTransactionInfo> txs)
         {
             var myDic = new Dictionary<YearMonth, List<Money>>();
@@ -216,9 +312,10 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonthDay, Money> otheri = CalculateFreshBitcoinsDaily(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonthDay, Money> wasabi2 = CalculateFreshBitcoinsDaily(ScannerFiles.Wasabi2CoinJoins);
                 Dictionary<YearMonthDay, Money> wasabi = CalculateFreshBitcoinsDaily(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonthDay, Money> samuri = CalculateFreshBitcoinsDailyFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
-                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
             }
         }
 
@@ -438,7 +535,7 @@ namespace Dumplings.Stats
 
         private Dictionary<YearMonth, Money> CalculateNeverMixed(RPCClient rpc, IEnumerable<VerboseTransactionInfo> coinJoins)
         {
-            KnotsStatus.CheckAsync(rpc).GetAwaiter().GetResult();
+            BitcoinStatus.CheckAsync(rpc).GetAwaiter().GetResult();
             // Go through all the coinjoins.
             // If a change output is spent and didn't go to coinjoins, then it didn't get remixed.
             var coinJoinInputs =
@@ -493,7 +590,7 @@ namespace Dumplings.Stats
 
         private Dictionary<YearMonth, Money> CalculateNeverMixedFromTx0s(RPCClient rpc, IEnumerable<VerboseTransactionInfo> samuriCjs, IEnumerable<VerboseTransactionInfo> samuriTx0s)
         {
-            KnotsStatus.CheckAsync(rpc).GetAwaiter().GetResult();
+            BitcoinStatus.CheckAsync(rpc).GetAwaiter().GetResult();
 
             // Go through all the outputs of TX0 transactions.
             // If an output is spent and didn't go to coinjoins or other TX0s, then it didn't get remixed.
@@ -772,6 +869,93 @@ namespace Dumplings.Stats
             }
 
             return closeEnoughs;
+        }
+
+        public void ListFreshBitcoins()
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                ListFreshBitcoins("freshotheri.txt", ScannerFiles.OtherCoinJoins);
+                ListFreshBitcoins("freshwasabi2.txt", ScannerFiles.Wasabi2CoinJoins);
+                ListFreshBitcoins("freshwasabi.txt", ScannerFiles.WasabiCoinJoins);
+                ListFreshBitcoins("freshsamuri.txt", ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
+            }
+        }
+
+        private void ListFreshBitcoins(string filePath, IEnumerable<VerboseTransactionInfo> samouraiTx0s, IEnumerable<uint256> samouraiCoinJoinHashes)
+        {
+            // In Samourai in order to identify fresh bitcoins the tx0 input shouldn't come from other samuri coinjoins, nor tx0s.
+            var txHashes = samouraiTx0s.Select(x => x.Id).Union(samouraiCoinJoinHashes).ToHashSet();
+
+            foreach (var tx in samouraiTx0s)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    File.AppendAllLines(filePath, tx.Inputs.Where(x => !txHashes.Contains(x.OutPoint.Hash)).Select(x => new Coin(blockTime.Value, x.OutPoint.Hash, x.OutPoint.N, x.PrevOutput.ScriptPubKey, x.PrevOutput.Value).ToString()));
+                }
+            }
+        }
+
+        private void ListFreshBitcoins(string filePath, IEnumerable<VerboseTransactionInfo> coinjoins)
+        {
+            var txHashes = coinjoins.Select(x => x.Id).ToHashSet();
+
+            foreach (var tx in coinjoins)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    File.AppendAllLines(filePath, tx.Inputs.Where(x => !txHashes.Contains(x.OutPoint.Hash)).Select(x => new Coin(blockTime.Value, x.OutPoint.Hash, x.OutPoint.N, x.PrevOutput.ScriptPubKey, x.PrevOutput.Value).ToString()));
+                }
+            }
+        }
+
+        public void CalculateUnspentCapacity(RPCClient rpc)
+        {
+            var ucWW1 = Money.Zero;
+            var ucWW2 = Money.Zero;
+            var ucSW = Money.Zero;
+
+            YearMonthDay prevYMD = null;
+            foreach (var tx in ScannerFiles.WasabiCoinJoins
+                .Concat(ScannerFiles.Wasabi2CoinJoins)
+                .Concat(ScannerFiles.SamouraiCoinJoins)
+                .OrderBy(x => x.BlockInfo.BlockTime))
+            {
+                if (prevYMD is null)
+                {
+                    prevYMD = tx.BlockInfo.YearMonthDay;
+                }
+                else if (prevYMD != tx.BlockInfo.YearMonthDay)
+                {
+                    Console.WriteLine($"{prevYMD}\t{ucWW2.ToString(false, false)}\t{ucWW1.ToString(false, false)}\t{ucSW.ToString(false, false)}");
+                    prevYMD = tx.BlockInfo.YearMonthDay;
+                }
+
+                var outs = tx.Outputs.ToArray();
+                for (int i = 0; i < outs.Length; i++)
+                {
+                    var o = outs[i];
+                    if (rpc.GetTxOut(tx.Id, i) is not null)
+                    {
+                        if (ScannerFiles.WasabiCoinJoinHashes.Contains(tx.Id))
+                        {
+                            ucWW1 += o.Value;
+                        }
+                        else if (ScannerFiles.Wasabi2CoinJoinHashes.Contains(tx.Id))
+                        {
+                            ucWW2 += o.Value;
+                        }
+                        else if (ScannerFiles.SamouraiCoinJoinHashes.Contains(tx.Id))
+                        {
+                            ucSW += o.Value;
+                        }
+                    }
+                }
+            }
+
+            Console.WriteLine($"{prevYMD}\t{ucWW2.ToString(false, false)}\t{ucWW1.ToString(false, false)}\t{ucSW.ToString(false, false)}");
         }
     }
 }
