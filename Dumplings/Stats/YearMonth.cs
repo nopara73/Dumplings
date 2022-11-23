@@ -11,6 +11,7 @@ namespace Dumplings.Stats
             Year = year;
             Month = month;
         }
+
         public int Year { get; }
         public int Month { get; }
 

@@ -10,6 +10,7 @@ namespace Dumplings.Analysis
         public IEnumerable<Coin> Inputs { get; }
         public IEnumerable<Coin> Outputs { get; }
         public decimal Precision { get; }
+
         public SubSet(IEnumerable<decimal> inputs, IEnumerable<decimal> outputs, decimal precision)
             : this(inputs.Select(x => Coin.Random(x)), outputs.Select(x => Coin.Random(x)), precision)
         {

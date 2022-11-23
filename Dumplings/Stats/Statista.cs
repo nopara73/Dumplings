@@ -1,10 +1,14 @@
-﻿using Dumplings.Helpers;
+﻿using Dumplings.Analysis;
+using Dumplings.Displaying;
+using Dumplings.Helpers;
 using Dumplings.Rpc;
 using Dumplings.Scanning;
 using NBitcoin;
+using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -18,17 +22,18 @@ namespace Dumplings.Stats
             Rpc = rpc;
         }
 
-        public ScannerFiles ScannerFiles { get; }
         public RPCClient Rpc { get; }
+        public ScannerFiles ScannerFiles { get; }
 
         public void CalculateMonthlyVolumes()
         {
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonth, Money> otheri = CalculateMonthlyVolumes(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, Money> wasabi2 = CalculateMonthlyVolumes(ScannerFiles.Wasabi2CoinJoins);
                 Dictionary<YearMonth, Money> wasabi = CalculateMonthlyVolumes(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, Money> samuri = CalculateMonthlyVolumes(ScannerFiles.SamouraiCoinJoins);
-                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
             }
         }
 
@@ -37,9 +42,10 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonth, Money> otheri = CalculateMonthlyEqualVolumes(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, Money> wasabi2 = CalculateMonthlyEqualVolumes(ScannerFiles.Wasabi2CoinJoins);
                 Dictionary<YearMonth, Money> wasabi = CalculateMonthlyEqualVolumes(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, Money> samuri = CalculateMonthlyEqualVolumes(ScannerFiles.SamouraiCoinJoins);
-                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
             }
         }
 
@@ -48,9 +54,10 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonth, Money> otheri = CalculateNeverMixed(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, Money> wasabi2 = CalculateNeverMixed(ScannerFiles.Wasabi2CoinJoins);
                 Dictionary<YearMonth, Money> wasabi = CalculateNeverMixed(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, Money> samuri = CalculateNeverMixedFromTx0s(ScannerFiles.SamouraiCoinJoins, ScannerFiles.SamouraiTx0s);
-                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
             }
         }
 
@@ -59,9 +66,10 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonth, ulong> otheri = CalculateEquality(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, ulong> wasabi2 = CalculateEquality(ScannerFiles.Wasabi2CoinJoins);
                 Dictionary<YearMonth, ulong> wasabi = CalculateEquality(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, ulong> samuri = CalculateEquality(ScannerFiles.SamouraiCoinJoins);
-                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
             }
         }
 
@@ -70,9 +78,10 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonth, decimal> otheri = CalculateAveragePostMixInputs(ScannerFiles.OtherCoinJoinPostMixTxs);
+                Dictionary<YearMonth, decimal> wasabi2 = CalculateAveragePostMixInputs(ScannerFiles.Wasabi2PostMixTxs);
                 Dictionary<YearMonth, decimal> wasabi = CalculateAveragePostMixInputs(ScannerFiles.WasabiPostMixTxs);
                 Dictionary<YearMonth, decimal> samuri = CalculateAveragePostMixInputs(ScannerFiles.SamouraiPostMixTxs);
-                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
             }
         }
 
@@ -81,7 +90,7 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonth, decimal> wasabi = CalculateSmallerThanMinimumWasabiInputs(ScannerFiles.WasabiCoinJoins);
-                DisplayWasabiResults(wasabi);
+                Display.DisplayWasabiResults(wasabi);
             }
         }
 
@@ -91,7 +100,7 @@ namespace Dumplings.Stats
             {
                 Dictionary<YearMonth, Money> wasabi = CalculateWasabiIncome(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, Money> samuri = CalculateSamuriIncome(ScannerFiles.SamouraiTx0s);
-                DisplayWasabiSamuriResults(wasabi, samuri);
+                Display.DisplayWasabiSamuriResults(wasabi, samuri);
             }
         }
 
@@ -100,10 +109,204 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonth, Money> otheri = CalculateFreshBitcoins(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, Money> wasabi2 = CalculateFreshBitcoins(ScannerFiles.Wasabi2CoinJoins);
                 Dictionary<YearMonth, Money> wasabi = CalculateFreshBitcoins(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, Money> samuri = CalculateFreshBitcoinsFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
-                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
             }
+        }
+
+        public void CalculateUniqueCountPercent()
+        {
+            var uniqueCountPercents = new Dictionary<YearMonthDay, List<(int uniqueOutCount, int uniqueInCount, double uniqueOutCountPercent, double uniqueInCountPercent)>>();
+
+            // IsWasabi2Cj is because there were false positives and I don't want to spend a week to run the algo from the beginning to scan everything.
+            foreach (var cj in ScannerFiles.Wasabi2CoinJoins.Where(x => x.IsWasabi2Cj()))
+            {
+                int uniqueOutCount = cj.GetIndistinguishableOutputs(includeSingle: true).Count(x => x.count == 1);
+                int uniqueInCount = cj.GetIndistinguishableInputs(includeSingle: true).Count(x => x.count == 1);
+
+                double uniqueOutCountPercent = uniqueOutCount / (cj.Outputs.Count() / 100d);
+                double uniqueInCountPercent = uniqueInCount / (cj.Inputs.Count() / 100d);
+
+                var key = cj.BlockInfo.YearMonthDay;
+                if (uniqueCountPercents.ContainsKey(key))
+                {
+                    uniqueCountPercents[key].Add((uniqueOutCount, uniqueInCount, uniqueOutCountPercent, uniqueInCountPercent));
+                }
+                else
+                {
+                    uniqueCountPercents.Add(key, new List<(int uniqueOutCount, int uniqueInCount, double uniqueOutCountPercent, double uniqueInCountPercent)> { (uniqueOutCount, uniqueInCount, uniqueOutCountPercent, uniqueInCountPercent) });
+                }
+            }
+
+            Display.DisplayOtheriWasabiSamuriResults(uniqueCountPercents);
+        }
+
+        public void CalculateRecords()
+        {
+            var mostInputs = new Dictionary<int, VerboseTransactionInfo>();
+            var mostOutputs = new Dictionary<int, VerboseTransactionInfo>();
+            var mostInputsAndOutputs = new Dictionary<int, VerboseTransactionInfo>();
+            var largestVolumes = new Dictionary<Money, VerboseTransactionInfo>();
+            var largestCjEqualities = new Dictionary<ulong, VerboseTransactionInfo>();
+
+            var smallestUnequalOutputs = new Dictionary<int, VerboseTransactionInfo>();
+            var smallestUnequalInputs = new Dictionary<int, VerboseTransactionInfo>();
+
+            // IsWasabi2Cj is because there were false positives and I don't want to spend a week to run the algo from the beginning to scan everything.
+            foreach (var cj in ScannerFiles.Wasabi2CoinJoins.Where(x => x.IsWasabi2Cj()))
+            {
+                var inputCount = cj.Inputs.Count();
+                var outputCount = cj.Outputs.Count();
+                var inOutSum = inputCount + outputCount;
+                var totalVolume = cj.Inputs.Sum(x => x.PrevOutput.Value);
+                var cjEquality = cj.CalculateCoinJoinEquality();
+
+                var unequalOutputs = cj.GetIndistinguishableOutputs(true).Count(x => x.count == 1);
+                var unequalInputs = cj.GetIndistinguishableInputs(true).Count(x => x.count == 1);
+                var unequalOutputVol = cj.GetIndistinguishableOutputs(true).Where(x => x.count == 1).Sum(x => x.value);
+                var unequalInputVol = cj.GetIndistinguishableInputs(true).Where(x => x.count == 1).Sum(x => x.value);
+
+                if (!mostInputs.Keys.Any(x => x >= inputCount))
+                {
+                    mostInputs.Add(inputCount, cj);
+                }
+                if (!mostOutputs.Keys.Any(x => x >= outputCount))
+                {
+                    mostOutputs.Add(outputCount, cj);
+                }
+                if (!mostInputsAndOutputs.Keys.Any(x => x >= inOutSum))
+                {
+                    mostInputsAndOutputs.Add(inOutSum, cj);
+                }
+                if (!largestVolumes.Keys.Any(x => x >= totalVolume))
+                {
+                    largestVolumes.Add(totalVolume, cj);
+                }
+                if (!largestCjEqualities.Keys.Any(x => x >= cjEquality))
+                {
+                    largestCjEqualities.Add(cjEquality, cj);
+                }
+
+                if (!smallestUnequalOutputs.Keys.Any(x => x <= unequalOutputs))
+                {
+                    smallestUnequalOutputs.Add(unequalOutputs, cj);
+                }
+                if (!smallestUnequalInputs.Keys.Any(x => x <= unequalInputs))
+                {
+                    smallestUnequalInputs.Add(unequalInputs, cj);
+                }
+            }
+
+            Display.DisplayRecords(mostInputs, mostOutputs, mostInputsAndOutputs, largestVolumes, largestCjEqualities, smallestUnequalOutputs, smallestUnequalInputs);
+        }
+
+        public void CalculateFreshBitcoinAmounts()
+        {
+            var wasabi = GetFreshBitcoinAmounts(ScannerFiles.WasabiCoinJoins);
+            var lastAmounts = wasabi.SelectMany(x => x.Value).Select(x => x.ToDecimal(MoneyUnit.BTC)).Reverse().Take(100000).Reverse().ToArray();
+            Console.WriteLine("Calculations for the last 100 000 Wasabi coinjoins' fresh bitcoin input amounts.");
+            Console.WriteLine($"Average:    {lastAmounts.Average()}");
+            Console.WriteLine($"Median:     {lastAmounts.Median()}");
+            Console.WriteLine($"8 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 8).Count()}");
+            Console.WriteLine($"7 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 7).Count()}");
+            Console.WriteLine($"6 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 6).Count()}");
+            Console.WriteLine($"5 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 5).Count()}");
+            Console.WriteLine($"4 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 4).Count()}");
+            Console.WriteLine($"3 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 3).Count()}");
+            Console.WriteLine($"2 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 2).Count()}");
+            Console.WriteLine($"1 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 1).Count()}");
+            Console.WriteLine($"0 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 0).Count()}");
+            Console.WriteLine($"Average Hamming Weight: {lastAmounts.Select(x => ((ulong)(x * 100000000)).HammingWeight()).Average()}");
+            Console.WriteLine($"Median Hamming Weight:  {lastAmounts.Select(x => ((ulong)(x * 100000000)).HammingWeight()).Median()}");
+        }
+
+        public void CalculateMonthlyAverageMonthlyUserCounts()
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                IDictionary<YearMonth, int> otheri = CalculateAverageUserCounts(ScannerFiles.OtherCoinJoins);
+                IDictionary<YearMonth, int> wasabi = CalculateAverageUserCounts(ScannerFiles.WasabiCoinJoins);
+                IDictionary<YearMonth, int> samuri = CalculateAverageUserCounts(ScannerFiles.SamouraiCoinJoins);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+            }
+        }
+
+        public void CalculateMonthlyNetworkFeePaidByUserPerCoinjoin()
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                IDictionary<YearMonth, Money> otheri = CalculateAverageNetworkFeePaidByUserPerCoinjoin(ScannerFiles.OtherCoinJoins);
+                IDictionary<YearMonth, Money> wasabi = CalculateAverageNetworkFeePaidByUserPerCoinjoin(ScannerFiles.WasabiCoinJoins);
+                IDictionary<YearMonth, Money> samuri = CalculateAverageNetworkFeePaidByUserPerCoinjoin(ScannerFiles.SamouraiCoinJoins);
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+            }
+        }
+
+        private IDictionary<YearMonth, Money> CalculateAverageNetworkFeePaidByUserPerCoinjoin(IEnumerable<VerboseTransactionInfo> txs)
+        {
+            var myDic = new Dictionary<YearMonth, List<Money>>();
+            foreach (var tx in txs)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    var blockTimeValue = blockTime.Value;
+                    var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
+                    var userCount = tx.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count).First().count;
+                    var feePerUser = tx.NetworkFee / userCount;
+
+                    if (myDic.TryGetValue(yearMonth, out var current))
+                    {
+                        myDic[yearMonth].Add(feePerUser);
+                    }
+                    else
+                    {
+                        myDic.Add(yearMonth, new List<Money> { feePerUser });
+                    }
+                }
+            }
+
+            var retDic = new Dictionary<YearMonth, Money>();
+            foreach (var kv in myDic)
+            {
+                decimal decVal = kv.Value.Select(x => x.ToDecimal(MoneyUnit.BTC)).Average();
+                Money val = Money.Coins(decVal);
+                retDic.Add(kv.Key, val);
+            }
+            return retDic;
+        }
+
+        private IDictionary<YearMonth, int> CalculateAverageUserCounts(IEnumerable<VerboseTransactionInfo> txs)
+        {
+            var myDic = new Dictionary<YearMonth, List<int>>();
+            foreach (var tx in txs)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    var blockTimeValue = blockTime.Value;
+                    var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
+                    var userCount = tx.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count).First().count;
+
+                    if (myDic.TryGetValue(yearMonth, out var current))
+                    {
+                        myDic[yearMonth].Add(userCount);
+                    }
+                    else
+                    {
+                        myDic.Add(yearMonth, new List<int> { userCount });
+                    }
+                }
+            }
+
+            var retDic = new Dictionary<YearMonth, int>();
+            foreach (var kv in myDic)
+            {
+                retDic.Add(kv.Key, (int)kv.Value.Average());
+            }
+            return retDic;
         }
 
         public void CalculateFreshBitcoinsDaily()
@@ -111,276 +314,10 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonthDay, Money> otheri = CalculateFreshBitcoinsDaily(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonthDay, Money> wasabi2 = CalculateFreshBitcoinsDaily(ScannerFiles.Wasabi2CoinJoins);
                 Dictionary<YearMonthDay, Money> wasabi = CalculateFreshBitcoinsDaily(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonthDay, Money> samuri = CalculateFreshBitcoinsDailyFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
-                DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
-            }
-        }
-
-        public void CalculateWasabiCoordStats(ExtPubKey[] xpubs)
-        {
-            using (BenchmarkLogger.Measure())
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                var scripts = Constants.WasabiCoordScripts.ToHashSet();
-                foreach (var xpub in xpubs)
-                {
-                    for (int i = 0; i < 100_000; i++)
-                    {
-                        scripts.Add(xpub.Derive(0, false).Derive(i, false).PubKey.WitHash.ScriptPubKey);
-                    }
-                }
-
-                DateTimeOffset? lastCoinJoinTime = null;
-
-                foreach (var tx in ScannerFiles.WasabiCoinJoins.Skip(5))
-                {
-                    var coordOutput = tx.Outputs.FirstOrDefault(x => scripts.Contains(x.ScriptPubKey));
-                    if (coordOutput is null)
-                    {
-                        continue;
-                    }
-
-                    double vSizeEstimation = 10.75 + tx.Outputs.Count() * 31 + tx.Inputs.Count() * 67.75;
-
-                    var blockTime = tx.BlockInfo.BlockTime;
-
-                    if (lastCoinJoinTime.HasValue && (lastCoinJoinTime - blockTime).Value.Duration() > TimeSpan.FromDays(7))
-                    {
-                        throw new InvalidOperationException("No CoinJoin for a week");
-                    }
-
-                    lastCoinJoinTime = blockTime;
-
-                    Console.Write($"{blockTime.Value.UtcDateTime.ToString("MM.dd.yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)};");
-                    Console.Write($"{tx.Id};");
-
-                    var totalFee = (tx.Inputs.Sum(x => x.PrevOutput.Value) - tx.Outputs.Sum(x => x.Value));
-                     
-                    Console.Write($"{string.Format("{0:0.00}", (double)(totalFee / vSizeEstimation))};");
-                    Console.Write($"{coordOutput.ScriptPubKey.GetDestinationAddress(Network.Main)};");
-                    Console.Write($"{coordOutput.Value};");
-
-                    var outputs = tx.GetIndistinguishableOutputs(includeSingle: false);
-                    var currentDenom = outputs.OrderByDescending(x => x.count).First().value;
-                    foreach (var (value, count) in outputs.Where(x => x.value >= currentDenom))
-                    {
-                        Console.Write($"{value};{count};");
-                    }
-                    Console.WriteLine();
-                }
-                
-            }
-        }
-
-        public void CalculateWabiSabiCoordStats(ExtPubKey[] xpubs)
-        {
-            using (BenchmarkLogger.Measure())
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                var scripts = new HashSet<Script>();
-                foreach (var xpub in xpubs)
-                {
-                    for (int i = 0; i < 100_000; i++)
-                    {
-                        scripts.Add(xpub.Derive(0, false).Derive(i, false).PubKey.WitHash.ScriptPubKey);
-                    }
-                }
-
-                DateTimeOffset? lastCoinJoinTime = null;
-
-                foreach (var tx in ScannerFiles.WabiSabiCoinJoins)
-                {
-                    // It's OK if it's null, because there are rounds with no coord fee.
-                    var coordOutput = tx.Outputs.SingleOrDefault(x => scripts.Contains(x.ScriptPubKey)); 
-
-                    double vSizeEstimation = 10.75 + tx.Outputs.Count() * 31 + tx.Inputs.Count() * 67.75;
-
-                    var blockTime = tx.BlockInfo.BlockTime;
-
-                    if (lastCoinJoinTime.HasValue && (lastCoinJoinTime - blockTime).Value.Duration() > TimeSpan.FromDays(7))
-                    {
-                        throw new InvalidOperationException("No CoinJoin for a week");
-                    }
-
-                    lastCoinJoinTime = blockTime;
-
-                    Console.Write($"{blockTime.Value.UtcDateTime.ToString("MM.dd.yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)};");
-                    Console.Write($"{tx.Id};");
-
-                    var totalFee = (tx.Inputs.Sum(x => x.PrevOutput.Value) - tx.Outputs.Sum(x => x.Value));
-
-                    Console.Write($"{string.Format("{0:0.00}", (double)(totalFee / vSizeEstimation))};");
-                    Console.Write($"{(coordOutput is null ? "_______there-was-no-coordinator-fee_______" : coordOutput.ScriptPubKey.GetDestinationAddress(Network.Main).ToString())};");
-                    Console.Write($"{(coordOutput is null ? Money.Zero : coordOutput.Value)};");
-
-                    var outputs = tx.GetIndistinguishableOutputs(includeSingle: false);
-                    var currentDenom = outputs.OrderByDescending(x => x.count).First().value;
-                    foreach (var (value, count) in outputs.Where(x => x.value >= currentDenom))
-                    {
-                        Console.Write($"{value};{count};");
-                    }
-                    Console.WriteLine();
-                }
-            }
-        }
-
-        private void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonth, Money> otheriResults, Dictionary<YearMonth, Money> wasabiResults, Dictionary<YearMonth, Money> samuriResults)
-        {
-            Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
-
-            foreach (var yearMonth in wasabiResults
-                .Keys
-                .Concat(otheriResults.Keys)
-                .Concat(samuriResults.Keys)
-                .Distinct()
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month))
-            {
-                if (!otheriResults.TryGetValue(yearMonth, out Money otheri))
-                {
-                    otheri = Money.Zero;
-                }
-                if (!wasabiResults.TryGetValue(yearMonth, out Money wasabi))
-                {
-                    wasabi = Money.Zero;
-                }
-                if (!samuriResults.TryGetValue(yearMonth, out Money samuri))
-                {
-                    samuri = Money.Zero;
-                }
-
-                Console.WriteLine($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
-            }
-        }
-
-        private void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonthDay, Money> otheriResults, Dictionary<YearMonthDay, Money> wasabiResults, Dictionary<YearMonthDay, Money> samuriResults)
-        {
-            Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
-
-            foreach (var yearMonthDay in wasabiResults
-                .Keys
-                .Concat(otheriResults.Keys)
-                .Concat(samuriResults.Keys)
-                .Distinct()
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month))
-            {
-                if (!otheriResults.TryGetValue(yearMonthDay, out Money otheri))
-                {
-                    otheri = Money.Zero;
-                }
-                if (!wasabiResults.TryGetValue(yearMonthDay, out Money wasabi))
-                {
-                    wasabi = Money.Zero;
-                }
-                if (!samuriResults.TryGetValue(yearMonthDay, out Money samuri))
-                {
-                    samuri = Money.Zero;
-                }
-
-                Console.WriteLine($"{yearMonthDay};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
-            }
-        }
-
-        private void DisplayWasabiResults(Dictionary<YearMonth, decimal> wasabiResults)
-        {
-            Console.WriteLine($"Month;Wasabi");
-
-            foreach (var yearMonth in wasabiResults
-                .Keys
-                .Distinct()
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month))
-            {
-                if (!wasabiResults.TryGetValue(yearMonth, out decimal wasabi))
-                {
-                    wasabi = 0;
-                }
-
-                Console.WriteLine($"{yearMonth};{wasabi:0.00}");
-            }
-        }
-
-        private void DisplayWasabiSamuriResults(Dictionary<YearMonth, Money> wasabiResults, Dictionary<YearMonth, Money> samuriResults)
-        {
-            Console.WriteLine($"Month;Wasabi;Samuri");
-
-            foreach (var yearMonth in wasabiResults
-                .Keys
-                .Concat(samuriResults.Keys)
-                .Distinct()
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month))
-            {
-                if (!wasabiResults.TryGetValue(yearMonth, out Money wasabi))
-                {
-                    wasabi = Money.Zero;
-                }
-                if (!samuriResults.TryGetValue(yearMonth, out Money samuri))
-                {
-                    samuri = Money.Zero;
-                }
-
-                Console.WriteLine($"{yearMonth};{wasabi.ToDecimal(MoneyUnit.BTC):0.00};{samuri.ToDecimal(MoneyUnit.BTC):0.00}");
-            }
-        }
-
-        private void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonth, ulong> otheriResults, Dictionary<YearMonth, ulong> wasabiResults, Dictionary<YearMonth, ulong> samuriResults)
-        {
-            Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
-
-            foreach (var yearMonth in wasabiResults
-                .Keys
-                .Concat(otheriResults.Keys)
-                .Concat(samuriResults.Keys)
-                .Distinct()
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month))
-            {
-                if (!otheriResults.TryGetValue(yearMonth, out ulong otheri))
-                {
-                    otheri = 0;
-                }
-                if (!wasabiResults.TryGetValue(yearMonth, out ulong wasabi))
-                {
-                    wasabi = 0;
-                }
-                if (!samuriResults.TryGetValue(yearMonth, out ulong samuri))
-                {
-                    samuri = 0;
-                }
-
-                Console.WriteLine($"{yearMonth};{otheri:0};{wasabi:0};{samuri:0}");
-            }
-        }
-
-        private void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonth, decimal> otheriResults, Dictionary<YearMonth, decimal> wasabiResults, Dictionary<YearMonth, decimal> samuriResults)
-        {
-            Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
-
-            foreach (var yearMonth in wasabiResults
-                .Keys
-                .Concat(otheriResults.Keys)
-                .Concat(samuriResults.Keys)
-                .Distinct()
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month))
-            {
-                if (!otheriResults.TryGetValue(yearMonth, out decimal otheri))
-                {
-                    otheri = 0;
-                }
-                if (!wasabiResults.TryGetValue(yearMonth, out decimal wasabi))
-                {
-                    wasabi = 0;
-                }
-                if (!samuriResults.TryGetValue(yearMonth, out decimal samuri))
-                {
-                    samuri = 0;
-                }
-
-                Console.WriteLine($"{yearMonth};{otheri:0.0};{wasabi:0.0};{samuri:0.0}");
+                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
             }
         }
 
@@ -541,8 +478,66 @@ namespace Dumplings.Stats
             return myDic;
         }
 
+        private Dictionary<YearMonth, List<Money>> GetFreshBitcoinAmounts(IEnumerable<VerboseTransactionInfo> txs)
+        {
+            var myDic = new Dictionary<YearMonth, List<Money>>();
+            foreach (var day in GetFreshBitcoinAmountsDaily(txs))
+            {
+                var yearMonth = day.Key.ToYearMonth();
+                if (myDic.ContainsKey(yearMonth))
+                {
+                    myDic[yearMonth].AddRange(day.Value);
+                }
+                else
+                {
+                    var l = new List<Money>();
+                    l.AddRange(day.Value);
+                    myDic.Add(yearMonth, l);
+                }
+            }
+            return myDic;
+        }
+
+        private Dictionary<YearMonthDay, List<Money>> GetFreshBitcoinAmountsDaily(IEnumerable<VerboseTransactionInfo> txs)
+        {
+            var myDic = new Dictionary<YearMonthDay, List<Money>>();
+            var txHashes = txs.Select(x => x.Id).ToHashSet();
+
+            foreach (var tx in txs)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    var blockTimeValue = blockTime.Value;
+                    var yearMonthDay = new YearMonthDay(blockTimeValue.Year, blockTimeValue.Month, blockTimeValue.Day);
+
+                    var amounts = new List<Money>();
+                    foreach (var input in tx.Inputs.Where(x => !txHashes.Contains(x.OutPoint.Hash)))
+                    {
+                        if (input.PrevOutput.Value.ToDecimal(MoneyUnit.BTC) == 0.05005067m)
+                        {
+                            ;
+                        }
+                        amounts.Add(input.PrevOutput.Value);
+                    }
+
+                    if (myDic.ContainsKey(yearMonthDay))
+                    {
+                        myDic[yearMonthDay].AddRange(amounts);
+                    }
+                    else
+                    {
+                        myDic.Add(yearMonthDay, amounts);
+                    }
+                }
+            }
+
+            return myDic;
+        }
+
         private Dictionary<YearMonth, Money> CalculateNeverMixed(IEnumerable<VerboseTransactionInfo> coinJoins)
         {
+            BitcoinStatus.CheckAsync(Rpc).GetAwaiter().GetResult();
             // Go through all the coinjoins.
             // If a change output is spent and didn't go to coinjoins, then it didn't get remixed.
             var coinJoinInputs =
@@ -597,6 +592,8 @@ namespace Dumplings.Stats
 
         private Dictionary<YearMonth, Money> CalculateNeverMixedFromTx0s(IEnumerable<VerboseTransactionInfo> samuriCjs, IEnumerable<VerboseTransactionInfo> samuriTx0s)
         {
+            BitcoinStatus.CheckAsync(Rpc).GetAwaiter().GetResult();
+
             // Go through all the outputs of TX0 transactions.
             // If an output is spent and didn't go to coinjoins or other TX0s, then it didn't get remixed.
             var samuriTx0CjInputs =
@@ -729,20 +726,20 @@ namespace Dumplings.Stats
                     var blockTimeValue = blockTime.Value;
                     var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
 
-                    var (value, count) = tx.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count).First();
-
-                    int tic = tx.Inputs.Count();
-                    int sic = tic - count;
+                    var (value, tpc) = tx.GetIndistinguishableOutputs(includeSingle: false).OrderByDescending(x => x.count).First();
+                    var almostValue = value - Money.Coins(0.0001m);
+                    var smallerSum = tx.Outputs.Select(x => x.Value).Where(x => x < almostValue).Sum();
+                    var spc = (int)(smallerSum.Satoshi / value.Satoshi);
 
                     if (myDic.TryGetValue(yearMonth, out (int tins, int tsins) current))
                     {
-                        tic += current.tins;
-                        sic += current.tsins;
-                        myDic[yearMonth] = (tic, sic);
+                        tpc += current.tins;
+                        spc += current.tsins;
+                        myDic[yearMonth] = (tpc, spc);
                     }
                     else
                     {
-                        myDic.Add(yearMonth, (tic, sic));
+                        myDic.Add(yearMonth, (tpc, spc));
                     }
                 }
             }
@@ -874,6 +871,200 @@ namespace Dumplings.Stats
             }
 
             return closeEnoughs;
+        }
+
+        public void ListFreshBitcoins()
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                ListFreshBitcoins("freshotheri.txt", ScannerFiles.OtherCoinJoins);
+                ListFreshBitcoins("freshwasabi2.txt", ScannerFiles.Wasabi2CoinJoins);
+                ListFreshBitcoins("freshwasabi.txt", ScannerFiles.WasabiCoinJoins);
+                ListFreshBitcoins("freshsamuri.txt", ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
+            }
+        }
+
+        private void ListFreshBitcoins(string filePath, IEnumerable<VerboseTransactionInfo> samouraiTx0s, IEnumerable<uint256> samouraiCoinJoinHashes)
+        {
+            // In Samourai in order to identify fresh bitcoins the tx0 input shouldn't come from other samuri coinjoins, nor tx0s.
+            var txHashes = samouraiTx0s.Select(x => x.Id).Union(samouraiCoinJoinHashes).ToHashSet();
+
+            foreach (var tx in samouraiTx0s)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    File.AppendAllLines(filePath, tx.Inputs.Where(x => !txHashes.Contains(x.OutPoint.Hash)).Select(x => new Coin(blockTime.Value, x.OutPoint.Hash, x.OutPoint.N, x.PrevOutput.ScriptPubKey, x.PrevOutput.Value).ToString()));
+                }
+            }
+        }
+
+        private void ListFreshBitcoins(string filePath, IEnumerable<VerboseTransactionInfo> coinjoins)
+        {
+            var txHashes = coinjoins.Select(x => x.Id).ToHashSet();
+
+            foreach (var tx in coinjoins)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    File.AppendAllLines(filePath, tx.Inputs.Where(x => !txHashes.Contains(x.OutPoint.Hash)).Select(x => new Coin(blockTime.Value, x.OutPoint.Hash, x.OutPoint.N, x.PrevOutput.ScriptPubKey, x.PrevOutput.Value).ToString()));
+                }
+            }
+        }
+
+        public void CalculateUnspentCapacity(RPCClient rpc)
+        {
+            var ucWW1 = Money.Zero;
+            var ucWW2 = Money.Zero;
+            var ucSW = Money.Zero;
+
+            YearMonthDay prevYMD = null;
+            foreach (var tx in ScannerFiles.WasabiCoinJoins
+                .Concat(ScannerFiles.Wasabi2CoinJoins)
+                .Concat(ScannerFiles.SamouraiCoinJoins)
+                .OrderBy(x => x.BlockInfo.BlockTime))
+            {
+                if (prevYMD is null)
+                {
+                    prevYMD = tx.BlockInfo.YearMonthDay;
+                }
+                else if (prevYMD != tx.BlockInfo.YearMonthDay)
+                {
+                    Console.WriteLine($"{prevYMD}\t{ucWW2.ToString(false, false)}\t{ucWW1.ToString(false, false)}\t{ucSW.ToString(false, false)}");
+                    prevYMD = tx.BlockInfo.YearMonthDay;
+                }
+
+                var outs = tx.Outputs.ToArray();
+                for (int i = 0; i < outs.Length; i++)
+                {
+                    var o = outs[i];
+                    if (rpc.GetTxOut(tx.Id, i) is not null)
+                    {
+                        if (ScannerFiles.WasabiCoinJoinHashes.Contains(tx.Id))
+                        {
+                            ucWW1 += o.Value;
+                        }
+                        else if (ScannerFiles.Wasabi2CoinJoinHashes.Contains(tx.Id))
+                        {
+                            ucWW2 += o.Value;
+                        }
+                        else if (ScannerFiles.SamouraiCoinJoinHashes.Contains(tx.Id))
+                        {
+                            ucSW += o.Value;
+                        }
+                    }
+                }
+            }
+
+            Console.WriteLine($"{prevYMD}\t{ucWW2.ToString(false, false)}\t{ucWW1.ToString(false, false)}\t{ucSW.ToString(false, false)}");
+        }
+
+        public void CalculateWasabiCoordStats(ExtPubKey[] xpubs)
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                var scripts = Constants.WasabiCoordScripts.ToHashSet();
+                foreach (var xpub in xpubs)
+                {
+                    for (int i = 0; i < 100_000; i++)
+                    {
+                        scripts.Add(xpub.Derive(0, false).Derive(i, false).PubKey.WitHash.ScriptPubKey);
+                    }
+                }
+
+                DateTimeOffset? lastCoinJoinTime = null;
+
+                foreach (var tx in ScannerFiles.WasabiCoinJoins.Skip(5))
+                {
+                    var coordOutput = tx.Outputs.FirstOrDefault(x => scripts.Contains(x.ScriptPubKey));
+                    if (coordOutput is null)
+                    {
+                        continue;
+                    }
+
+                    double vSizeEstimation = 10.75 + tx.Outputs.Count() * 31 + tx.Inputs.Count() * 67.75;
+
+                    var blockTime = tx.BlockInfo.BlockTime;
+
+                    if (lastCoinJoinTime.HasValue && (lastCoinJoinTime - blockTime).Value.Duration() > TimeSpan.FromDays(7))
+                    {
+                        throw new InvalidOperationException("No CoinJoin for a week");
+                    }
+
+                    lastCoinJoinTime = blockTime;
+
+                    Console.Write($"{blockTime.Value.UtcDateTime.ToString("MM.dd.yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)};");
+                    Console.Write($"{tx.Id};");
+
+                    var totalFee = (tx.Inputs.Sum(x => x.PrevOutput.Value) - tx.Outputs.Sum(x => x.Value));
+
+                    Console.Write($"{string.Format("{0:0.00}", (double)(totalFee / vSizeEstimation))};");
+                    Console.Write($"{coordOutput.ScriptPubKey.GetDestinationAddress(Network.Main)};");
+                    Console.Write($"{coordOutput.Value};");
+
+                    var outputs = tx.GetIndistinguishableOutputs(includeSingle: false);
+                    var currentDenom = outputs.OrderByDescending(x => x.count).First().value;
+                    foreach (var (value, count) in outputs.Where(x => x.value >= currentDenom))
+                    {
+                        Console.Write($"{value};{count};");
+                    }
+                    Console.WriteLine();
+                }
+            }
+        }
+
+        public void CalculateWabiSabiCoordStats(ExtPubKey[] xpubs)
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                var scripts = new HashSet<Script>();
+                foreach (var xpub in xpubs)
+                {
+                    for (int i = 0; i < 100_000; i++)
+                    {
+                        scripts.Add(xpub.Derive(0, false).Derive(i, false).PubKey.WitHash.ScriptPubKey);
+                    }
+                }
+
+                DateTimeOffset? lastCoinJoinTime = null;
+
+                foreach (var tx in ScannerFiles.Wasabi2CoinJoins)
+                {
+                    // It's OK if it's null, because there are rounds with no coord fee.
+                    var coordOutput = tx.Outputs.SingleOrDefault(x => scripts.Contains(x.ScriptPubKey));
+
+                    double vSizeEstimation = 10.75 + tx.Outputs.Count() * 31 + tx.Inputs.Count() * 67.75;
+
+                    var blockTime = tx.BlockInfo.BlockTime;
+
+                    if (lastCoinJoinTime.HasValue && (lastCoinJoinTime - blockTime).Value.Duration() > TimeSpan.FromDays(7))
+                    {
+                        throw new InvalidOperationException("No CoinJoin for a week");
+                    }
+
+                    lastCoinJoinTime = blockTime;
+
+                    Console.Write($"{blockTime.Value.UtcDateTime.ToString("MM.dd.yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)};");
+                    Console.Write($"{tx.Id};");
+
+                    var totalFee = (tx.Inputs.Sum(x => x.PrevOutput.Value) - tx.Outputs.Sum(x => x.Value));
+
+                    Console.Write($"{string.Format("{0:0.00}", (double)(totalFee / vSizeEstimation))};");
+                    Console.Write($"{(coordOutput is null ? "_______there-was-no-coordinator-fee_______" : coordOutput.ScriptPubKey.GetDestinationAddress(Network.Main).ToString())};");
+                    Console.Write($"{(coordOutput is null ? Money.Zero : coordOutput.Value)};");
+
+                    var outputs = tx.GetIndistinguishableOutputs(includeSingle: false);
+                    var currentDenom = outputs.OrderByDescending(x => x.count).First().value;
+                    foreach (var (value, count) in outputs.Where(x => x.value >= currentDenom))
+                    {
+                        Console.Write($"{value};{count};");
+                    }
+                    Console.WriteLine();
+                }
+            }
         }
     }
 }

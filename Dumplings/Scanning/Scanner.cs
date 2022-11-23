@@ -20,16 +20,18 @@ namespace Dumplings.Scanning
         {
             Rpc = rpc;
             Directory.CreateDirectory(WorkFolder);
+            BitcoinStatus.CheckAsync(rpc).GetAwaiter().GetResult();
         }
 
         public static string WorkFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WasabiDumplings", "Scanner");
 
         public static readonly string LastProcessedBlockHeightPath = Path.Combine(WorkFolder, "LastProcessedBlockHeight.txt");
         public static readonly string WasabiCoinJoinsPath = Path.Combine(WorkFolder, "WasabiCoinJoins.txt");
-        public static readonly string WabiSabiCoinJoinsPath = Path.Combine(WorkFolder, "WabiSabiCoinJoins.txt");
+        public static readonly string Wasabi2CoinJoinsPath = Path.Combine(WorkFolder, "Wasabi2CoinJoins.txt");
         public static readonly string SamouraiCoinJoinsPath = Path.Combine(WorkFolder, "SamouraiCoinJoins.txt");
         public static readonly string SamouraiTx0sPath = Path.Combine(WorkFolder, "SamouraiTx0s.txt");
         public static readonly string OtherCoinJoinsPath = Path.Combine(WorkFolder, "OtherCoinJoins.txt");
+        public static readonly string Wasabi2PostMixTxsPath = Path.Combine(WorkFolder, "Wasabi2PostMixTxs.txt");
         public static readonly string WasabiPostMixTxsPath = Path.Combine(WorkFolder, "WasabiPostMixTxs.txt");
         public static readonly string SamouraiPostMixTxsPath = Path.Combine(WorkFolder, "SamouraiPostMixTxs.txt");
         public static readonly string OtherCoinJoinPostMixTxsPath = Path.Combine(WorkFolder, "OtherCoinJoinPostMixTxs.txt");
@@ -38,6 +40,7 @@ namespace Dumplings.Scanning
 
         private decimal PercentageDone { get; set; } = 0;
         private decimal PreviousPercentageDone { get; set; } = -1;
+        public static HashSet<long> Wasabi2Denominations { get; } = CreateWasabi2Denominations().ToHashSet();
 
         public async Task ScanAsync(bool rescan)
         {
@@ -50,8 +53,8 @@ namespace Dumplings.Scanning
                 Directory.Delete(WorkFolder, true);
             }
             Directory.CreateDirectory(WorkFolder);
+            var allWasabi2CoinJoinSet = new HashSet<uint256>();
             var allWasabiCoinJoinSet = new HashSet<uint256>();
-            var allWabiSabiCoinJoinSet = new HashSet<uint256>();
             var allSamouraiCoinJoinSet = new HashSet<uint256>();
             var allOtherCoinJoinSet = new HashSet<uint256>();
             var allSamouraiTx0Set = new HashSet<uint256>();
@@ -64,6 +67,7 @@ namespace Dumplings.Scanning
             {
                 height = ReadBestHeight() + 1;
                 allSamouraiCoinJoinSet = Enumerable.ToHashSet(ReadSamouraiCoinJoins().Select(x => x.Id));
+                allWasabi2CoinJoinSet = Enumerable.ToHashSet(ReadWasabi2CoinJoins().Select(x => x.Id));
                 allWasabiCoinJoinSet = Enumerable.ToHashSet(ReadWasabiCoinJoins().Select(x => x.Id));
                 allOtherCoinJoinSet = Enumerable.ToHashSet(ReadOtherCoinJoins().Select(x => x.Id));
                 allSamouraiTx0Set = Enumerable.ToHashSet(ReadSamouraiTx0s().Select(x => x.Id));
@@ -85,11 +89,12 @@ namespace Dumplings.Scanning
                 var block = await Rpc.GetVerboseBlockAsync(height, safe: false).ConfigureAwait(false);
 
                 var wasabiCoinJoins = new List<VerboseTransactionInfo>();
-                var wabiSabiCoinJoins = new List<VerboseTransactionInfo>();
+                var wasabi2CoinJoins = new List<VerboseTransactionInfo>();
                 var samouraiCoinJoins = new List<VerboseTransactionInfo>();
                 var samouraiTx0s = new List<VerboseTransactionInfo>();
                 var otherCoinJoins = new List<VerboseTransactionInfo>();
                 var wasabiPostMixTxs = new List<VerboseTransactionInfo>();
+                var wasabi2PostMixTxs = new List<VerboseTransactionInfo>();
                 var samouraiPostMixTxs = new List<VerboseTransactionInfo>();
                 var otherCoinJoinPostMixTxs = new List<VerboseTransactionInfo>();
 
@@ -101,7 +106,7 @@ namespace Dumplings.Scanning
                     }
 
                     bool isWasabiCj = false;
-                    bool isWabiSabiCj = false;
+                    bool isWasabi2Cj = false;
                     bool isSamouraiCj = false;
                     bool isOtherCj = false;
                     if (tx.Inputs.All(x => x.Coinbase is null))
@@ -115,9 +120,22 @@ namespace Dumplings.Scanning
                             var inputValues = inputs.Select(x => x.Value);
                             var outputCount = outputs.Length;
                             var inputCount = inputs.Length;
-                            (Money mostFrequentEqualOutputValue, int mostFrequentEqualOutputCount) = indistinguishableOutputs.OrderByDescending(x => x.count).First();
+                            (Money mostFrequentEqualOutputValue, int mostFrequentEqualOutputCount) = indistinguishableOutputs.OrderByDescending(x => x.count).First(); // Segwit only inputs.
+                            var isNativeSegwitOnly = tx.Inputs.All(x => x.PrevOutput.ScriptPubKey.IsScriptType(ScriptType.P2WPKH)) && tx.Outputs.All(x => x.ScriptPubKey.IsScriptType(ScriptType.P2WPKH)); // Segwit only outputs.
+
+                            // IDENTIFY WASABI 2 COINJOINS
+                            if (block.Height >= Constants.FirstWasabi2Block)
+                            {
+                                isWasabi2Cj =
+                                    isNativeSegwitOnly
+                                    && inputCount >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
+                                    && inputValues.SequenceEqual(inputValues.OrderByDescending(x => x)) // Inputs are ordered descending.
+                                    && outputValues.SequenceEqual(outputValues.OrderByDescending(x => x)) // Outputs are ordered descending.
+                                    && outputValues.Count(x => Wasabi2Denominations.Contains(x.Satoshi)) > outputCount * 0.8; // Most of the outputs contains the denomination.
+                            }
+
                             // IDENTIFY WASABI COINJOINS
-                            if (block.Height >= Constants.FirstWasabiBlock)
+                            if (!isWasabi2Cj && block.Height >= Constants.FirstWasabiBlock)
                             {
                                 // Before Wasabi had constant coordinator addresses and different base denominations at the beginning.
                                 if (block.Height < Constants.FirstWasabiNoCoordAddressBlock)
@@ -126,46 +144,54 @@ namespace Dumplings.Scanning
                                 }
                                 else
                                 {
+                                    var uniqueOutputCount = tx.GetIndistinguishableOutputs(includeSingle: true).Count(x => x.count == 1);
                                     isWasabiCj =
-                                        mostFrequentEqualOutputCount >= 10 // At least 10 equal outputs.
-                                        && inputCount >= mostFrequentEqualOutputCount // More inptu than outputs.
-                                        && mostFrequentEqualOutputValue.Almost(Constants.ApproximateWasabiBaseDenomination, Constants.WasabiBaseDenominationPrecision); // The most frequent equal outputs must be almost the base denomination.
+                                        isNativeSegwitOnly
+                                        && mostFrequentEqualOutputCount >= 10 // At least 10 equal outputs.
+                                        && inputCount >= mostFrequentEqualOutputCount // More inptuts than most frequent equal outputs.
+                                        && mostFrequentEqualOutputValue.Almost(Constants.ApproximateWasabiBaseDenomination, Constants.WasabiBaseDenominationPrecision) // The most frequent equal outputs must be almost the base denomination.
+                                        && uniqueOutputCount >= 2; // It's very likely there's at least one change and at least one coord output those have unique values.
                                 }
-                            }
-
-                            // IDENTIFY WABISABI COINJOINS
-                            if (block.Height >= Constants.FirstWabiSabiBlock)
-                            {
-                                isWabiSabiCj = inputCount > 50  // 50 was the minimum input count at the beginning of Wasabi 2.
-                                    && outputValues.Count(x => Constants.StdDenoms.Contains(x.Satoshi)) > outputValues.Count() * 0.8 // Most of the outputs contains the denomination.
-                                    && outputValues.OrderByDescending(value => value).SequenceEqual(outputValues); // Outputs are ordered descending.
                             }
 
                             // IDENTIFY SAMOURAI COINJOINS
                             if (block.Height >= Constants.FirstSamouraiBlock)
                             {
+                                // Pinpointing and Measuring Wasabi and Samourai CoinJoins in the Bitcoin Ecosystem
+                                // Slightly improved on SCDH
+                                // Samourai CoinJoin Detection Heuristic (SCDH) If a transaction t has exactly
+                                // five uniform outputs that equal p BTC and if it has precisely five inputs, with at
+                                // least one and at most three equal p BTC, while the remaining two to four inputs
+                                // are between p and p +0.0011 BTC, then t is a Samourai Whirlpool CoinJoin
+                                // transaction.
+                                var poolSize = tx.Outputs.First().Value;
+                                var poolSizedInputCount = tx.Inputs.Count(x => x.PrevOutput.Value == poolSize);
                                 isSamouraiCj =
-                                   inputCount == 5 // Always have 5 inputs.
+                                   isNativeSegwitOnly
+                                   && inputCount == 5 // Always have 5 inputs.
                                    && outputCount == 5 // Always have 5 outputs.
                                    && outputValues.Distinct().Count() == 1 // Outputs are always equal.
-                                   && Constants.SamouraiPools.Any(x => x.Almost(tx.Outputs.First().Value, Money.Coins(0.01m))); // Just to be sure match Samourai's pool sizes.
+                                   && Constants.SamouraiPools.Any(x => x == poolSize) // Just to be sure match Samourai's pool sizes.
+                                   && poolSizedInputCount >= 1
+                                   && poolSizedInputCount <= 3
+                                   && tx.Inputs.Where(x => x.PrevOutput.Value != poolSize).All(x => x.PrevOutput.Value.Almost(poolSize, Money.Coins(0.0011m)));
                             }
 
                             // IDENTIFY OTHER EQUAL OUTPUT COINJOIN LIKE TRANSACTIONS
-                            if (!isWasabiCj && !isSamouraiCj && !isWabiSabiCj)
+                            if (!isWasabi2Cj && !isWasabiCj && !isSamouraiCj)
                             {
                                 isOtherCj =
-                                    indistinguishableOutputs.Length == 1 // If it isn't then it'd be likely a multidenomination CJ, which only Wasabi does.                                                                 
+                                    indistinguishableOutputs.Length == 1 // If it isn't then it'd be likely a multidenomination CJ, which only Wasabi does.
                                     && mostFrequentEqualOutputCount == outputCount - mostFrequentEqualOutputCount // Rarely it isn't, but it helps filtering out false positives.
                                     && outputs.Select(x => x.ScriptPubKey).Distinct().Count() >= mostFrequentEqualOutputCount // Otherwise more participants would be single actors which makes no sense.
                                     && inputs.Select(x => x.ScriptPubKey).Distinct().Count() >= mostFrequentEqualOutputCount // Otherwise more participants would be single actors which makes no sense.
                                     && inputValues.Max() <= mostFrequentEqualOutputValue + outputValues.Where(x => x != mostFrequentEqualOutputValue).Max() - Money.Coins(0.0001m); // I don't want to run expensive subset sum, so this is a shortcut to at least filter out false positives.
                             }
 
-                            if (isWabiSabiCj)
+                            if (isWasabi2Cj)
                             {
-                                wabiSabiCoinJoins.Add(tx);
-                                allWabiSabiCoinJoinSet.Add(tx.Id);
+                                wasabi2CoinJoins.Add(tx);
+                                allWasabi2CoinJoinSet.Add(tx.Id);
                             }
                             else if (isWasabiCj)
                             {
@@ -186,6 +212,19 @@ namespace Dumplings.Scanning
 
                         foreach (var inputTxId in tx.Inputs.Select(x => x.OutPoint.Hash))
                         {
+                            if (!isWasabi2Cj && allWasabi2CoinJoinSet.Contains(inputTxId) && !wasabi2PostMixTxs.Any(x => x.Id == tx.Id))
+                            {
+                                // Then it's a post mix tx.
+                                wasabi2PostMixTxs.Add(tx);
+                                if (isOtherCj)
+                                {
+                                    // Then it's false positive detection.
+                                    isOtherCj = false;
+                                    allOtherCoinJoinSet.Remove(tx.Id);
+                                    otherCoinJoins.Remove(tx);
+                                }
+                            }
+
                             if (!isWasabiCj && allWasabiCoinJoinSet.Contains(inputTxId) && !wasabiPostMixTxs.Any(x => x.Id == tx.Id))
                             {
                                 // Then it's a post mix tx.
@@ -303,11 +342,12 @@ namespace Dumplings.Scanning
                 }
 
                 File.WriteAllText(LastProcessedBlockHeightPath, height.ToString());
+                File.AppendAllLines(Wasabi2CoinJoinsPath, wasabi2CoinJoins.Select(x => RpcParser.ToLine(x)));
                 File.AppendAllLines(WasabiCoinJoinsPath, wasabiCoinJoins.Select(x => RpcParser.ToLine(x)));
-                File.AppendAllLines(WabiSabiCoinJoinsPath, wabiSabiCoinJoins.Select(x => RpcParser.ToLine(x)));
                 File.AppendAllLines(SamouraiCoinJoinsPath, samouraiCoinJoins.Select(x => RpcParser.ToLine(x)));
                 File.AppendAllLines(SamouraiTx0sPath, samouraiTx0s.Select(x => RpcParser.ToLine(x)));
                 File.AppendAllLines(OtherCoinJoinsPath, otherCoinJoins.Select(x => RpcParser.ToLine(x)));
+                File.AppendAllLines(Wasabi2PostMixTxsPath, wasabi2PostMixTxs.Select(x => RpcParser.ToLine(x)));
                 File.AppendAllLines(WasabiPostMixTxsPath, wasabiPostMixTxs.Select(x => RpcParser.ToLine(x)));
                 File.AppendAllLines(SamouraiPostMixTxsPath, samouraiPostMixTxs.Select(x => RpcParser.ToLine(x)));
                 File.AppendAllLines(OtherCoinJoinPostMixTxsPath, otherCoinJoinPostMixTxs.Select(x => RpcParser.ToLine(x)));
@@ -316,42 +356,54 @@ namespace Dumplings.Scanning
             }
         }
 
+        private static IEnumerable<VerboseTransactionInfo> ReadWasabi2CoinJoins()
+        {
+            return CheckAndReadIfExists(Wasabi2CoinJoinsPath);
+        }
+
         private static IEnumerable<VerboseTransactionInfo> ReadWasabiCoinJoins()
         {
             return CheckAndReadIfExists(WasabiCoinJoinsPath);
         }
+
         private static IEnumerable<VerboseTransactionInfo> ReadSamouraiCoinJoins()
         {
             return CheckAndReadIfExists(SamouraiCoinJoinsPath);
         }
+
         private static IEnumerable<VerboseTransactionInfo> ReadOtherCoinJoins()
         {
             return CheckAndReadIfExists(OtherCoinJoinsPath);
         }
+
         private static IEnumerable<VerboseTransactionInfo> ReadSamouraiTx0s()
         {
             return CheckAndReadIfExists(SamouraiTx0sPath);
         }
+
+        private static IEnumerable<VerboseTransactionInfo> ReadWasabi2PostMixTxs()
+        {
+            return CheckAndReadIfExists(Wasabi2PostMixTxsPath);
+        }
+
         private static IEnumerable<VerboseTransactionInfo> ReadWasabiPostMixTxs()
         {
             return CheckAndReadIfExists(WasabiPostMixTxsPath);
         }
+
         private static IEnumerable<VerboseTransactionInfo> ReadSamouraiPostMixTxs()
         {
             return CheckAndReadIfExists(SamouraiPostMixTxsPath);
         }
+
         private static IEnumerable<VerboseTransactionInfo> ReadOtherCoinJoinPostMixTxs()
         {
             return CheckAndReadIfExists(OtherCoinJoinPostMixTxsPath);
         }
-        private static IEnumerable<VerboseTransactionInfo> ReadWabiSabiCoinJoins()
-        {
-            return CheckAndReadIfExists(WabiSabiCoinJoinsPath);
-        }
 
         private static IEnumerable<VerboseTransactionInfo> CheckAndReadIfExists(string path)
         {
-            if(File.Exists(path))
+            if (File.Exists(path))
             {
                 return File.ReadAllLines(path).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
             }
@@ -367,11 +419,12 @@ namespace Dumplings.Scanning
         {
             return new ScannerFiles(
                 ReadBestHeight(),
+                ReadWasabi2CoinJoins(),
                 ReadWasabiCoinJoins(),
-                ReadWabiSabiCoinJoins(),
                 ReadSamouraiCoinJoins(),
                 ReadOtherCoinJoins(),
                 ReadSamouraiTx0s(),
+                ReadWasabi2PostMixTxs(),
                 ReadWasabiPostMixTxs(),
                 ReadSamouraiPostMixTxs(),
                 ReadOtherCoinJoinPostMixTxs());
@@ -382,6 +435,123 @@ namespace Dumplings.Scanning
             ulong blocksLeft = bestHeight - height;
             ulong processedBlocks = totalBlocks - blocksLeft;
             return processedBlocks;
+        }
+
+        private static IOrderedEnumerable<long> CreateWasabi2Denominations()
+        {
+            long maxSatoshis = 134375000000;
+            long minSatoshis = 5000;
+            var denominations = new HashSet<long>();
+
+            // Powers of 2
+            for (int i = 0; i < int.MaxValue; i++)
+            {
+                var denom = (long)Math.Pow(2, i);
+
+                if (denom < minSatoshis)
+                {
+                    continue;
+                }
+
+                if (denom > maxSatoshis)
+                {
+                    break;
+                }
+
+                denominations.Add(denom);
+            }
+
+            // Powers of 3
+            for (int i = 0; i < int.MaxValue; i++)
+            {
+                var denom = (long)Math.Pow(3, i);
+
+                if (denom < minSatoshis)
+                {
+                    continue;
+                }
+
+                if (denom > maxSatoshis)
+                {
+                    break;
+                }
+
+                denominations.Add(denom);
+            }
+
+            // Powers of 3 * 2
+            for (int i = 0; i < int.MaxValue; i++)
+            {
+                var denom = (long)Math.Pow(3, i) * 2;
+
+                if (denom < minSatoshis)
+                {
+                    continue;
+                }
+
+                if (denom > maxSatoshis)
+                {
+                    break;
+                }
+
+                denominations.Add(denom);
+            }
+
+            // Powers of 10 (1-2-5 series)
+            for (int i = 0; i < int.MaxValue; i++)
+            {
+                var denom = (long)Math.Pow(10, i);
+
+                if (denom < minSatoshis)
+                {
+                    continue;
+                }
+
+                if (denom > maxSatoshis)
+                {
+                    break;
+                }
+
+                denominations.Add(denom);
+            }
+
+            // Powers of 10 * 2 (1-2-5 series)
+            for (int i = 0; i < int.MaxValue; i++)
+            {
+                var denom = (long)Math.Pow(10, i) * 2;
+
+                if (denom < minSatoshis)
+                {
+                    continue;
+                }
+
+                if (denom > maxSatoshis)
+                {
+                    break;
+                }
+
+                denominations.Add(denom);
+            }
+
+            // Powers of 10 * 5 (1-2-5 series)
+            for (int i = 0; i < int.MaxValue; i++)
+            {
+                var denom = (long)Math.Pow(10, i) * 5;
+
+                if (denom < minSatoshis)
+                {
+                    continue;
+                }
+
+                if (denom > maxSatoshis)
+                {
+                    break;
+                }
+
+                denominations.Add(denom);
+            }
+
+            return denominations.OrderByDescending(x => x);
         }
     }
 }
