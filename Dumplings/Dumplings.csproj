@@ -9,8 +9,4 @@
     <PackageReference Include="NBitcoin" Version="7.0.10" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Freshbitcoins\" />
-  </ItemGroup>
-
 </Project>
