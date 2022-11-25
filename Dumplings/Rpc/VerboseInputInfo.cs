@@ -23,6 +23,7 @@ namespace Dumplings.Rpc
         public string Coinbase { get; }
 
         private const string Separator = "-";
+
         public override string ToString()
         {
             if (Coinbase is { })

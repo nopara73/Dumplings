@@ -1,4 +1,5 @@
-﻿using NBitcoin;
+﻿using Dumplings.Stats;
+using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,6 +17,7 @@ namespace Dumplings.Rpc
 
         public uint256 BlockHash { get; }
         public DateTimeOffset? BlockTime { get; }
+        public YearMonthDay YearMonthDay => BlockTime.HasValue ? new YearMonthDay(BlockTime.Value.Year, BlockTime.Value.Month, BlockTime.Value.Day) : null;
         public uint? BlockIndex { get; }
     }
 }

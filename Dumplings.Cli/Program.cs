@@ -15,9 +15,9 @@ using System.Threading.Tasks;
 
 namespace Dumplings.Cli
 {
-    class Program
+    internal class Program
     {
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             Logger.InitializeDefaults();
 
@@ -52,10 +52,9 @@ namespace Dumplings.Cli
                 FileStream fileStream = null;
                 StreamWriter writer = null;
                 TextWriter oldOut = Console.Out;
-
                 if (!string.IsNullOrEmpty(outputFolder))
                 {
-                    var filePath = Path.Combine(outputFolder,$"Dump{DateTime.Now:yyMMdd_HHmmss}.txt");
+                    var filePath = Path.Combine(outputFolder, $"Dump{DateTime.Now:yyMMdd_HHmmss}.txt");
                     try
                     {
                         fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write);
@@ -69,7 +68,6 @@ namespace Dumplings.Cli
                         Console.WriteLine(ex.Message);
                     }
                 }
-
                 try
                 {
                     if (command == Command.Resync)
@@ -99,6 +97,12 @@ namespace Dumplings.Cli
                         var loadedScannerFiles = Scanner.Load();
                         var stat = new Statista(loadedScannerFiles, client);
                         stat.CalculateFreshBitcoins();
+                    }
+                    else if (command == Command.FreshBitcoinAmounts)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.CalculateFreshBitcoinAmounts();
                     }
                     else if (command == Command.FreshBitcoinsDaily)
                     {
@@ -141,6 +145,42 @@ namespace Dumplings.Cli
                         var loadedScannerFiles = Scanner.Load();
                         var stat = new Statista(loadedScannerFiles, client);
                         stat.CalculateMonthlyEqualVolumes();
+                    }
+                    else if (command == Command.AverageUserCount)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.CalculateMonthlyAverageMonthlyUserCounts();
+                    }
+                    else if (command == Command.AverageNetworkFeePaidByUserPerCoinjoin)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.CalculateMonthlyNetworkFeePaidByUserPerCoinjoin();
+                    }
+                    else if (command == Command.Records)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.CalculateRecords();
+                    }
+                    else if (command == Command.UniqueCountPercent)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.CalculateUniqueCountPercent();
+                    }
+                    else if (command == Command.ListFreshBitcoins)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.ListFreshBitcoins();
+                    }
+                    else if (command == Command.UnspentCapacity)
+                    {
+                        var loadedScannerFiles = Scanner.Load();
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.CalculateUnspentCapacity(client);
                     }
                     else if (command == Command.WasabiCoordStats)
                     {

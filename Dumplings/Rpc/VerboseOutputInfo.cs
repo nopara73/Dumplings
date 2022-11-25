@@ -29,6 +29,7 @@ namespace Dumplings.Rpc
         public RpcPubkeyType PubkeyType { get; }
 
         private const string Separator = "+";
+
         public override string ToString()
         {
             return $"{Value.Satoshi}{Separator}{ScriptPubKey.ToHex()}{Separator}{PubkeyType}";

@@ -1,4 +1,5 @@
 ﻿using Dumplings.Rpc;
+using Dumplings.Stats;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -20,6 +21,18 @@ namespace Dumplings.Tests
             Assert.NotNull(deserialized.Id);
             Assert.NotEmpty(deserialized.Inputs);
             Assert.NotEmpty(deserialized.Outputs);
+        }
+
+        [Fact]
+        public void CanDeserializeCoin()
+        {
+            var serialized = "636663670340000000::967a9f5f199bc4bfe760be6dbdc4a36f066ede3d01d5ce1dc1955471e19e18fd::1::OP_HASH160 5dbb460b40f627d6afabe63a07df91f384352690 OP_EQUAL::0.99997655";
+            var deserialized = Coin.FromString(serialized);
+            Assert.Equal(636663670340000000, deserialized.BlockTime.UtcTicks);
+            Assert.NotNull(deserialized.Txid);
+            Assert.Equal(1u, deserialized.Index);
+            Assert.NotNull(deserialized.Script);
+            Assert.NotNull(deserialized.Amount);
         }
     }
 }
