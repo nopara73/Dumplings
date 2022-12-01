@@ -169,7 +169,65 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, Money> wasabi2 = CalculateFreshBitcoins(ScannerFiles.Wasabi2CoinJoins);
                 Dictionary<YearMonth, Money> wasabi = CalculateFreshBitcoins(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, Money> samuri = CalculateFreshBitcoinsFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
-                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
+                //Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
+
+                MySqlConnection conn = Connect.InitDb();
+               
+                foreach (var yearMonth in wasabiResults
+                .Keys
+                .Concat(otheriResults.Keys)
+                .Concat(samuriResults.Keys)
+                .Distinct()
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month))
+                {
+                    if (!otheriResults.TryGetValue(yearMonth, out Money otheri))
+                    {
+                        otheri = Money.Zero;
+                    }
+                    if (!wasabiResults.TryGetValue(yearMonth, out Money wasabi))
+                    {
+                        wasabi = Money.Zero;
+                    }
+                    if (!samuriResults.TryGetValue(yearMonth, out Money samuri))
+                    {
+                        samuri = Money.Zero;
+                    }
+
+                    string check = "CALL checkFreshCoins(@d);";
+                    MySqlCommand comm = new MySqlCommand(check, conn);
+                    comm.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
+                    comm.Parameters["@d"].Direction = ParameterDirection.Input;
+                    conn.Open();
+                    MySqlDataReader reader = comm.ExecuteReader();
+                    bool write = false;
+                    while (reader.Read())
+                    {
+                        if (reader[0].ToString() == "0")
+                        {
+                            write = true;
+                        }
+                    }
+                    reader.Close();
+                    conn.Close();
+                    if(write)
+                    {
+                        string sql = "CALL storeFreshCoins(@d,@o,@w,@s);";
+                        MySqlCommand cmd = new MySqlCommand(sql, conn);
+                        cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
+                        cmd.Parameters["@d"].Direction = ParameterDirection.Input;
+                        cmd.Parameters.AddWithValue("@o", otheri.ToDecimal(MoneyUnit.BTC));
+                        cmd.Parameters["@o"].Direction = ParameterDirection.Input;
+                        cmd.Parameters.AddWithValue("@w", wasabi.ToDecimal(MoneyUnit.BTC));
+                        cmd.Parameters["@w"].Direction = ParameterDirection.Input;
+                        cmd.Parameters.AddWithValue("@s", samuri.ToDecimal(MoneyUnit.BTC));
+                        cmd.Parameters["@s"].Direction = ParameterDirection.Input;
+                        conn.Open();
+                        int res = cmd.ExecuteNonQuery();
+                        conn.Close();
+                    }
+                    
+                }
             }
         }
 

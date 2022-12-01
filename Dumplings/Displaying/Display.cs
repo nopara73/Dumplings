@@ -302,8 +302,43 @@ namespace Dumplings.Displaying
                 {
                     samuri = Money.Zero;
                 }
+                
+                MySqlConnection conn = Connect.InitDb();                
 
-                Console.WriteLine($"{yearMonth};{wasabi.ToDecimal(MoneyUnit.BTC):0.00};{samuri.ToDecimal(MoneyUnit.BTC):0.00}");
+                string check = "CALL checkMonthlyCoinJoins(@d);";
+                MySqlCommand comm = new MySqlCommand(check, conn);
+                comm.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
+                comm.Parameters["@d"].Direction = ParameterDirection.Input;
+                conn.Open();
+                MySqlDataReader reader = comm.ExecuteReader();
+                bool write = false;
+                while(reader.Read())
+                {
+                    if(reader[0].ToString() == "0")
+                    {
+                        write = true;
+                    } 
+                }
+                reader.Close();
+                conn.Close();
+                if(write)
+                {
+                    string sql = "CALL storeMonthlyCoinJoins(@d,@w,@s);";
+                    MySqlCommand cmd = new MySqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
+                    cmd.Parameters["@d"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@w", Math.Round(wasabi.ToDecimal(MoneyUnit.BTC),3));             
+                    cmd.Parameters["@w"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@s", Math.Round(samuri.ToDecimal(MoneyUnit.BTC),3));
+                    cmd.Parameters["@s"].Precision = 8;
+                    cmd.Parameters["@s"].Scale = 5;
+                    cmd.Parameters["@s"].Direction = ParameterDirection.Input;
+                    conn.Open();
+                    int res = cmd.ExecuteNonQuery();
+                    conn.Close();
+                }
+
+                //Console.WriteLine($"{yearMonth};{wasabi.ToDecimal(MoneyUnit.BTC):0.00};{samuri.ToDecimal(MoneyUnit.BTC):0.00}");
             }
         }
 
