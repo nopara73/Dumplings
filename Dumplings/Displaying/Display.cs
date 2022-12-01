@@ -70,7 +70,7 @@ namespace Dumplings.Displaying
             int res = cmd.ExecuteNonQuery();
             conn.Close();
             }
-            FileStream fs = new FileStream("wasabifrescbitcoins.csv", FileMode.Create);
+            FileStream fs = new FileStream("wasabifreshbitcoins.csv", FileMode.Create);
             StreamWriter sw = new StreamWriter(fs);
             //sw.WriteLine($"Month2;Otheri;Wasabi;Samuri");
 
