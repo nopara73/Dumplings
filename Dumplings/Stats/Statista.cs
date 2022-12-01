@@ -82,6 +82,11 @@ namespace Dumplings.Stats
                     conn.Close();
                     if (write)
                     {
+                        var w = wasabi.ToDecimal(MoneyUnit.BTC);
+                        var w2 = wasabi2.ToDecimal(MoneyUnit.BTC);
+                        var s = samuri.ToDecimal(MoneyUnit.BTC);
+                        var o = otheri.ToDecimal(MoneyUnit.BTC);
+                        Console.WriteLine("{0},{1},{2},{3},{4}", DateTime.Parse($"{yearMonth}"), w, w2, s, o);
                         string sql = "CALL storeMonthlyVolumes(@d,@w,@v,@s,@o);";
                         MySqlCommand cmd = new MySqlCommand(sql, conn);
                         cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
