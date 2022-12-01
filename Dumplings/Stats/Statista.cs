@@ -31,6 +31,7 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 MySqlConnection conn = Connect.InitDb();
+                MySqlConnection.ClearPool(conn);
                 Dictionary<YearMonth, Money> otheriResults = CalculateMonthlyVolumes(ScannerFiles.OtherCoinJoins);
                 Dictionary<YearMonth, Money> wasabiResults = CalculateMonthlyVolumes(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, Money> wasabi2Results = CalculateMonthlyVolumes(ScannerFiles.Wasabi2CoinJoins);
@@ -188,6 +189,7 @@ namespace Dumplings.Stats
                 //Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
 
                 MySqlConnection conn = Connect.InitDb();
+                MySqlConnection.ClearPool(conn);
 
                 foreach (var yearMonth in wasabi2Results
                 .Keys
