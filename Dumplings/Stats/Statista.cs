@@ -232,7 +232,7 @@ namespace Dumplings.Stats
                         cmd.Parameters.AddWithValue("@w", wasabi.ToDecimal(MoneyUnit.BTC));
                         cmd.Parameters["@w"].Direction = ParameterDirection.Input;
                         cmd.Parameters.AddWithValue("@w2", wasabi2.ToDecimal(MoneyUnit.BTC));
-                        cmd.Parameters["@s"].Direction = ParameterDirection.Input;
+                        cmd.Parameters["@w2"].Direction = ParameterDirection.Input;
                         cmd.Parameters.AddWithValue("@s", samuri.ToDecimal(MoneyUnit.BTC));
                         cmd.Parameters["@s"].Direction = ParameterDirection.Input;
                         cmd.Parameters.AddWithValue("@o", otheri.ToDecimal(MoneyUnit.BTC));
