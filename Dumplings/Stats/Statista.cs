@@ -30,11 +30,67 @@ namespace Dumplings.Stats
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonth, Money> otheri = CalculateMonthlyVolumes(ScannerFiles.OtherCoinJoins);
-                Dictionary<YearMonth, Money> wasabi2 = CalculateMonthlyVolumes(ScannerFiles.Wasabi2CoinJoins);
-                Dictionary<YearMonth, Money> wasabi = CalculateMonthlyVolumes(ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonth, Money> samuri = CalculateMonthlyVolumes(ScannerFiles.SamouraiCoinJoins);
-                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
+                MySqlConnection conn = Connect.InitDb();
+                Dictionary<YearMonth, Money> otheriResults = CalculateMonthlyVolumes(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, Money> wasabiResults = CalculateMonthlyVolumes(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, Money> samuriResults = CalculateMonthlyVolumes(ScannerFiles.SamouraiCoinJoins);
+                //Display.DisplayOtheriWasabiSamuriResults(otheriResults, wasabiResults, samuriResults);
+
+                foreach (var yearMonth in wasabiResults
+                .Keys
+                .Concat(otheriResults.Keys)
+                .Concat(samuriResults.Keys)
+                .Distinct()
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month))
+                {
+                    if (!otheriResults.TryGetValue(yearMonth, out Money otheri))
+                    {
+                        otheri = Money.Zero;
+                    }
+                    if (!wasabiResults.TryGetValue(yearMonth, out Money wasabi))
+                    {
+                        wasabi = Money.Zero;
+                    }
+                    if (!samuriResults.TryGetValue(yearMonth, out Money samuri))
+                    {
+                        samuri = Money.Zero;
+                    }
+                    //sw.WriteLine($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
+                    //Console.WriteLine(DateTime.Parse($"{yearMonth}"));
+                    string check = "CALL checkMonthlyVolumes(@d);";
+                    MySqlCommand comm = new MySqlCommand(check, conn);
+                    comm.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
+                    comm.Parameters["@d"].Direction = ParameterDirection.Input;
+                    conn.Open();
+                    MySqlDataReader reader = comm.ExecuteReader();
+                    bool write = false;
+                    while (reader.Read())
+                    {
+                        if (reader[0].ToString() == "0")
+                        {
+                            write = true;
+                        }
+                    }
+                    reader.Close();
+                    conn.Close();
+                    if(write)
+                    {
+                        string sql = "CALL storeMonthlyVolumes(@d,@o,@w,@s);";
+                        MySqlCommand cmd = new MySqlCommand(sql, conn);
+                        cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
+                        cmd.Parameters["@d"].Direction = ParameterDirection.Input;
+                        cmd.Parameters.AddWithValue("@o", otheri.ToDecimal(MoneyUnit.BTC));
+                        cmd.Parameters["@o"].Direction = ParameterDirection.Input;
+                        cmd.Parameters.AddWithValue("@w", wasabi.ToDecimal(MoneyUnit.BTC));
+                        cmd.Parameters["@w"].Direction = ParameterDirection.Input;
+                        cmd.Parameters.AddWithValue("@s", samuri.ToDecimal(MoneyUnit.BTC));
+                        cmd.Parameters["@s"].Direction = ParameterDirection.Input;
+                        conn.Open();
+                        int res = cmd.ExecuteNonQuery();
+                        conn.Close();
+                    } 
+                }
             }
         }
 
