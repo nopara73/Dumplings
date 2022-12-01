@@ -8,6 +8,7 @@ using System.Text;
 using MySql.Data.MySqlClient;
 using Dumplings.Cli;
 using System.Data;
+using System.IO;
 
 namespace Dumplings.Displaying
 {
@@ -29,7 +30,6 @@ namespace Dumplings.Displaying
                 Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
             }
 
-
             MySqlConnection conn = Connect.InitDb();
             foreach (var yearMonth in wasabiResults
                 .Keys
@@ -39,36 +39,36 @@ namespace Dumplings.Displaying
                 .OrderBy(x => x.Year)
                 .ThenBy(x => x.Month))
             {
-                if (!otheriResults.TryGetValue(yearMonth, out Money otheri))
+                if (!otheriResults.TryGetValue(yearMonth, out var otheri))
                 {
-                    otheri = Money.Zero;
+                    otheri = 0;
                 }
-                if (!wasabiResults.TryGetValue(yearMonth, out Money wasabi))
+                if (!wasabiResults.TryGetValue(yearMonth, out var wasabi))
                 {
-                    wasabi = Money.Zero;
+                    wasabi = 0;
                 }
-                if (!samuriResults.TryGetValue(yearMonth, out Money samuri))
+                if (!samuriResults.TryGetValue(yearMonth, out var samuri))
                 {
-                    samuri = Money.Zero;
+                    samuri = 0;
                 }
 
                 //sw.WriteLine($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
-                
+
                 //Console.WriteLine(DateTime.Parse($"{yearMonth}"));
 
-            string sql = "CALL storeFreshCoins(@d,@o,@w,@s);";
-            MySqlCommand cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
-            cmd.Parameters["@d"].Direction = ParameterDirection.Input;
-            cmd.Parameters.AddWithValue("@o", otheri.ToDecimal(MoneyUnit.BTC));
-            cmd.Parameters["@o"].Direction = ParameterDirection.Input;
-            cmd.Parameters.AddWithValue("@w", wasabi.ToDecimal(MoneyUnit.BTC));
-            cmd.Parameters["@w"].Direction = ParameterDirection.Input;
-            cmd.Parameters.AddWithValue("@s", samuri.ToDecimal(MoneyUnit.BTC));
-            cmd.Parameters["@s"].Direction = ParameterDirection.Input;
-            conn.Open();
-            int res = cmd.ExecuteNonQuery();
-            conn.Close();
+                string sql = "CALL storeFreshCoins(@d,@o,@w,@s);";
+                MySqlCommand cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
+                cmd.Parameters["@d"].Direction = ParameterDirection.Input;
+                cmd.Parameters.AddWithValue("@o", Money.FromUnit(otheri, MoneyUnit.BTC));
+                cmd.Parameters["@o"].Direction = ParameterDirection.Input;
+                cmd.Parameters.AddWithValue("@w", Money.FromUnit(wasabi, MoneyUnit.BTC));
+                cmd.Parameters["@w"].Direction = ParameterDirection.Input;
+                cmd.Parameters.AddWithValue("@s", Money.FromUnit(samuri, MoneyUnit.BTC));
+                cmd.Parameters["@s"].Direction = ParameterDirection.Input;
+                conn.Open();
+                int res = cmd.ExecuteNonQuery();
+                conn.Close();
             }
             FileStream fs = new FileStream("wasabifrescbitcoins.csv", FileMode.Create);
             StreamWriter sw = new StreamWriter(fs);
@@ -90,21 +90,21 @@ namespace Dumplings.Displaying
                     .OrderBy(x => x.Year)
                     .ThenBy(x => x.Month))
             {
-                if (!otheriResults.TryGetValue(yearMonth, out Money otheri))
+                if (!otheriResults.TryGetValue(yearMonth, out var otheri))
                 {
-                    otheri = Money.Zero;
+                    otheri = 0;
                 }
-                if (!wasabiResults.TryGetValue(yearMonth, out Money wasabi))
+                if (!wasabiResults.TryGetValue(yearMonth, out var wasabi))
                 {
-                    wasabi = Money.Zero;
+                    wasabi = 0;
                 }
-                if (!samuriResults.TryGetValue(yearMonth, out Money samuri))
+                if (!samuriResults.TryGetValue(yearMonth, out var samuri))
                 {
-                    samuri = Money.Zero;
+                    samuri = 0;
                 }
 
-                sw.WriteLine($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
-            }            
+                sw.WriteLine($"{yearMonth};{Money.FromUnit(otheri, MoneyUnit.BTC):0};{Money.FromUnit(wasabi, MoneyUnit.BTC):0};{Money.FromUnit(samuri, MoneyUnit.BTC):0}");
+            }
             sw.Close();
             fs.Close();
             Console.WriteLine("Successful write to files.");
