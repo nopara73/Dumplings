@@ -5,12 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Freshbitcoins\" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
     <PackageReference Include="NBitcoin" Version="7.0.10" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Freshbitcoins\" />
+    <PackageReference Include="MySql.Data.EntityFramework" Version="8.0.28" />
+    <PackageReference Include="NBitcoin" Version="5.0.37" />
   </ItemGroup>
 
 </Project>
