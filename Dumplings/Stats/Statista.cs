@@ -31,7 +31,6 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 MySqlConnection conn = Connect.InitDb();
-                MySqlConnection.ClearPool(conn);
                 Dictionary<YearMonth, Money> otheriResults = CalculateMonthlyVolumes(ScannerFiles.OtherCoinJoins);
                 Dictionary<YearMonth, Money> wasabiResults = CalculateMonthlyVolumes(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, Money> wasabi2Results = CalculateMonthlyVolumes(ScannerFiles.Wasabi2CoinJoins);
@@ -235,6 +234,14 @@ namespace Dumplings.Stats
                     conn.Close();
                     if (write)
                     {
+                        var w = wasabi.ToDecimal(MoneyUnit.BTC);
+                        Console.WriteLine("Wasabi: {0}", w);
+                        var w2 = wasabi2.ToDecimal(MoneyUnit.BTC);
+                        Console.WriteLine("Wasabi2: {0}", w2);
+                        var s = samuri.ToDecimal(MoneyUnit.BTC);
+                        Console.WriteLine("Samuri: {0}", s);
+                        var o = otheri.ToDecimal(MoneyUnit.BTC);
+                        Console.WriteLine("Otheri: {0}", o);
                         string sql = "CALL storeFreshCoins(@d,@w,@v,@s,@o);";
                         MySqlCommand cmd = new MySqlCommand(sql, conn);
                         cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
