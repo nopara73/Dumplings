@@ -1131,7 +1131,7 @@ namespace Dumplings.Stats
 
                     if (myDic.TryGetValue(yearMonth, out int current))
                     {
-                        myDic[yearMonth] = current++;
+                        myDic[yearMonth] = current + 1;
                     }
                     else
                     {
