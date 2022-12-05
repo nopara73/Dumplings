@@ -1105,5 +1105,41 @@ namespace Dumplings.Stats
 
             Console.WriteLine($"{prevYMD}\t{ucWW2.ToString(false, false)}\t{ucWW1.ToString(false, false)}\t{ucSW.ToString(false, false)}");
         }
+
+        public void CalculateCoinJoinNumbers()
+        {
+            Dictionary<YearMonth, int> wasabiResults = CalculateCoinJoins(ScannerFiles.WasabiCoinJoins);
+            Dictionary<YearMonth, int> wasabi2Results = CalculateCoinJoins(ScannerFiles.Wasabi2CoinJoins);
+            Dictionary<YearMonth, int> wasabi2TrueResults = CalculateCoinJoins(ScannerFiles.Wasabi2CoinJoins.Where(x => x.IsWasabi2Cj()));
+            Dictionary<YearMonth, int> samuriResults = CalculateCoinJoins(ScannerFiles.SamouraiCoinJoins);
+            Dictionary<YearMonth, int> otheriResults = CalculateCoinJoins(ScannerFiles.OtherCoinJoins);
+
+            Display.DisplayCoinJoinAmounts(wasabiResults, wasabi2Results, wasabi2TrueResults, samuriResults, otheriResults);
+        }
+
+        private Dictionary<YearMonth, int> CalculateCoinJoins(IEnumerable<VerboseTransactionInfo> coinJoins)
+        {
+            var myDic = new Dictionary<YearMonth, int>();
+
+            foreach (var tx in coinJoins)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    var blockTimeValue = blockTime.Value;
+                    var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
+
+                    if (myDic.TryGetValue(yearMonth, out int current))
+                    {
+                        myDic[yearMonth] = current++;
+                    }
+                    else
+                    {
+                        myDic.Add(yearMonth, 1);
+                    }
+                }
+            }
+            return myDic;
+        }
     }
 }

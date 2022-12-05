@@ -44,6 +44,12 @@ namespace Dumplings.Cli
                     var checker = new Checker(loadedScannerFiles);
                     checker.Check();
                 }
+                else if (command == Command.CountCoinJoins)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles);
+                    stat.CalculateCoinJoinNumbers();
+                }
                 else if (command == Command.MonthlyVolumes)
                 {
                     var loadedScannerFiles = Scanner.Load();

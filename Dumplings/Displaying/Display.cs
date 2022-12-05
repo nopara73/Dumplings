@@ -302,8 +302,8 @@ namespace Dumplings.Displaying
                 {
                     samuri = Money.Zero;
                 }
-                
-                MySqlConnection conn = Connect.InitDb();                
+
+                MySqlConnection conn = Connect.InitDb();
 
                 string check = "CALL checkMonthlyCoinJoins(@d);";
                 MySqlCommand comm = new MySqlCommand(check, conn);
@@ -312,24 +312,24 @@ namespace Dumplings.Displaying
                 conn.Open();
                 MySqlDataReader reader = comm.ExecuteReader();
                 bool write = false;
-                while(reader.Read())
+                while (reader.Read())
                 {
-                    if(reader[0].ToString() == "0")
+                    if (reader[0].ToString() == "0")
                     {
                         write = true;
-                    } 
+                    }
                 }
                 reader.Close();
                 conn.Close();
-                if(write)
+                if (write)
                 {
                     string sql = "CALL storeMonthlyCoinJoins(@d,@w,@s);";
                     MySqlCommand cmd = new MySqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
                     cmd.Parameters["@d"].Direction = ParameterDirection.Input;
-                    cmd.Parameters.AddWithValue("@w", Math.Round(wasabi.ToDecimal(MoneyUnit.BTC),3));             
+                    cmd.Parameters.AddWithValue("@w", Math.Round(wasabi.ToDecimal(MoneyUnit.BTC), 3));
                     cmd.Parameters["@w"].Direction = ParameterDirection.Input;
-                    cmd.Parameters.AddWithValue("@s", Math.Round(samuri.ToDecimal(MoneyUnit.BTC),3));
+                    cmd.Parameters.AddWithValue("@s", Math.Round(samuri.ToDecimal(MoneyUnit.BTC), 3));
                     cmd.Parameters["@s"].Precision = 8;
                     cmd.Parameters["@s"].Scale = 5;
                     cmd.Parameters["@s"].Direction = ParameterDirection.Input;
@@ -491,6 +491,45 @@ namespace Dumplings.Displaying
             foreach (var cj in smallestUnequalInputs)
             {
                 Console.WriteLine($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
+            }
+        }
+
+        public static void DisplayCoinJoinAmounts(IDictionary<YearMonth, int> wasabiResults, IDictionary<YearMonth, int> wasabi2Results, IDictionary<YearMonth, int> wasabi2TrueResults, IDictionary<YearMonth, int> samuriResults, IDictionary<YearMonth, int> otheriResults)
+        {
+            Console.WriteLine($"Month;Wasabi;Wasabi2,TrueWasabi2;Samuri;Otheri");
+
+            foreach (var yearMonth in wasabi2Results
+                .Keys
+                .Concat(wasabi2TrueResults.Keys)
+                .Concat(wasabiResults.Keys)
+                .Concat(otheriResults.Keys)
+                .Concat(samuriResults.Keys)
+                .Distinct()
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month))
+            {
+                if (!otheriResults.TryGetValue(yearMonth, out int otheri))
+                {
+                    otheri = 0;
+                }
+                if (!wasabiResults.TryGetValue(yearMonth, out int wasabi))
+                {
+                    wasabi = 0;
+                }
+                if (!samuriResults.TryGetValue(yearMonth, out int samuri))
+                {
+                    samuri = 0;
+                }
+                if (!wasabi2TrueResults.TryGetValue(yearMonth, out int trueWasabi2))
+                {
+                    trueWasabi2 = 0;
+                }
+                if (!wasabi2Results.TryGetValue(yearMonth, out var wasabi2))
+                {
+                    wasabi2 = 0;
+                }
+
+                Console.WriteLine($"{yearMonth};{wasabi};{wasabi2};{trueWasabi2};{samuri};{otheri}");
             }
         }
     }

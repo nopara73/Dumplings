@@ -24,6 +24,7 @@ namespace Dumplings.Cli
         Records,
         UniqueCountPercent,
         ListFreshBitcoins,          // Lists fresh bitcoins by wallet.
-        UnspentCapacity
+        UnspentCapacity,
+        CountCoinJoins
     }
 }
