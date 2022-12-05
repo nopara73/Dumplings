@@ -1113,10 +1113,10 @@ namespace Dumplings.Stats
             Dictionary<YearMonth, int> samuriResults = CalculateCoinJoins(ScannerFiles.SamouraiCoinJoins);
             Dictionary<YearMonth, int> otheriResults = CalculateCoinJoins(ScannerFiles.OtherCoinJoins);
 
-            Console.WriteLine(wasabiResults.Count);
-            Console.WriteLine(wasabi2Results.Count);
-            Console.WriteLine(samuriResults.Count);
-            Console.WriteLine(otheriResults.Count);
+            Console.WriteLine(ScannerFiles.WasabiCoinJoins.Count());
+            Console.WriteLine(ScannerFiles.Wasabi2CoinJoins.Count());
+            Console.WriteLine(ScannerFiles.SamouraiCoinJoins.Count());
+            Console.WriteLine(ScannerFiles.OtherCoinJoins.Count());
 
             Display.DisplayCoinJoinAmounts(wasabiResults, wasabi2Results, samuriResults, otheriResults);
         }
