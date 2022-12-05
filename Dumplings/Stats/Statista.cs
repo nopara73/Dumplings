@@ -1110,11 +1110,15 @@ namespace Dumplings.Stats
         {
             Dictionary<YearMonth, int> wasabiResults = CalculateCoinJoins(ScannerFiles.WasabiCoinJoins);
             Dictionary<YearMonth, int> wasabi2Results = CalculateCoinJoins(ScannerFiles.Wasabi2CoinJoins);
-            Dictionary<YearMonth, int> wasabi2TrueResults = CalculateCoinJoins(ScannerFiles.Wasabi2CoinJoins.Where(x => x.IsWasabi2Cj()));
             Dictionary<YearMonth, int> samuriResults = CalculateCoinJoins(ScannerFiles.SamouraiCoinJoins);
             Dictionary<YearMonth, int> otheriResults = CalculateCoinJoins(ScannerFiles.OtherCoinJoins);
 
-            Display.DisplayCoinJoinAmounts(wasabiResults, wasabi2Results, wasabi2TrueResults, samuriResults, otheriResults);
+            Console.WriteLine(wasabiResults.Count);
+            Console.WriteLine(wasabi2Results.Count);
+            Console.WriteLine(samuriResults.Count);
+            Console.WriteLine(otheriResults.Count);
+
+            Display.DisplayCoinJoinAmounts(wasabiResults, wasabi2Results, samuriResults, otheriResults);
         }
 
         private Dictionary<YearMonth, int> CalculateCoinJoins(IEnumerable<VerboseTransactionInfo> coinJoins)
