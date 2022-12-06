@@ -6,7 +6,6 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Dumplings.Cli
@@ -54,13 +53,13 @@ namespace Dumplings.Cli
                 {
                     var loadedScannerFiles = Scanner.Load();
                     var stat = new Statista(loadedScannerFiles);
-                    stat.CalculateMonthlyVolumes();
+                    stat.CalculateAndUploadMonthlyVolumes();
                 }
                 else if (command == Command.FreshBitcoins)
                 {
                     var loadedScannerFiles = Scanner.Load();
                     var stat = new Statista(loadedScannerFiles);
-                    stat.CalculateFreshBitcoins();
+                    stat.CalculateAndUploadFreshBitcoins();
                 }
                 else if (command == Command.FreshBitcoinAmounts)
                 {
