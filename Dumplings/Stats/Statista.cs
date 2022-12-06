@@ -3,6 +3,7 @@ using Dumplings.Helpers;
 using Dumplings.Rpc;
 using Dumplings.Scanning;
 using NBitcoin;
+using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
@@ -16,11 +17,13 @@ namespace Dumplings.Stats
 {
     public class Statista
     {
-        public Statista(ScannerFiles scannerFiles)
+        public Statista(ScannerFiles scannerFiles, RPCClient rpc)
         {
             ScannerFiles = scannerFiles;
+            Rpc = rpc;
         }
 
+        public RPCClient Rpc { get; }
         public ScannerFiles ScannerFiles { get; }
 
         public void CalculateAndUploadMonthlyVolumes()
@@ -114,14 +117,14 @@ namespace Dumplings.Stats
             }
         }
 
-        public void CalculateNeverMixed(RPCClient rpc)
+        public void CalculateNeverMixed()
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonth, Money> otheri = CalculateNeverMixed(rpc, ScannerFiles.OtherCoinJoins);
-                Dictionary<YearMonth, Money> wasabi2 = CalculateNeverMixed(rpc, ScannerFiles.Wasabi2CoinJoins);
-                Dictionary<YearMonth, Money> wasabi = CalculateNeverMixed(rpc, ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonth, Money> samuri = CalculateNeverMixedFromTx0s(rpc, ScannerFiles.SamouraiCoinJoins, ScannerFiles.SamouraiTx0s);
+                Dictionary<YearMonth, Money> otheri = CalculateNeverMixed(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, Money> wasabi2 = CalculateNeverMixed(ScannerFiles.Wasabi2CoinJoins);
+                Dictionary<YearMonth, Money> wasabi = CalculateNeverMixed(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, Money> samuri = CalculateNeverMixedFromTx0s(ScannerFiles.SamouraiCoinJoins, ScannerFiles.SamouraiTx0s);
                 Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
             }
         }
@@ -601,9 +604,9 @@ namespace Dumplings.Stats
             return myDic;
         }
 
-        private Dictionary<YearMonth, Money> CalculateNeverMixed(RPCClient rpc, IEnumerable<VerboseTransactionInfo> coinJoins)
+        private Dictionary<YearMonth, Money> CalculateNeverMixed(IEnumerable<VerboseTransactionInfo> coinJoins)
         {
-            BitcoinStatus.CheckAsync(rpc).GetAwaiter().GetResult();
+            BitcoinStatus.CheckAsync(Rpc).GetAwaiter().GetResult();
             // Go through all the coinjoins.
             // If a change output is spent and didn't go to coinjoins, then it didn't get remixed.
             var coinJoinInputs =
@@ -636,7 +639,7 @@ namespace Dumplings.Stats
                         var output = outputArray[j];
                         // If it's a change and it didn't get remixed right away.
                         OutPoint outPoint = new OutPoint(tx.Id, j);
-                        if (changeOutputValues.Contains(output.Value) && !coinJoinInputs.Contains(outPoint) && rpc.GetTxOut(outPoint.Hash, (int)outPoint.N, includeMempool: false) is null)
+                        if (changeOutputValues.Contains(output.Value) && !coinJoinInputs.Contains(outPoint) && Rpc.GetTxOut(outPoint.Hash, (int)outPoint.N, includeMempool: false) is null)
                         {
                             sum += output.Value;
                         }
@@ -656,9 +659,9 @@ namespace Dumplings.Stats
             return myDic;
         }
 
-        private Dictionary<YearMonth, Money> CalculateNeverMixedFromTx0s(RPCClient rpc, IEnumerable<VerboseTransactionInfo> samuriCjs, IEnumerable<VerboseTransactionInfo> samuriTx0s)
+        private Dictionary<YearMonth, Money> CalculateNeverMixedFromTx0s(IEnumerable<VerboseTransactionInfo> samuriCjs, IEnumerable<VerboseTransactionInfo> samuriTx0s)
         {
-            BitcoinStatus.CheckAsync(rpc).GetAwaiter().GetResult();
+            BitcoinStatus.CheckAsync(Rpc).GetAwaiter().GetResult();
 
             // Go through all the outputs of TX0 transactions.
             // If an output is spent and didn't go to coinjoins or other TX0s, then it didn't get remixed.
@@ -694,7 +697,7 @@ namespace Dumplings.Stats
                     {
                         var output = outputArray[j];
                         OutPoint outPoint = new OutPoint(tx.Id, j);
-                        if (!samuriTx0CjInputs.Contains(outPoint) && rpc.GetTxOut(outPoint.Hash, (int)outPoint.N, includeMempool: false) is null)
+                        if (!samuriTx0CjInputs.Contains(outPoint) && Rpc.GetTxOut(outPoint.Hash, (int)outPoint.N, includeMempool: false) is null)
                         {
                             sum += output.Value;
                         }
@@ -1059,6 +1062,113 @@ namespace Dumplings.Stats
                 }
             }
             return myDic;
+        }
+
+        public void CalculateWasabiCoordStats(ExtPubKey[] xpubs)
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                var scripts = Constants.WasabiCoordScripts.ToHashSet();
+                foreach (var xpub in xpubs)
+                {
+                    for (int i = 0; i < 100_000; i++)
+                    {
+                        scripts.Add(xpub.Derive(0, false).Derive(i, false).PubKey.WitHash.ScriptPubKey);
+                    }
+                }
+
+                DateTimeOffset? lastCoinJoinTime = null;
+
+                foreach (var tx in ScannerFiles.WasabiCoinJoins.Skip(5))
+                {
+                    var coordOutput = tx.Outputs.FirstOrDefault(x => scripts.Contains(x.ScriptPubKey));
+                    if (coordOutput is null)
+                    {
+                        continue;
+                    }
+
+                    double vSizeEstimation = 10.75 + tx.Outputs.Count() * 31 + tx.Inputs.Count() * 67.75;
+
+                    var blockTime = tx.BlockInfo.BlockTime;
+
+                    if (lastCoinJoinTime.HasValue && (lastCoinJoinTime - blockTime).Value.Duration() > TimeSpan.FromDays(7))
+                    {
+                        throw new InvalidOperationException("No CoinJoin for a week");
+                    }
+
+                    lastCoinJoinTime = blockTime;
+
+                    Console.Write($"{blockTime.Value.UtcDateTime.ToString("MM.dd.yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)};");
+                    Console.Write($"{tx.Id};");
+
+                    var totalFee = (tx.Inputs.Sum(x => x.PrevOutput.Value) - tx.Outputs.Sum(x => x.Value));
+
+                    Console.Write($"{string.Format("{0:0.00}", (double)(totalFee / vSizeEstimation))};");
+                    Console.Write($"{coordOutput.ScriptPubKey.GetDestinationAddress(Network.Main)};");
+                    Console.Write($"{coordOutput.Value};");
+
+                    var outputs = tx.GetIndistinguishableOutputs(includeSingle: false);
+                    var currentDenom = outputs.OrderByDescending(x => x.count).First().value;
+                    foreach (var (value, count) in outputs.Where(x => x.value >= currentDenom))
+                    {
+                        Console.Write($"{value};{count};");
+                    }
+                    Console.WriteLine();
+                }
+            }
+        }
+
+        public void CalculateWabiSabiCoordStats(ExtPubKey[] xpubs)
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                var scripts = new HashSet<Script>();
+                foreach (var xpub in xpubs)
+                {
+                    for (int i = 0; i < 100_000; i++)
+                    {
+                        scripts.Add(xpub.Derive(0, false).Derive(i, false).PubKey.WitHash.ScriptPubKey);
+                    }
+                }
+
+                DateTimeOffset? lastCoinJoinTime = null;
+
+                foreach (var tx in ScannerFiles.Wasabi2CoinJoins)
+                {
+                    // It's OK if it's null, because there are rounds with no coord fee.
+                    var coordOutput = tx.Outputs.SingleOrDefault(x => scripts.Contains(x.ScriptPubKey));
+
+                    double vSizeEstimation = 10.75 + tx.Outputs.Count() * 31 + tx.Inputs.Count() * 67.75;
+
+                    var blockTime = tx.BlockInfo.BlockTime;
+
+                    if (lastCoinJoinTime.HasValue && (lastCoinJoinTime - blockTime).Value.Duration() > TimeSpan.FromDays(7))
+                    {
+                        throw new InvalidOperationException("No CoinJoin for a week");
+                    }
+
+                    lastCoinJoinTime = blockTime;
+
+                    Console.Write($"{blockTime.Value.UtcDateTime.ToString("MM.dd.yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)};");
+                    Console.Write($"{tx.Id};");
+
+                    var totalFee = (tx.Inputs.Sum(x => x.PrevOutput.Value) - tx.Outputs.Sum(x => x.Value));
+
+                    Console.Write($"{string.Format("{0:0.00}", (double)(totalFee / vSizeEstimation))};");
+                    Console.Write($"{(coordOutput is null ? "_______there-was-no-coordinator-fee_______" : coordOutput.ScriptPubKey.GetDestinationAddress(Network.Main).ToString())};");
+                    Console.Write($"{(coordOutput is null ? Money.Zero : coordOutput.Value)};");
+
+                    var outputs = tx.GetIndistinguishableOutputs(includeSingle: false);
+                    var currentDenom = outputs.OrderByDescending(x => x.count).First().value;
+                    foreach (var (value, count) in outputs.Where(x => x.value >= currentDenom))
+                    {
+                        Console.Write($"{value};{count};");
+                    }
+                    Console.WriteLine();
+                }
+            }
         }
     }
 }

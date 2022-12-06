@@ -23,8 +23,7 @@ namespace Dumplings.Scanning
             BitcoinStatus.CheckAsync(rpc).GetAwaiter().GetResult();
         }
 
-        //public const string WorkFolder = @"C:\Users\user\source\repos\Dumplings\Dumplings.Cli\bin\Release\netcoreapp3.1\Scanner";
-        public const string WorkFolder = "Scanner";
+        public static string WorkFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "WasabiDumplings", "Scanner");
 
         public static readonly string LastProcessedBlockHeightPath = Path.Combine(WorkFolder, "LastProcessedBlockHeight.txt");
         public static readonly string WasabiCoinJoinsPath = Path.Combine(WorkFolder, "WasabiCoinJoins.txt");
@@ -359,47 +358,56 @@ namespace Dumplings.Scanning
 
         private static IEnumerable<VerboseTransactionInfo> ReadWasabi2CoinJoins()
         {
-            return File.ReadAllLines(Wasabi2CoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+            return CheckAndReadIfExists(Wasabi2CoinJoinsPath);
         }
 
         private static IEnumerable<VerboseTransactionInfo> ReadWasabiCoinJoins()
         {
-            return File.ReadAllLines(WasabiCoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+            return CheckAndReadIfExists(WasabiCoinJoinsPath);
         }
 
         private static IEnumerable<VerboseTransactionInfo> ReadSamouraiCoinJoins()
         {
-            return File.ReadAllLines(SamouraiCoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+            return CheckAndReadIfExists(SamouraiCoinJoinsPath);
         }
 
         private static IEnumerable<VerboseTransactionInfo> ReadOtherCoinJoins()
         {
-            return File.ReadAllLines(OtherCoinJoinsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+            return CheckAndReadIfExists(OtherCoinJoinsPath);
         }
 
         private static IEnumerable<VerboseTransactionInfo> ReadSamouraiTx0s()
         {
-            return File.ReadAllLines(SamouraiTx0sPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+            return CheckAndReadIfExists(SamouraiTx0sPath);
         }
 
         private static IEnumerable<VerboseTransactionInfo> ReadWasabi2PostMixTxs()
         {
-            return File.ReadAllLines(Wasabi2PostMixTxsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+            return CheckAndReadIfExists(Wasabi2PostMixTxsPath);
         }
 
         private static IEnumerable<VerboseTransactionInfo> ReadWasabiPostMixTxs()
         {
-            return File.ReadAllLines(WasabiPostMixTxsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+            return CheckAndReadIfExists(WasabiPostMixTxsPath);
         }
 
         private static IEnumerable<VerboseTransactionInfo> ReadSamouraiPostMixTxs()
         {
-            return File.ReadAllLines(SamouraiPostMixTxsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+            return CheckAndReadIfExists(SamouraiPostMixTxsPath);
         }
 
         private static IEnumerable<VerboseTransactionInfo> ReadOtherCoinJoinPostMixTxs()
         {
-            return File.ReadAllLines(OtherCoinJoinPostMixTxsPath).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+            return CheckAndReadIfExists(OtherCoinJoinPostMixTxsPath);
+        }
+
+        private static IEnumerable<VerboseTransactionInfo> CheckAndReadIfExists(string path)
+        {
+            if (File.Exists(path))
+            {
+                return File.ReadAllLines(path).Select(x => RpcParser.VerboseTransactionInfoFromLine(x));
+            }
+            return Enumerable.Empty<VerboseTransactionInfo>();
         }
 
         private static ulong ReadBestHeight()

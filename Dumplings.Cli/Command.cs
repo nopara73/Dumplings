@@ -25,6 +25,8 @@ namespace Dumplings.Cli
         UniqueCountPercent,
         ListFreshBitcoins,          // Lists fresh bitcoins by wallet.
         UnspentCapacity,
+        WasabiCoordStats,          // Calculate the monthly volumes of different kind of coinjoins of equal values.
+        WabiSabiCoordStats,        // Calculate the monthly volumes of different kind of WabiSabi coinjoins of equal values.
         CountCoinJoins
     }
 }

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -9,7 +9,6 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
     <PackageReference Include="NBitcoin" Version="7.0.10" />
     <PackageReference Include="MySql.Data.EntityFramework" Version="8.0.28" />
-    <PackageReference Include="NBitcoin" Version="5.0.37" />
   </ItemGroup>
 
 </Project>
