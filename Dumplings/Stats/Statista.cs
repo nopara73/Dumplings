@@ -35,7 +35,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, decimal> wasabi2Results = CalculateMonthlyVolumes(ScannerFiles.Wasabi2CoinJoins);
                 Dictionary<YearMonth, decimal> samuriResults = CalculateMonthlyVolumes(ScannerFiles.SamouraiCoinJoins);
 
-                UploadToDatabase("MonthlyCoinJoins", wasabiResults, wasabi2Results, samuriResults, otheriResults);
+                UploadToDatabase("MonthlyVolumes", wasabiResults, wasabi2Results, samuriResults, otheriResults);
             }
         }
 
@@ -182,7 +182,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, decimal> wasabiResults = CalculateFreshBitcoins(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, decimal> samuriResults = CalculateFreshBitcoinsFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
 
-                UploadToDatabase("FreshBitcoins", wasabiResults, wasabi2Results, samuriResults, otheriResults);
+                UploadToDatabase("FreshCoins", wasabiResults, wasabi2Results, samuriResults, otheriResults);
             }
         }
 
