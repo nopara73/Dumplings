@@ -183,6 +183,11 @@ namespace Dumplings.Cli
                         var stat = new Statista(loadedScannerFiles, client);
                         stat.CalculateWabiSabiCoordStats(GetXpub(args));
                     }
+                    else if (command == Command.Upload)
+                    {
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.UploadToDatabase();
+                    }
                 }
                 finally
                 {

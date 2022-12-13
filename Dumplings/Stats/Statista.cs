@@ -1170,5 +1170,12 @@ namespace Dumplings.Stats
                 }
             }
         }
+
+        public void UploadToDatabase()
+        {
+            CalculateAndUploadMonthlyVolumes();
+            CalculateAndUploadFreshBitcoins();
+            CalculateNeverMixed();
+        }
     }
 }
