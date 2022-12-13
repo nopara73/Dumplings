@@ -30,16 +30,16 @@ namespace Dumplings.Stats
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonth, Money> otheriResults = CalculateMonthlyVolumes(ScannerFiles.OtherCoinJoins);
-                Dictionary<YearMonth, Money> wasabiResults = CalculateMonthlyVolumes(ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonth, Money> wasabi2Results = CalculateMonthlyVolumes(ScannerFiles.Wasabi2CoinJoins);
-                Dictionary<YearMonth, Money> samuriResults = CalculateMonthlyVolumes(ScannerFiles.SamouraiCoinJoins);
+                Dictionary<YearMonth, decimal> otheriResults = CalculateMonthlyVolumes(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, decimal> wasabiResults = CalculateMonthlyVolumes(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, decimal> wasabi2Results = CalculateMonthlyVolumes(ScannerFiles.Wasabi2CoinJoins);
+                Dictionary<YearMonth, decimal> samuriResults = CalculateMonthlyVolumes(ScannerFiles.SamouraiCoinJoins);
 
                 UploadToDatabase("MonthlyCoinJoins", wasabiResults, wasabi2Results, samuriResults, otheriResults);
             }
         }
 
-        private void UploadToDatabase(string table, Dictionary<YearMonth, Money> wasabiResults, Dictionary<YearMonth, Money> wasabi2Results, Dictionary<YearMonth, Money> samuriResults, Dictionary<YearMonth, Money> otheriResults)
+        private void UploadToDatabase(string table, Dictionary<YearMonth, decimal> wasabiResults, Dictionary<YearMonth, decimal> wasabi2Results, Dictionary<YearMonth, decimal> samuriResults, Dictionary<YearMonth, decimal> otheriResults)
         {
             MySqlConnection conn = Connect.InitDb();
             foreach (var yearMonth in wasabi2Results
@@ -51,21 +51,21 @@ namespace Dumplings.Stats
             .OrderBy(x => x.Year)
             .ThenBy(x => x.Month))
             {
-                if (!otheriResults.TryGetValue(yearMonth, out Money otheri))
+                if (!otheriResults.TryGetValue(yearMonth, out decimal otheri))
                 {
-                    otheri = Money.Zero;
+                    otheri = 0;
                 }
-                if (!wasabiResults.TryGetValue(yearMonth, out Money wasabi))
+                if (!wasabiResults.TryGetValue(yearMonth, out decimal wasabi))
                 {
-                    wasabi = Money.Zero;
+                    wasabi = 0;
                 }
-                if (!samuriResults.TryGetValue(yearMonth, out Money samuri))
+                if (!samuriResults.TryGetValue(yearMonth, out decimal samuri))
                 {
-                    samuri = Money.Zero;
+                    samuri = 0;
                 }
-                if (!wasabi2Results.TryGetValue(yearMonth, out Money wasabi2))
+                if (!wasabi2Results.TryGetValue(yearMonth, out decimal wasabi2))
                 {
-                    wasabi2 = Money.Zero;
+                    wasabi2 = 0;
                 }
 
                 string check = $"CALL check{table}(@d);";
@@ -90,13 +90,13 @@ namespace Dumplings.Stats
                     MySqlCommand cmd = new MySqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
                     cmd.Parameters["@d"].Direction = ParameterDirection.Input;
-                    cmd.Parameters.AddWithValue("@w", wasabi.ToDecimal(MoneyUnit.BTC));
+                    cmd.Parameters.AddWithValue("@w", wasabi);
                     cmd.Parameters["@w"].Direction = ParameterDirection.Input;
-                    cmd.Parameters.AddWithValue("@v", wasabi2.ToDecimal(MoneyUnit.BTC));
+                    cmd.Parameters.AddWithValue("@v", wasabi2);
                     cmd.Parameters["@v"].Direction = ParameterDirection.Input;
-                    cmd.Parameters.AddWithValue("@s", samuri.ToDecimal(MoneyUnit.BTC));
+                    cmd.Parameters.AddWithValue("@s", samuri);
                     cmd.Parameters["@s"].Direction = ParameterDirection.Input;
-                    cmd.Parameters.AddWithValue("@o", otheri.ToDecimal(MoneyUnit.BTC));
+                    cmd.Parameters.AddWithValue("@o", otheri);
                     cmd.Parameters["@o"].Direction = ParameterDirection.Input;
                     conn.Open();
                     int res = cmd.ExecuteNonQuery();
@@ -117,15 +117,16 @@ namespace Dumplings.Stats
             }
         }
 
-        public void CalculateNeverMixed()
+        public void CalculateAndUploadNeverMixed()
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonth, Money> otheri = CalculateNeverMixed(ScannerFiles.OtherCoinJoins);
-                Dictionary<YearMonth, Money> wasabi2 = CalculateNeverMixed(ScannerFiles.Wasabi2CoinJoins);
-                Dictionary<YearMonth, Money> wasabi = CalculateNeverMixed(ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonth, Money> samuri = CalculateNeverMixedFromTx0s(ScannerFiles.SamouraiCoinJoins, ScannerFiles.SamouraiTx0s);
-                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
+                Dictionary<YearMonth, decimal> otheri = CalculateNeverMixed(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, decimal> wasabi2 = CalculateNeverMixed(ScannerFiles.Wasabi2CoinJoins);
+                Dictionary<YearMonth, decimal> wasabi = CalculateNeverMixed(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, decimal> samuri = CalculateNeverMixedFromTx0s(ScannerFiles.SamouraiCoinJoins, ScannerFiles.SamouraiTx0s);
+
+                UploadToDatabase("NeverMixed", wasabi, wasabi2, samuri, otheri);
             }
         }
 
@@ -149,7 +150,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, decimal> wasabi2 = CalculateAveragePostMixInputs(ScannerFiles.Wasabi2PostMixTxs);
                 Dictionary<YearMonth, decimal> wasabi = CalculateAveragePostMixInputs(ScannerFiles.WasabiPostMixTxs);
                 Dictionary<YearMonth, decimal> samuri = CalculateAveragePostMixInputs(ScannerFiles.SamouraiPostMixTxs);
-                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
+                UploadToDatabase("PostMixConsolidation", wasabi, wasabi2, samuri, otheri);
             }
         }
 
@@ -176,10 +177,10 @@ namespace Dumplings.Stats
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonth, Money> otheriResults = CalculateFreshBitcoins(ScannerFiles.OtherCoinJoins);
-                Dictionary<YearMonth, Money> wasabi2Results = CalculateFreshBitcoins(ScannerFiles.Wasabi2CoinJoins);
-                Dictionary<YearMonth, Money> wasabiResults = CalculateFreshBitcoins(ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonth, Money> samuriResults = CalculateFreshBitcoinsFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
+                Dictionary<YearMonth, decimal> otheriResults = CalculateFreshBitcoins(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, decimal> wasabi2Results = CalculateFreshBitcoins(ScannerFiles.Wasabi2CoinJoins);
+                Dictionary<YearMonth, decimal> wasabiResults = CalculateFreshBitcoins(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, decimal> samuriResults = CalculateFreshBitcoinsFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
 
                 UploadToDatabase("FreshBitcoins", wasabiResults, wasabi2Results, samuriResults, otheriResults);
             }
@@ -390,9 +391,9 @@ namespace Dumplings.Stats
             }
         }
 
-        private Dictionary<YearMonth, Money> CalculateMonthlyVolumes(IEnumerable<VerboseTransactionInfo> txs)
+        private Dictionary<YearMonth, decimal> CalculateMonthlyVolumes(IEnumerable<VerboseTransactionInfo> txs)
         {
-            var myDic = new Dictionary<YearMonth, Money>();
+            var myDic = new Dictionary<YearMonth, decimal>();
 
             foreach (var tx in txs)
             {
@@ -402,7 +403,7 @@ namespace Dumplings.Stats
                     var blockTimeValue = blockTime.Value;
                     var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
                     var sum = tx.Outputs.Sum(x => x.Value);
-                    if (myDic.TryGetValue(yearMonth, out Money current))
+                    if (myDic.TryGetValue(yearMonth, out decimal current))
                     {
                         myDic[yearMonth] = current + sum;
                     }
@@ -442,14 +443,14 @@ namespace Dumplings.Stats
             return myDic;
         }
 
-        private Dictionary<YearMonth, Money> CalculateFreshBitcoins(IEnumerable<VerboseTransactionInfo> txs)
+        private Dictionary<YearMonth, decimal> CalculateFreshBitcoins(IEnumerable<VerboseTransactionInfo> txs)
         {
-            var myDic = new Dictionary<YearMonth, Money>();
+            var myDic = new Dictionary<YearMonth, decimal>();
             foreach (var day in CalculateFreshBitcoinsDaily(txs))
             {
                 var yearMonth = day.Key.ToYearMonth();
-                var sum = day.Value;
-                if (myDic.TryGetValue(yearMonth, out Money current))
+                var sum = day.Value.ToDecimal(MoneyUnit.BTC);
+                if (myDic.TryGetValue(yearMonth, out decimal current))
                 {
                     myDic[yearMonth] = current + sum;
                 }
@@ -461,14 +462,14 @@ namespace Dumplings.Stats
             return myDic;
         }
 
-        private Dictionary<YearMonth, Money> CalculateFreshBitcoinsFromTX0s(IEnumerable<VerboseTransactionInfo> tx0s, IEnumerable<uint256> cjHashes)
+        private Dictionary<YearMonth, decimal> CalculateFreshBitcoinsFromTX0s(IEnumerable<VerboseTransactionInfo> tx0s, IEnumerable<uint256> cjHashes)
         {
-            var myDic = new Dictionary<YearMonth, Money>();
+            var myDic = new Dictionary<YearMonth, decimal>();
             foreach (var day in CalculateFreshBitcoinsDailyFromTX0s(tx0s, cjHashes))
             {
                 var yearMonth = day.Key.ToYearMonth();
-                var sum = day.Value;
-                if (myDic.TryGetValue(yearMonth, out Money current))
+                var sum = day.Value.ToDecimal(MoneyUnit.BTC);
+                if (myDic.TryGetValue(yearMonth, out decimal current))
                 {
                     myDic[yearMonth] = current + sum;
                 }
@@ -604,7 +605,7 @@ namespace Dumplings.Stats
             return myDic;
         }
 
-        private Dictionary<YearMonth, Money> CalculateNeverMixed(IEnumerable<VerboseTransactionInfo> coinJoins)
+        private Dictionary<YearMonth, decimal> CalculateNeverMixed(IEnumerable<VerboseTransactionInfo> coinJoins)
         {
             BitcoinStatus.CheckAsync(Rpc).GetAwaiter().GetResult();
             // Go through all the coinjoins.
@@ -615,7 +616,7 @@ namespace Dumplings.Stats
                    .Select(x => x.OutPoint)
                    .ToHashSet();
 
-            var myDic = new Dictionary<YearMonth, Money>();
+            var myDic = new Dictionary<YearMonth, decimal>();
             VerboseTransactionInfo[] coinJoinsArray = coinJoins.ToArray();
             for (int i = 0; i < coinJoinsArray.Length; i++)
             {
@@ -631,7 +632,7 @@ namespace Dumplings.Stats
                     var blockTimeValue = blockTime.Value;
                     var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
 
-                    var sum = Money.Zero;
+                    var sum = 0m;
                     var changeOutputValues = tx.GetIndistinguishableOutputs(includeSingle: true).Where(x => x.count == 1).Select(x => x.value).ToHashSet();
                     VerboseOutputInfo[] outputArray = tx.Outputs.ToArray();
                     for (int j = 0; j < outputArray.Length; j++)
@@ -641,11 +642,11 @@ namespace Dumplings.Stats
                         OutPoint outPoint = new OutPoint(tx.Id, j);
                         if (changeOutputValues.Contains(output.Value) && !coinJoinInputs.Contains(outPoint) && Rpc.GetTxOut(outPoint.Hash, (int)outPoint.N, includeMempool: false) is null)
                         {
-                            sum += output.Value;
+                            sum += output.Value.ToDecimal(MoneyUnit.BTC);
                         }
                     }
 
-                    if (myDic.TryGetValue(yearMonth, out Money current))
+                    if (myDic.TryGetValue(yearMonth, out decimal current))
                     {
                         myDic[yearMonth] = current + sum;
                     }
@@ -659,7 +660,7 @@ namespace Dumplings.Stats
             return myDic;
         }
 
-        private Dictionary<YearMonth, Money> CalculateNeverMixedFromTx0s(IEnumerable<VerboseTransactionInfo> samuriCjs, IEnumerable<VerboseTransactionInfo> samuriTx0s)
+        private Dictionary<YearMonth, decimal> CalculateNeverMixedFromTx0s(IEnumerable<VerboseTransactionInfo> samuriCjs, IEnumerable<VerboseTransactionInfo> samuriTx0s)
         {
             BitcoinStatus.CheckAsync(Rpc).GetAwaiter().GetResult();
 
@@ -675,7 +676,7 @@ namespace Dumplings.Stats
                             .Select(x => x.OutPoint))
                             .ToHashSet();
 
-            var myDic = new Dictionary<YearMonth, Money>();
+            var myDic = new Dictionary<YearMonth, decimal>();
             VerboseTransactionInfo[] samuriTx0sArray = samuriTx0s.ToArray();
             for (int i = 0; i < samuriTx0sArray.Length; i++)
             {
@@ -691,7 +692,7 @@ namespace Dumplings.Stats
                     var blockTimeValue = blockTime.Value;
                     var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
 
-                    var sum = Money.Zero;
+                    var sum = 0m;
                     VerboseOutputInfo[] outputArray = tx.Outputs.ToArray();
                     for (int j = 0; j < outputArray.Length; j++)
                     {
@@ -699,11 +700,11 @@ namespace Dumplings.Stats
                         OutPoint outPoint = new OutPoint(tx.Id, j);
                         if (!samuriTx0CjInputs.Contains(outPoint) && Rpc.GetTxOut(outPoint.Hash, (int)outPoint.N, includeMempool: false) is null)
                         {
-                            sum += output.Value;
+                            sum += output.Value.ToDecimal(MoneyUnit.BTC);
                         }
                     }
 
-                    if (myDic.TryGetValue(yearMonth, out Money current))
+                    if (myDic.TryGetValue(yearMonth, out decimal current))
                     {
                         myDic[yearMonth] = current + sum;
                     }
@@ -1175,7 +1176,7 @@ namespace Dumplings.Stats
         {
             CalculateAndUploadMonthlyVolumes();
             CalculateAndUploadFreshBitcoins();
-            CalculateNeverMixed();
+            CalculateAndUploadNeverMixed();
         }
     }
 }

@@ -116,7 +116,7 @@ namespace Dumplings.Cli
                     else if (command == Command.NeverMixed)
                     {
                         var stat = new Statista(loadedScannerFiles, client);
-                        stat.CalculateNeverMixed();
+                        stat.CalculateAndUploadNeverMixed();
                     }
                     else if (command == Command.CoinJoinEquality)
                     {
