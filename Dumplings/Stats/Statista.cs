@@ -86,14 +86,32 @@ namespace Dumplings.Stats
                 conn.Close();
                 if (write)
                 {
-                    string sql = $"CALL store{table}(@d,@w,@v,@s,@o);";
+                    string sql = $"CALL store{table}(@d,@w,@w2,@s,@o);";
                     MySqlCommand cmd = new MySqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
                     cmd.Parameters["@d"].Direction = ParameterDirection.Input;
                     cmd.Parameters.AddWithValue("@w", wasabi.ToDecimal(MoneyUnit.BTC));
                     cmd.Parameters["@w"].Direction = ParameterDirection.Input;
-                    cmd.Parameters.AddWithValue("@v", wasabi2.ToDecimal(MoneyUnit.BTC));
-                    cmd.Parameters["@v"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@w2", wasabi2.ToDecimal(MoneyUnit.BTC));
+                    cmd.Parameters["@w2"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@s", samuri.ToDecimal(MoneyUnit.BTC));
+                    cmd.Parameters["@s"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@o", otheri.ToDecimal(MoneyUnit.BTC));
+                    cmd.Parameters["@o"].Direction = ParameterDirection.Input;
+                    conn.Open();
+                    int res = cmd.ExecuteNonQuery();
+                    conn.Close();
+                }
+                else
+                {
+                    string sql = $"CALL update{table}(@d,@w,@w2,@s,@o);";
+                    MySqlCommand cmd = new MySqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
+                    cmd.Parameters["@d"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@w", wasabi.ToDecimal(MoneyUnit.BTC));
+                    cmd.Parameters["@w"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@w2", wasabi2.ToDecimal(MoneyUnit.BTC));
+                    cmd.Parameters["@w2"].Direction = ParameterDirection.Input;
                     cmd.Parameters.AddWithValue("@s", samuri.ToDecimal(MoneyUnit.BTC));
                     cmd.Parameters["@s"].Direction = ParameterDirection.Input;
                     cmd.Parameters.AddWithValue("@o", otheri.ToDecimal(MoneyUnit.BTC));
