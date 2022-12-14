@@ -276,56 +276,6 @@ namespace Dumplings.Displaying
             }
         }
 
-        public static void DisplayOtheriWasabiSamuriResults(IDictionary<YearMonth, decimal> otheriResults, IDictionary<YearMonth, decimal> wasabi2Results, IDictionary<YearMonth, decimal> wasabiResults, IDictionary<YearMonth, decimal> samuriResults)
-        {
-            var isWW2 = wasabi2Results != null;
-
-            if (isWW2)
-            {
-                Console.WriteLine($"Month;Otheri;Wasabi2;Wasabi;Samuri");
-            }
-            else
-            {
-                Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
-            }
-
-            foreach (var yearMonth in wasabi2Results
-                .Keys
-                .Concat(wasabiResults.Keys)
-                .Concat(otheriResults.Keys)
-                .Concat(samuriResults.Keys)
-                .Distinct()
-                .OrderBy(x => x.Year)
-                .ThenBy(x => x.Month))
-            {
-                if (!otheriResults.TryGetValue(yearMonth, out decimal otheri))
-                {
-                    otheri = 0;
-                }
-                if (!wasabiResults.TryGetValue(yearMonth, out decimal wasabi))
-                {
-                    wasabi = 0;
-                }
-                if (!samuriResults.TryGetValue(yearMonth, out decimal samuri))
-                {
-                    samuri = 0;
-                }
-
-                if (isWW2)
-                {
-                    if (!wasabi2Results.TryGetValue(yearMonth, out var wasabi2))
-                    {
-                        wasabi2 = 0;
-                    }
-                    Console.WriteLine($"{yearMonth};{otheri};{wasabi2};{wasabi};{samuri}");
-                }
-                else
-                {
-                    Console.WriteLine($"{yearMonth};{otheri};{wasabi};{samuri}");
-                }
-            }
-        }
-
         public static void DisplayRecords(Dictionary<int, VerboseTransactionInfo> mostInputs, Dictionary<int, VerboseTransactionInfo> mostOutputs, Dictionary<int, VerboseTransactionInfo> mostInputsAndOutputs, Dictionary<Money, VerboseTransactionInfo> largestVolumes, Dictionary<ulong, VerboseTransactionInfo> largestCjEqualities, Dictionary<int, VerboseTransactionInfo> smallestUnequalOutputs, Dictionary<int, VerboseTransactionInfo> smallestUnequalInputs)
         {
             Console.WriteLine();

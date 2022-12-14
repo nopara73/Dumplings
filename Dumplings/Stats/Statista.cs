@@ -168,7 +168,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, decimal> wasabi2 = CalculateAveragePostMixInputs(ScannerFiles.Wasabi2PostMixTxs);
                 Dictionary<YearMonth, decimal> wasabi = CalculateAveragePostMixInputs(ScannerFiles.WasabiPostMixTxs);
                 Dictionary<YearMonth, decimal> samuri = CalculateAveragePostMixInputs(ScannerFiles.SamouraiPostMixTxs);
-                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
+
                 UploadToDatabase("PostmixConsolidation", wasabi, wasabi2, samuri, otheri);
             }
         }
