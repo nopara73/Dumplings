@@ -1049,19 +1049,19 @@ namespace Dumplings.Stats
             Console.WriteLine($"{prevYMD}\t{ucWW2.ToString(false, false)}\t{ucWW1.ToString(false, false)}\t{ucSW.ToString(false, false)}");
         }
 
-        public void CalculateCoinJoinNumbers()
+        public void CalculateAndUploadMonthlyCoinJoins()
         {
-            Dictionary<YearMonth, int> wasabiResults = CalculateCoinJoins(ScannerFiles.WasabiCoinJoins);
-            Dictionary<YearMonth, int> wasabi2Results = CalculateCoinJoins(ScannerFiles.Wasabi2CoinJoins);
-            Dictionary<YearMonth, int> samuriResults = CalculateCoinJoins(ScannerFiles.SamouraiCoinJoins);
-            Dictionary<YearMonth, int> otheriResults = CalculateCoinJoins(ScannerFiles.OtherCoinJoins);
+            Dictionary<YearMonth, decimal> wasabiResults = CalculateCoinJoinsPerMonth(ScannerFiles.WasabiCoinJoins);
+            Dictionary<YearMonth, decimal> wasabi2Results = CalculateCoinJoinsPerMonth(ScannerFiles.Wasabi2CoinJoins);
+            Dictionary<YearMonth, decimal> samuriResults = CalculateCoinJoinsPerMonth(ScannerFiles.SamouraiCoinJoins);
+            Dictionary<YearMonth, decimal> otheriResults = CalculateCoinJoinsPerMonth(ScannerFiles.OtherCoinJoins);
 
-            Display.DisplayCoinJoinAmounts(wasabiResults, wasabi2Results, samuriResults, otheriResults);
+            UploadToDatabase("MonthlyCoinJoins", wasabiResults, wasabi2Results, samuriResults, otheriResults);
         }
 
-        private Dictionary<YearMonth, int> CalculateCoinJoins(IEnumerable<VerboseTransactionInfo> coinJoins)
+        private Dictionary<YearMonth, decimal> CalculateCoinJoinsPerMonth(IEnumerable<VerboseTransactionInfo> coinJoins)
         {
-            var myDic = new Dictionary<YearMonth, int>();
+            var myDic = new Dictionary<YearMonth, decimal>();
 
             foreach (var tx in coinJoins)
             {
@@ -1071,7 +1071,7 @@ namespace Dumplings.Stats
                     var blockTimeValue = blockTime.Value;
                     var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
 
-                    if (myDic.TryGetValue(yearMonth, out int current))
+                    if (myDic.TryGetValue(yearMonth, out decimal current))
                     {
                         myDic[yearMonth] = current + 1;
                     }
@@ -1197,6 +1197,7 @@ namespace Dumplings.Stats
             CalculateAndUploadFreshBitcoins();
             CalculateAndUploadNeverMixed();
             CalculateAndUploadPostMixConsolidation();
+            CalculateAndUploadMonthlyCoinJoins();
         }
     }
 }

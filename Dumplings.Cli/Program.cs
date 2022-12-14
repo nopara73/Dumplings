@@ -91,7 +91,7 @@ namespace Dumplings.Cli
                     else if (command == Command.CountCoinJoins)
                     {
                         var stat = new Statista(loadedScannerFiles, client);
-                        stat.CalculateCoinJoinNumbers();
+                        stat.CalculateAndUploadMonthlyCoinJoins();
                     }
                     else if (command == Command.MonthlyVolumes)
                     {
