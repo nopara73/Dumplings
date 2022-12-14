@@ -86,14 +86,32 @@ namespace Dumplings.Stats
                 conn.Close();
                 if (write)
                 {
-                    string sql = $"CALL store{table}(@d,@w,@v,@s,@o);";
+                    string sql = $"CALL store{table}(@d,@w,@w2,@s,@o);";
                     MySqlCommand cmd = new MySqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
                     cmd.Parameters["@d"].Direction = ParameterDirection.Input;
                     cmd.Parameters.AddWithValue("@w", wasabi);
                     cmd.Parameters["@w"].Direction = ParameterDirection.Input;
-                    cmd.Parameters.AddWithValue("@v", wasabi2);
-                    cmd.Parameters["@v"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@w2", wasabi2);
+                    cmd.Parameters["@w2"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@s", samuri);
+                    cmd.Parameters["@s"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@o", otheri);
+                    cmd.Parameters["@o"].Direction = ParameterDirection.Input;
+                    conn.Open();
+                    int res = cmd.ExecuteNonQuery();
+                    conn.Close();
+                }
+                else
+                {
+                    string sql = $"CALL update{table}(@d,@w,@w2,@s,@o);";
+                    MySqlCommand cmd = new MySqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
+                    cmd.Parameters["@d"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@w", wasabi);
+                    cmd.Parameters["@w"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@w2", wasabi2);
+                    cmd.Parameters["@w2"].Direction = ParameterDirection.Input;
                     cmd.Parameters.AddWithValue("@s", samuri);
                     cmd.Parameters["@s"].Direction = ParameterDirection.Input;
                     cmd.Parameters.AddWithValue("@o", otheri);
@@ -150,6 +168,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, decimal> wasabi2 = CalculateAveragePostMixInputs(ScannerFiles.Wasabi2PostMixTxs);
                 Dictionary<YearMonth, decimal> wasabi = CalculateAveragePostMixInputs(ScannerFiles.WasabiPostMixTxs);
                 Dictionary<YearMonth, decimal> samuri = CalculateAveragePostMixInputs(ScannerFiles.SamouraiPostMixTxs);
+
                 UploadToDatabase("PostMixConsolidation", wasabi, wasabi2, samuri, otheri);
             }
         }
