@@ -421,7 +421,7 @@ namespace Dumplings.Stats
                 {
                     var blockTimeValue = blockTime.Value;
                     var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
-                    var sum = tx.Outputs.Sum(x => x.Value);
+                    decimal sum = tx.Outputs.Sum(x => x.Value);
                     if (myDic.TryGetValue(yearMonth, out decimal current))
                     {
                         myDic[yearMonth] = current + sum;
@@ -468,7 +468,7 @@ namespace Dumplings.Stats
             foreach (var day in CalculateFreshBitcoinsDaily(txs))
             {
                 var yearMonth = day.Key.ToYearMonth();
-                var sum = day.Value.ToDecimal(MoneyUnit.BTC);
+                decimal sum = day.Value.ToDecimal(MoneyUnit.BTC);
                 if (myDic.TryGetValue(yearMonth, out decimal current))
                 {
                     myDic[yearMonth] = current + sum;
@@ -487,7 +487,7 @@ namespace Dumplings.Stats
             foreach (var day in CalculateFreshBitcoinsDailyFromTX0s(tx0s, cjHashes))
             {
                 var yearMonth = day.Key.ToYearMonth();
-                var sum = day.Value.ToDecimal(MoneyUnit.BTC);
+                decimal sum = day.Value.ToDecimal(MoneyUnit.BTC);
                 if (myDic.TryGetValue(yearMonth, out decimal current))
                 {
                     myDic[yearMonth] = current + sum;
