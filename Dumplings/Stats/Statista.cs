@@ -160,7 +160,7 @@ namespace Dumplings.Stats
             }
         }
 
-        public void CalculatePostMixConsolidation()
+        public void CalculateAndUploadPostMixConsolidation()
         {
             using (BenchmarkLogger.Measure())
             {
@@ -1196,6 +1196,7 @@ namespace Dumplings.Stats
             CalculateAndUploadMonthlyVolumes();
             CalculateAndUploadFreshBitcoins();
             CalculateAndUploadNeverMixed();
+            CalculateAndUploadPostMixConsolidation();
         }
     }
 }

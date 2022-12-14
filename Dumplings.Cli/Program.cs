@@ -131,7 +131,7 @@ namespace Dumplings.Cli
                     else if (command == Command.PostMixConsolidation)
                     {
                         var stat = new Statista(loadedScannerFiles, client);
-                        stat.CalculatePostMixConsolidation();
+                        stat.CalculateAndUploadPostMixConsolidation();
                     }
                     else if (command == Command.SmallerThanMinimum)
                     {
