@@ -1195,9 +1195,9 @@ namespace Dumplings.Stats
         {
             CalculateAndUploadMonthlyVolumes();
             CalculateAndUploadFreshBitcoins();
-            CalculateAndUploadNeverMixed();
-            CalculateAndUploadPostMixConsolidation();
             CalculateAndUploadMonthlyCoinJoins();
+            //CalculateAndUploadNeverMixed();
+            //CalculateAndUploadPostMixConsolidation();
         }
     }
 }
