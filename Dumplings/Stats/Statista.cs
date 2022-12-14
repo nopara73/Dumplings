@@ -1051,12 +1051,15 @@ namespace Dumplings.Stats
 
         public void CalculateAndUploadMonthlyCoinJoins()
         {
-            Dictionary<YearMonth, decimal> wasabiResults = CalculateCoinJoinsPerMonth(ScannerFiles.WasabiCoinJoins);
-            Dictionary<YearMonth, decimal> wasabi2Results = CalculateCoinJoinsPerMonth(ScannerFiles.Wasabi2CoinJoins);
-            Dictionary<YearMonth, decimal> samuriResults = CalculateCoinJoinsPerMonth(ScannerFiles.SamouraiCoinJoins);
-            Dictionary<YearMonth, decimal> otheriResults = CalculateCoinJoinsPerMonth(ScannerFiles.OtherCoinJoins);
+            using (BenchmarkLogger.Measure())
+            {
+                Dictionary<YearMonth, decimal> wasabiResults = CalculateCoinJoinsPerMonth(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, decimal> wasabi2Results = CalculateCoinJoinsPerMonth(ScannerFiles.Wasabi2CoinJoins);
+                Dictionary<YearMonth, decimal> samuriResults = CalculateCoinJoinsPerMonth(ScannerFiles.SamouraiCoinJoins);
+                Dictionary<YearMonth, decimal> otheriResults = CalculateCoinJoinsPerMonth(ScannerFiles.OtherCoinJoins);
 
-            UploadToDatabase("MonthlyCoinJoins", wasabiResults, wasabi2Results, samuriResults, otheriResults);
+                UploadToDatabase("MonthlyCoinJoins", wasabiResults, wasabi2Results, samuriResults, otheriResults);
+            }
         }
 
         private Dictionary<YearMonth, decimal> CalculateCoinJoinsPerMonth(IEnumerable<VerboseTransactionInfo> coinJoins)
@@ -1196,8 +1199,8 @@ namespace Dumplings.Stats
             CalculateAndUploadMonthlyVolumes();
             CalculateAndUploadFreshBitcoins();
             CalculateAndUploadMonthlyCoinJoins();
-            //CalculateAndUploadNeverMixed();
-            //CalculateAndUploadPostMixConsolidation();
+            CalculateAndUploadNeverMixed();
+            CalculateAndUploadPostMixConsolidation();
         }
     }
 }
