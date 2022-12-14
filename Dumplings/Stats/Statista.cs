@@ -421,7 +421,7 @@ namespace Dumplings.Stats
                 {
                     var blockTimeValue = blockTime.Value;
                     var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
-                    decimal sum = tx.Outputs.Sum(x => x.Value);
+                    decimal sum = tx.Outputs.Sum(x => x.Value.ToDecimal(MoneyUnit.BTC));
                     if (myDic.TryGetValue(yearMonth, out decimal current))
                     {
                         myDic[yearMonth] = current + sum;
