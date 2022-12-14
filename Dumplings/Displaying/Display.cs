@@ -317,11 +317,11 @@ namespace Dumplings.Displaying
                     {
                         wasabi2 = 0;
                     }
-                    Console.WriteLine($"{yearMonth};{otheri:0.0};{wasabi2:0.0};{wasabi:0.0};{samuri:0.0}");
+                    Console.WriteLine($"{yearMonth};{otheri};{wasabi2};{wasabi};{samuri}");
                 }
                 else
                 {
-                    Console.WriteLine($"{yearMonth};{otheri:0.0};{wasabi:0.0};{samuri:0.0}");
+                    Console.WriteLine($"{yearMonth};{otheri};{wasabi};{samuri}");
                 }
             }
         }
