@@ -1196,11 +1196,17 @@ namespace Dumplings.Stats
 
         public void UploadToDatabase()
         {
+            Console.WriteLine("Uploading MonthlyVolumes...");
             CalculateAndUploadMonthlyVolumes();
+            Console.WriteLine("Upload complete! Uploading FreshBitcoins...");
             CalculateAndUploadFreshBitcoins();
+            Console.WriteLine("Upload complete! Uploading MonthlyCoinJoins...");
             CalculateAndUploadMonthlyCoinJoins();
+            Console.WriteLine("Upload complete! Uploading NeverMixed...");
             CalculateAndUploadNeverMixed();
+            Console.WriteLine("Upload complete! Uploading PostMixConsolidation...");
             CalculateAndUploadPostMixConsolidation();
+            Console.WriteLine("Upload complete! Finishing...");
         }
     }
 }
