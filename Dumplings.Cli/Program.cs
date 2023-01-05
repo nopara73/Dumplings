@@ -33,18 +33,6 @@ namespace Dumplings.Cli
 
             var client = new RPCClient(rpcConf, host, Network.Main);
 
-            Logger.LogInfo("Checking Bitcoin Knots sync status...");
-
-            var bci = await client.GetBlockchainInfoAsync();
-
-            var missingBlocks = bci.Headers - bci.Blocks;
-            if (missingBlocks != 0)
-            {
-                throw new InvalidOperationException($"Knots is not synchronized. Blocks missing: {missingBlocks}.");
-            }
-
-            Logger.LogInfo($"Bitcoin Knots is synchronized. Current height: {bci.Blocks}.");
-
             using (BenchmarkLogger.Measure(operationName: $"{command} Command"))
             {
                 var outputFolder = GetOutputFolder(args);
