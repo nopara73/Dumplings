@@ -1259,7 +1259,6 @@ namespace Dumplings.Stats
                 isWasabiCj =
                     isNativeSegwitOnly
                     && mostFrequentEqualOutputCount >= 10 // At least 10 equal outputs.
-                    && inputValues.SequenceEqual(inputValues.OrderBy(x => x)) // Inputs are ordered ascending.
                     && outputValues.SequenceEqual(outputValues.OrderBy(x => x)) // Outputs are ordered ascending.
                     && inputCount >= mostFrequentEqualOutputCount // More inptuts than most frequent equal outputs.
                     && mostFrequentEqualOutputValue.Almost(Constants.ApproximateWasabiBaseDenomination, Constants.WasabiBaseDenominationPrecision) // The most frequent equal outputs must be almost the base denomination.
