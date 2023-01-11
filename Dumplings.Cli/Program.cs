@@ -73,8 +73,10 @@ namespace Dumplings.Cli
 
                     if (command == Command.Check)
                     {
+                        var stat = new Statista(loadedScannerFiles, client);
                         var checker = new Checker(loadedScannerFiles);
                         checker.Check();
+                        stat.DoubleCheckWW1CoinJoinsAsync();
                     }
                     else if (command == Command.CountCoinJoins)
                     {
