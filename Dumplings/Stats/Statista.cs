@@ -1208,5 +1208,32 @@ namespace Dumplings.Stats
             CalculateAndUploadPostMixConsolidation();
             Console.WriteLine("Upload complete! Finishing...");
         }
+
+        public void CalculateAndDisplayMonthlyCoinJoins()
+        {
+            var list = CalculateCoinJoinInfoPerMonth(ScannerFiles.WasabiCoinJoins);
+
+            foreach (var txInfo in list)
+            {
+                Console.WriteLine($"{txInfo.Item1} : {txInfo.Item2.Id}");
+            }
+        }
+
+        private List<(YearMonth, VerboseTransactionInfo)> CalculateCoinJoinInfoPerMonth(IEnumerable<VerboseTransactionInfo> coinJoins)
+        {
+            var myList = new List<(YearMonth, VerboseTransactionInfo)>();
+
+            foreach (var tx in coinJoins)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    var blockTimeValue = blockTime.Value;
+                    var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
+                    myList.Add((yearMonth, tx));
+                }
+            }
+            return myList;
+        }
     }
 }
