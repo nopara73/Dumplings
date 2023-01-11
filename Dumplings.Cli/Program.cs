@@ -12,6 +12,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static NBitcoin.Protocol.Behaviors.ChainBehavior;
 
 namespace Dumplings.Cli
 {
@@ -73,10 +74,8 @@ namespace Dumplings.Cli
 
                     if (command == Command.Check)
                     {
-                        var stat = new Statista(loadedScannerFiles, client);
                         var checker = new Checker(loadedScannerFiles);
                         checker.Check();
-                        stat.DoubleCheckWW1CoinJoinsAsync();
                     }
                     else if (command == Command.CountCoinJoins)
                     {
@@ -182,6 +181,11 @@ namespace Dumplings.Cli
                     {
                         var stat = new Statista(loadedScannerFiles, client);
                         stat.CalculateAndDisplayMonthlyCoinJoins();
+                    }
+                    else if (command == Command.CheckWW1)
+                    {
+                        var stat = new Statista(loadedScannerFiles, client);
+                        stat.DoubleCheckWW1CoinJoinsAsync();
                     }
                 }
                 finally
