@@ -5,6 +5,7 @@ using Dumplings.Stats;
 using NBitcoin;
 using NBitcoin.RPC;
 using System;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -157,6 +158,7 @@ namespace Dumplings.Cli
 
             var rpcUserArg = "--rpcuser=";
             var rpcPasswordArg = "--rpcpassword=";
+            var rpcCookieFileArg = "--rpccookiefile=";
             foreach (var arg in args)
             {
                 var idx = arg.IndexOf(rpcUserArg, StringComparison.Ordinal);
@@ -169,6 +171,15 @@ namespace Dumplings.Cli
                 if (idx == 0)
                 {
                     rpcPassword = arg.Substring(idx + rpcPasswordArg.Length);
+                }
+
+                idx = arg.IndexOf(rpcCookieFileArg, StringComparison.Ordinal);
+                if (idx == 0)
+                {
+                    string rpcCookieFile = arg.Substring(idx + rpcCookieFileArg.Length);
+                    string[] rpcCookieData = File.ReadAllText(rpcCookieFile).Split(":");
+                    rpcUser = rpcCookieData[0];
+                    rpcPassword = rpcCookieData[1];
                 }
             }
 
