@@ -1301,7 +1301,7 @@ namespace Dumplings.Stats
             {
                 Console.WriteLine($"{Date} : {Tx.Id}");
             }
-            File.AppendAllLines(Scanner.WasabiCoinJoinsPath, wasabiCoinJoins.Select(x => RpcParser.ToLine(x.Tx)));
+            File.WriteAllLines(Scanner.WasabiCoinJoinsPath, wasabiCoinJoins.Select(x => RpcParser.ToLine(x.Tx)));
 
             Console.WriteLine("Finished CoinJoin Check");
         }
