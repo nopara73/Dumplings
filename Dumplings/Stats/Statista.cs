@@ -1278,7 +1278,7 @@ namespace Dumplings.Stats
             }
             foreach (var txInfo in list)
             {
-                Console.WriteLine($"{txInfo.Item1} : {txInfo.Item2.Id}");
+                Console.WriteLine($"Block: {txInfo.Item2.BlockInfo.BlockIndex}, Date:{txInfo.Item1} : {txInfo.Item2.Id}");
             }
             Console.WriteLine("\nFALSE POSITIVES\n");
             foreach (var txInfo in falseList)
