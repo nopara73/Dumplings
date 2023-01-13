@@ -1239,7 +1239,7 @@ namespace Dumplings.Stats
         public void DoubleCheckWW1CoinJoins()
         {
             bool afterNewCoord = false;
-            var list = new List<(YearMonth Date, VerboseTransactionInfo Tx)>();
+            var wasabiCoinJoins = new List<(YearMonth Date, VerboseTransactionInfo Tx)>();
             var falseList = new List<(YearMonth Date, VerboseTransactionInfo Tx)>();
             bool isWasabiCj = false;
             var coinjoins = ScannerFiles.WasabiCoinJoins;
@@ -1259,10 +1259,9 @@ namespace Dumplings.Stats
                 var isNativeSegwitOnly = tx.Inputs.All(x => x.PrevOutput.ScriptPubKey.IsScriptType(ScriptType.P2WPKH)) && tx.Outputs.All(x => x.ScriptPubKey.IsScriptType(ScriptType.P2WPKH)); // Segwit only outputs.
 
                 // Before Wasabi had constant coordinator addresses and different base denominations at the beginning.
-                if (tx.Id == uint256.Parse("3e044598c2554f8b4479644aa3fc730d5d72ea5d2c5a3c002538268a2ea2f0fe"))
+                if (tx.Id == Constants.FirstWW1CoinJoinAfterNoCoordAddress)
                 {
                     afterNewCoord = true;
-                    Console.WriteLine("New Coord");
                 }
 
                 if (!afterNewCoord)
@@ -1286,14 +1285,14 @@ namespace Dumplings.Stats
                 var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
                 if (isWasabiCj)
                 {
-                    list.Add((Date: yearMonth, Tx: tx));
+                    wasabiCoinJoins.Add((Date: yearMonth, Tx: tx));
                 }
                 else
                 {
                     falseList.Add((Date: yearMonth, Tx: tx));
                 }
             }
-            foreach (var (Date, Tx) in list)
+            foreach (var (Date, Tx) in wasabiCoinJoins)
             {
                 Console.WriteLine($"{Date} : {Tx.Id}");
             }
@@ -1302,6 +1301,8 @@ namespace Dumplings.Stats
             {
                 Console.WriteLine($"{Date} : {Tx.Id}");
             }
+            File.AppendAllLines(Scanner.WasabiCoinJoinsPath, wasabiCoinJoins.Select(x => RpcParser.ToLine(x.Tx)));
+
             Console.WriteLine("Finished CoinJoin Check");
         }
     }
