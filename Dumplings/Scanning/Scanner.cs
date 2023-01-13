@@ -573,10 +573,11 @@ namespace Dumplings.Scanning
             bool isWasabiCj = false;
             var coinjoins = loadedScannerFiles.WasabiCoinJoins;
             Console.WriteLine("Checking CoinJoins...");
+            Console.WriteLine(coinjoins.Count());
             foreach (var tx in coinjoins)
             {
                 var block = await Rpc.GetVerboseBlockAsync(tx.BlockInfo.BlockHash, safe: false).ConfigureAwait(false);
-
+                Console.WriteLine(block.Height.ToString());
                 var indistinguishableOutputs = tx.GetIndistinguishableOutputs(includeSingle: false).ToArray();
 
                 var outputs = tx.Outputs.ToArray();
@@ -629,6 +630,7 @@ namespace Dumplings.Scanning
                 {
                     falseList.Add((Date: yearMonth, Tx: tx, Block: block));
                 }
+                Console.WriteLine("Next");
             }
             foreach (var txInfo in list)
             {
