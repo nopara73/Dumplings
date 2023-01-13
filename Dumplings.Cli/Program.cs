@@ -184,8 +184,8 @@ namespace Dumplings.Cli
                     }
                     else if (command == Command.CheckWW1)
                     {
-                        var scanner = new Scanner(client);
-                        await scanner.DoubleCheckWW1CoinJoinsAsync(loadedScannerFiles);
+                        var stat = new Statista(loadedScannerFiles, client);
+                        await stat.DoubleCheckWW1CoinJoinsAsync(loadedScannerFiles);
                     }
                 }
                 finally

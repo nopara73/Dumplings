@@ -1235,5 +1235,75 @@ namespace Dumplings.Stats
             }
             return myList;
         }
+
+        public async Task DoubleCheckWW1CoinJoinsAsync(ScannerFiles loadedScannerFiles)
+        {
+            bool afterNewCoord = false;
+            var list = new List<(YearMonth Date, VerboseTransactionInfo Tx)>();
+            var falseList = new List<(YearMonth Date, VerboseTransactionInfo Tx)>();
+            bool isWasabiCj = false;
+            var coinjoins = loadedScannerFiles.WasabiCoinJoins;
+            Console.WriteLine("Checking CoinJoins...");
+            Console.WriteLine(coinjoins.Count());
+            foreach (var tx in coinjoins)
+            {
+                var indistinguishableOutputs = tx.GetIndistinguishableOutputs(includeSingle: false).ToArray();
+
+                var outputs = tx.Outputs.ToArray();
+                var inputs = tx.Inputs.Select(x => x.PrevOutput).ToArray();
+                var outputValues = outputs.Select(x => x.Value);
+                var inputValues = inputs.Select(x => x.Value);
+                var outputCount = outputs.Length;
+                var inputCount = inputs.Length;
+                (Money mostFrequentEqualOutputValue, int mostFrequentEqualOutputCount) = indistinguishableOutputs.OrderByDescending(x => x.count).First(); // Segwit only inputs.
+                var isNativeSegwitOnly = tx.Inputs.All(x => x.PrevOutput.ScriptPubKey.IsScriptType(ScriptType.P2WPKH)) && tx.Outputs.All(x => x.ScriptPubKey.IsScriptType(ScriptType.P2WPKH)); // Segwit only outputs.
+
+                // Before Wasabi had constant coordinator addresses and different base denominations at the beginning.
+                if (tx.BlockInfo.BlockHash == uint256.Parse("0000000000000000000a6f607f74db48dae0a94022c10354536394c17672b7f7"))
+                {
+                    afterNewCoord = true;
+                    Console.WriteLine("\n\nNew Coord\n\n");
+                }
+
+                if (!afterNewCoord)
+                {
+                    isWasabiCj = tx.Outputs.Any(x => Constants.WasabiCoordScripts.Contains(x.ScriptPubKey)) && indistinguishableOutputs.Any(x => x.count > 2);
+                }
+                else
+                {
+                    var uniqueOutputCount = tx.GetIndistinguishableOutputs(includeSingle: true).Count(x => x.count == 1);
+                    isWasabiCj =
+                        isNativeSegwitOnly
+                        && mostFrequentEqualOutputCount >= 10 // At least 10 equal outputs.
+                        && outputValues.SequenceEqual(outputValues.OrderBy(x => x)) // Outputs are ordered ascending.
+                        && inputCount >= mostFrequentEqualOutputCount // More inptuts than most frequent equal outputs.
+                        && mostFrequentEqualOutputValue.Almost(Constants.ApproximateWasabiBaseDenomination, Constants.WasabiBaseDenominationPrecision) // The most frequent equal outputs must be almost the base denomination.
+                        && uniqueOutputCount >= 2; // It's very likely there's at least one change and at least one coord output those have unique values.
+                }
+
+                var blockTime = tx.BlockInfo.BlockTime;
+                var blockTimeValue = blockTime.Value;
+                var yearMonth = new YearMonth(blockTimeValue.Year, blockTimeValue.Month);
+                if (isWasabiCj)
+                {
+                    list.Add((Date: yearMonth, Tx: tx));
+                }
+                else
+                {
+                    falseList.Add((Date: yearMonth, Tx: tx));
+                }
+                Console.WriteLine("Next");
+            }
+            foreach (var txInfo in list)
+            {
+                Console.WriteLine($"{txInfo.Date} : {txInfo.Tx.Id}");
+            }
+            Console.WriteLine("\nFALSE POSITIVES\n");
+            foreach (var txInfo in falseList)
+            {
+                Console.WriteLine($"{txInfo.Date} : {txInfo.Tx.Id}");
+            }
+            Console.WriteLine("Finished CoinJoin Check");
+        }
     }
 }
