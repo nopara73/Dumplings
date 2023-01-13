@@ -572,7 +572,7 @@ namespace Dumplings.Scanning
             var falseList = new List<(YearMonth Date, VerboseTransactionInfo Tx, VerboseBlockInfo Block)>();
             bool isWasabiCj = false;
             var coinjoins = loadedScannerFiles.WasabiCoinJoins;
-
+            Console.WriteLine("Checking CoinJoins...");
             foreach (var tx in coinjoins)
             {
                 var block = await Rpc.GetVerboseBlockAsync(tx.BlockInfo.BlockHash, safe: false).ConfigureAwait(false);
@@ -639,6 +639,7 @@ namespace Dumplings.Scanning
             {
                 Console.WriteLine($"Block: {txInfo.Block.Height}, Date:{txInfo.Date} : {txInfo.Tx.Id}");
             }
+            Console.WriteLine("Finished CoinJoin Check");
         }
     }
 }
