@@ -1292,7 +1292,6 @@ namespace Dumplings.Stats
                 {
                     falseList.Add((Date: yearMonth, Tx: tx));
                 }
-                Console.WriteLine("Next");
             }
             foreach (var (Date, Tx) in list)
             {
