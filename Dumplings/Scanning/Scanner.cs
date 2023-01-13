@@ -566,7 +566,7 @@ namespace Dumplings.Scanning
             return denominations.OrderByDescending(x => x);
         }
 
-        public async void DoubleCheckWW1CoinJoinsAsync(ScannerFiles loadedScannerFiles)
+        public async Task DoubleCheckWW1CoinJoinsAsync(ScannerFiles loadedScannerFiles)
         {
             var list = new List<(YearMonth Date, VerboseTransactionInfo Tx, VerboseBlockInfo Block)>();
             var falseList = new List<(YearMonth Date, VerboseTransactionInfo Tx, VerboseBlockInfo Block)>();
