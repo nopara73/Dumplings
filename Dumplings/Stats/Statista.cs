@@ -1259,10 +1259,10 @@ namespace Dumplings.Stats
                 var isNativeSegwitOnly = tx.Inputs.All(x => x.PrevOutput.ScriptPubKey.IsScriptType(ScriptType.P2WPKH)) && tx.Outputs.All(x => x.ScriptPubKey.IsScriptType(ScriptType.P2WPKH)); // Segwit only outputs.
 
                 // Before Wasabi had constant coordinator addresses and different base denominations at the beginning.
-                if (tx.BlockInfo.BlockHash == uint256.Parse("0000000000000000000a6f607f74db48dae0a94022c10354536394c17672b7f7"))
+                if (tx.Id == uint256.Parse("3e044598c2554f8b4479644aa3fc730d5d72ea5d2c5a3c002538268a2ea2f0fe"))
                 {
                     afterNewCoord = true;
-                    Console.WriteLine("\n\nNew Coord\n\n");
+                    Console.WriteLine("New Coord");
                 }
 
                 if (!afterNewCoord)
@@ -1292,7 +1292,6 @@ namespace Dumplings.Stats
                 {
                     falseList.Add((Date: yearMonth, Tx: tx));
                 }
-                Console.WriteLine("Next");
             }
             foreach (var (Date, Tx) in list)
             {
