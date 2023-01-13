@@ -1236,13 +1236,13 @@ namespace Dumplings.Stats
             return myList;
         }
 
-        public async Task DoubleCheckWW1CoinJoinsAsync(ScannerFiles loadedScannerFiles)
+        public void DoubleCheckWW1CoinJoins()
         {
             bool afterNewCoord = false;
             var list = new List<(YearMonth Date, VerboseTransactionInfo Tx)>();
             var falseList = new List<(YearMonth Date, VerboseTransactionInfo Tx)>();
             bool isWasabiCj = false;
-            var coinjoins = loadedScannerFiles.WasabiCoinJoins;
+            var coinjoins = ScannerFiles.WasabiCoinJoins;
             Console.WriteLine("Checking CoinJoins...");
             Console.WriteLine(coinjoins.Count());
             foreach (var tx in coinjoins)
@@ -1294,14 +1294,14 @@ namespace Dumplings.Stats
                 }
                 Console.WriteLine("Next");
             }
-            foreach (var txInfo in list)
+            foreach (var (Date, Tx) in list)
             {
-                Console.WriteLine($"{txInfo.Date} : {txInfo.Tx.Id}");
+                Console.WriteLine($"{Date} : {Tx.Id}");
             }
             Console.WriteLine("\nFALSE POSITIVES\n");
-            foreach (var txInfo in falseList)
+            foreach (var (Date, Tx) in falseList)
             {
-                Console.WriteLine($"{txInfo.Date} : {txInfo.Tx.Id}");
+                Console.WriteLine($"{Date} : {Tx.Id}");
             }
             Console.WriteLine("Finished CoinJoin Check");
         }
