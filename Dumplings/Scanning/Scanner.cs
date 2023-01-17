@@ -1,7 +1,5 @@
-﻿using Dumplings.Analysis;
-using Dumplings.Helpers;
+﻿using Dumplings.Helpers;
 using Dumplings.Rpc;
-using Dumplings.Stats;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -10,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Dumplings.Scanning

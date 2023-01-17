@@ -3,7 +3,6 @@ using Dumplings.Helpers;
 using Dumplings.Rpc;
 using Dumplings.Scanning;
 using NBitcoin;
-using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using System;
 using System.Collections.Generic;
@@ -12,7 +11,6 @@ using System.Linq;
 using MySql.Data.MySqlClient;
 using Dumplings.Cli;
 using System.Data;
-using System.Threading.Tasks;
 
 namespace Dumplings.Stats
 {
