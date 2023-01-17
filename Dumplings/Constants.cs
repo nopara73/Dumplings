@@ -28,6 +28,7 @@ namespace Dumplings
         public const ulong FirstSamouraiBlock = 570000;
 
         public const ulong FirstWasabiNoCoordAddressBlock = 610000;
+        public static uint256 FirstWW1CoinJoinAfterNoCoordAddress = uint256.Parse("3e044598c2554f8b4479644aa3fc730d5d72ea5d2c5a3c002538268a2ea2f0fe");
 
         public static IEnumerable<Script> WasabiCoordScripts = new Script[]
         {
