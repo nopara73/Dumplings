@@ -104,59 +104,6 @@ namespace Dumplings.Displaying
             }
         }
 
-        public static void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonthDay, Money> otheriResults, Dictionary<YearMonthDay, Money> wasabi2Results, Dictionary<YearMonthDay, Money> wasabiResults, Dictionary<YearMonthDay, Money> samuriResults)
-        {
-            var isWW2 = wasabi2Results != null;
-
-            if (isWW2)
-            {
-                Console.WriteLine($"Month;Otheri;Wasabi2;Wasabi;Samuri");
-            }
-            else
-            {
-                Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
-            }
-
-            YearMonthDay[] yearMonthDays = wasabi2Results
-                            .Keys
-                            .Concat(wasabiResults.Keys)
-                            .Concat(otheriResults.Keys)
-                            .Concat(samuriResults.Keys)
-                            .Distinct()
-                            .OrderBy(x => x.Year)
-                            .ThenBy(x => x.Month)
-                            .ThenBy(x => x.Day)
-                            .ToArray();
-            foreach (var yearMonthDay in yearMonthDays)
-            {
-                if (!otheriResults.TryGetValue(yearMonthDay, out Money otheri))
-                {
-                    otheri = Money.Zero;
-                }
-                if (!wasabiResults.TryGetValue(yearMonthDay, out Money wasabi))
-                {
-                    wasabi = Money.Zero;
-                }
-                if (!samuriResults.TryGetValue(yearMonthDay, out Money samuri))
-                {
-                    samuri = Money.Zero;
-                }
-
-                if (isWW2)
-                {
-                    if (!wasabi2Results.TryGetValue(yearMonthDay, out var wasabi2))
-                    {
-                        wasabi2 = Money.Zero;
-                    }
-                    Console.WriteLine($"{yearMonthDay};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi2.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
-                }
-                else
-                {
-                    Console.WriteLine($"{yearMonthDay};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
-                }
-            }
-        }
-
         public static void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonthDay, List<(int uniqueOutCount, int uniqueInCount, double uniqueOutCountPercent, double uniqueInCountPercent)>> uniqueCountPercents, out List<string> resultList)
         {
             resultList = new();
