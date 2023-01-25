@@ -35,10 +35,6 @@ namespace Dumplings.Cli
             using (BenchmarkLogger.Measure(operationName: $"{command} Command"))
             {
                 var outputFolder = GetOutputFolder(args);
-
-                FileStream fileStream = null;
-                StreamWriter writer = null;
-                TextWriter oldOut = Console.Out;
                 try
                 {
                     if (command == Command.Resync)
@@ -147,13 +143,10 @@ namespace Dumplings.Cli
                         stat.UploadToDatabase();
                     }
                 }
-                finally
+                catch (Exception ex)
                 {
-                    writer?.Close();
-                    fileStream?.Close();
+                    Logger.LogError(ex);
                 }
-
-                Console.SetOut(oldOut);
             }
 
             Console.WriteLine();
