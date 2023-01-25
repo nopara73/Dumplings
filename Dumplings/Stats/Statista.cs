@@ -271,7 +271,11 @@ namespace Dumplings.Stats
                 }
             }
 
-            Display.DisplayOtheriWasabiSamuriResults(uniqueCountPercents);
+            Display.DisplayOtheriWasabiSamuriResults(uniqueCountPercents, out var resultList);
+            if (FilePath != null)
+            {
+                File.WriteAllLines(FilePath, resultList);
+            }
         }
 
         public void CalculateRecords()
@@ -330,7 +334,11 @@ namespace Dumplings.Stats
                 }
             }
 
-            Display.DisplayRecords(mostInputs, mostOutputs, mostInputsAndOutputs, largestVolumes, largestCjEqualities, smallestUnequalOutputs, smallestUnequalInputs);
+            Display.DisplayRecords(mostInputs, mostOutputs, mostInputsAndOutputs, largestVolumes, largestCjEqualities, smallestUnequalOutputs, smallestUnequalInputs, out var resultList);
+            if (FilePath != null)
+            {
+                File.WriteAllLines(FilePath, resultList);
+            }
         }
 
         public void CalculateFreshBitcoinAmounts()
@@ -1070,6 +1078,7 @@ namespace Dumplings.Stats
 
         public void CalculateUnspentCapacity(RPCClient rpc)
         {
+            List<string> resultList = new();
             var ucWW1 = Money.Zero;
             var ucWW2 = Money.Zero;
             var ucSW = Money.Zero;
@@ -1086,7 +1095,9 @@ namespace Dumplings.Stats
                 }
                 else if (prevYMD != tx.BlockInfo.YearMonthDay)
                 {
-                    Console.WriteLine($"{prevYMD}\t{ucWW2.ToString(false, false)}\t{ucWW1.ToString(false, false)}\t{ucSW.ToString(false, false)}");
+                    string stringLine = $"{prevYMD}\t{ucWW2.ToString(false, false)}\t{ucWW1.ToString(false, false)}\t{ucSW.ToString(false, false)}";
+                    Console.WriteLine(stringLine);
+                    resultList.Add(stringLine);
                     prevYMD = tx.BlockInfo.YearMonthDay;
                 }
 
@@ -1112,7 +1123,9 @@ namespace Dumplings.Stats
                 }
             }
 
-            Console.WriteLine($"{prevYMD}\t{ucWW2.ToString(false, false)}\t{ucWW1.ToString(false, false)}\t{ucSW.ToString(false, false)}");
+            string line = $"{prevYMD}\t{ucWW2.ToString(false, false)}\t{ucWW1.ToString(false, false)}\t{ucSW.ToString(false, false)}";
+            resultList.Add(line);
+            Console.WriteLine(line);
         }
 
         public void CalculateAndUploadMonthlyCoinJoins()
@@ -1210,7 +1223,9 @@ namespace Dumplings.Stats
                     {
                         sb.Append($"{value};{count};");
                     }
+
                     var builtString = sb.ToString();
+
                     Console.WriteLine(builtString);
                     resultList.Add(builtString);
                     sb.Clear();

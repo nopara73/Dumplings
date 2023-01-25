@@ -157,13 +157,19 @@ namespace Dumplings.Displaying
             }
         }
 
-        public static void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonthDay, List<(int uniqueOutCount, int uniqueInCount, double uniqueOutCountPercent, double uniqueInCountPercent)>> uniqueCountPercents)
+        public static void DisplayOtheriWasabiSamuriResults(Dictionary<YearMonthDay, List<(int uniqueOutCount, int uniqueInCount, double uniqueOutCountPercent, double uniqueInCountPercent)>> uniqueCountPercents, out List<string> resultList)
         {
-            Console.WriteLine($"Date;uniqueOutCount;uniqueInCount;uniqueOutCountPercent;uniqueInCountPercent");
+            resultList = new();
+            string header = $"Date;uniqueOutCount;uniqueInCount;uniqueOutCountPercent;uniqueInCountPercent";
+
+            Console.WriteLine(header);
+            resultList.Add(header);
 
             foreach (var record in uniqueCountPercents.OrderBy(x => x.Key.Year).ThenBy(x => x.Key.Month).ThenBy(x => x.Key.Day))
             {
-                Console.WriteLine($"{record.Key};{record.Value.Median(x => x.uniqueOutCount):0.0};{record.Value.Median(x => x.uniqueInCount):0.0};{record.Value.Median(x => x.uniqueOutCountPercent):0.0};{record.Value.Median(x => x.uniqueInCountPercent):0.0}");
+                string line = $"{record.Key};{record.Value.Median(x => x.uniqueOutCount):0.0};{record.Value.Median(x => x.uniqueInCount):0.0};{record.Value.Median(x => x.uniqueOutCountPercent):0.0};{record.Value.Median(x => x.uniqueInCountPercent):0.0}";
+                Console.WriteLine(line);
+                resultList.Add(line);
             }
         }
 
@@ -222,49 +228,49 @@ namespace Dumplings.Displaying
             }
         }
 
-        public static void DisplayRecords(Dictionary<int, VerboseTransactionInfo> mostInputs, Dictionary<int, VerboseTransactionInfo> mostOutputs, Dictionary<int, VerboseTransactionInfo> mostInputsAndOutputs, Dictionary<Money, VerboseTransactionInfo> largestVolumes, Dictionary<ulong, VerboseTransactionInfo> largestCjEqualities, Dictionary<int, VerboseTransactionInfo> smallestUnequalOutputs, Dictionary<int, VerboseTransactionInfo> smallestUnequalInputs)
+        public static void DisplayRecords(Dictionary<int, VerboseTransactionInfo> mostInputs, Dictionary<int, VerboseTransactionInfo> mostOutputs, Dictionary<int, VerboseTransactionInfo> mostInputsAndOutputs, Dictionary<Money, VerboseTransactionInfo> largestVolumes, Dictionary<ulong, VerboseTransactionInfo> largestCjEqualities, Dictionary<int, VerboseTransactionInfo> smallestUnequalOutputs, Dictionary<int, VerboseTransactionInfo> smallestUnequalInputs, out List<string> resultList)
         {
-            Console.WriteLine();
-            Console.WriteLine("Input count records:");
+            resultList = new();
+            resultList.Add("\nInput count records:");
             foreach (var cj in mostInputs)
             {
-                Console.WriteLine($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
+                resultList.Add($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
             }
-            Console.WriteLine();
-            Console.WriteLine("Output count records:");
+
+            resultList.Add("\nOutput count records:");
             foreach (var cj in mostOutputs)
             {
-                Console.WriteLine($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
+                resultList.Add($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
             }
-            Console.WriteLine();
-            Console.WriteLine("Input count + output count records:");
+
+            resultList.Add("\nInput count + output count records:");
             foreach (var cj in mostInputsAndOutputs)
             {
-                Console.WriteLine($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
+                resultList.Add($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
             }
-            Console.WriteLine();
-            Console.WriteLine("Volume records:");
+
+            resultList.Add("\nVolume records:");
             foreach (var cj in largestVolumes)
             {
-                Console.WriteLine($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key.ToDecimal(MoneyUnit.BTC):0}\t{cj.Value.Id}");
+                resultList.Add($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key.ToDecimal(MoneyUnit.BTC):0}\t{cj.Value.Id}");
             }
-            Console.WriteLine();
-            Console.WriteLine("Equality records:");
+
+            resultList.Add("\nEquality records:");
             foreach (var cj in largestCjEqualities)
             {
-                Console.WriteLine($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
+                resultList.Add($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
             }
-            Console.WriteLine();
-            Console.WriteLine("Unique output count records:");
+
+            resultList.Add("\nUnique output count records:");
             foreach (var cj in smallestUnequalOutputs)
             {
-                Console.WriteLine($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
+                resultList.Add($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
             }
-            Console.WriteLine();
-            Console.WriteLine("Unique input count records:");
+
+            resultList.Add("\nUnique input count records:");
             foreach (var cj in smallestUnequalInputs)
             {
-                Console.WriteLine($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
+                resultList.Add($"{cj.Value.BlockInfo.YearMonthDay}:\t{cj.Key}\t{cj.Value.Id}");
             }
         }
 
