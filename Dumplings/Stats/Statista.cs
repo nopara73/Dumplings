@@ -1210,7 +1210,7 @@ namespace Dumplings.Stats
                     {
                         sb.Append($"{value};{count};");
                     }
-                    var builtString = sb.AppendLine().ToString();
+                    var builtString = sb.ToString();
                     Console.WriteLine(builtString);
                     resultList.Add(builtString);
                     sb.Clear();
@@ -1258,7 +1258,7 @@ namespace Dumplings.Stats
                     lastCoinJoinTime = blockTime;
 
                     sb.Append($"{blockTime.Value.UtcDateTime.ToString("MM.dd.yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)};");
-                    Console.Write($"{tx.Id};");
+                    sb.Append($"{tx.Id};");
 
                     var totalFee = (tx.Inputs.Sum(x => x.PrevOutput.Value) - tx.Outputs.Sum(x => x.Value));
 
@@ -1272,7 +1272,9 @@ namespace Dumplings.Stats
                     {
                         sb.Append($"{value};{count};");
                     }
-                    var builtString = sb.AppendLine().ToString();
+
+                    var builtString = sb.ToString();
+
                     Console.WriteLine(builtString);
                     resultList.Add(builtString);
                     sb.Clear();
