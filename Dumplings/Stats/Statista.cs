@@ -368,6 +368,7 @@ namespace Dumplings.Stats
                 IDictionary<YearMonth, int> otheriResults = CalculateAverageUserCounts(ScannerFiles.OtherCoinJoins);
                 IDictionary<YearMonth, int> wasabiResults = CalculateAverageUserCounts(ScannerFiles.WasabiCoinJoins);
                 IDictionary<YearMonth, int> samuriResults = CalculateAverageUserCounts(ScannerFiles.SamouraiCoinJoins);
+
                 Display.DisplayOtheriWasabiSamuriResults(otheriResults, null, wasabiResults, samuriResults, out var resultList);
                 if (FilePath != null)
                 {
@@ -380,10 +381,15 @@ namespace Dumplings.Stats
         {
             using (BenchmarkLogger.Measure())
             {
-                IDictionary<YearMonth, Money> otheri = CalculateAverageNetworkFeePaidByUserPerCoinjoin(ScannerFiles.OtherCoinJoins);
-                IDictionary<YearMonth, Money> wasabi = CalculateAverageNetworkFeePaidByUserPerCoinjoin(ScannerFiles.WasabiCoinJoins);
-                IDictionary<YearMonth, Money> samuri = CalculateAverageNetworkFeePaidByUserPerCoinjoin(ScannerFiles.SamouraiCoinJoins);
-                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                IDictionary<YearMonth, Money> otheriResults = CalculateAverageNetworkFeePaidByUserPerCoinjoin(ScannerFiles.OtherCoinJoins);
+                IDictionary<YearMonth, Money> wasabiResults = CalculateAverageNetworkFeePaidByUserPerCoinjoin(ScannerFiles.WasabiCoinJoins);
+                IDictionary<YearMonth, Money> samuriResults = CalculateAverageNetworkFeePaidByUserPerCoinjoin(ScannerFiles.SamouraiCoinJoins);
+
+                Display.DisplayOtheriWasabiSamuriResults(otheriResults, wasabiResults, samuriResults, out var resultList);
+                if (FilePath != null)
+                {
+                    File.WriteAllLines(FilePath, resultList);
+                }
             }
         }
 

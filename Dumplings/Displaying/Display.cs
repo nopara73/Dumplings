@@ -69,25 +69,14 @@ namespace Dumplings.Displaying
             }
         }
 
-        public static void DisplayOtheriWasabiSamuriResults(IDictionary<YearMonth, Money> otheriResults, IDictionary<YearMonth, Money> wasabiResults, IDictionary<YearMonth, Money> samuriResults)
-            => DisplayOtheriWasabiSamuriResults(otheriResults, null, otheriResults, samuriResults);
-
-        public static void DisplayOtheriWasabiSamuriResults(IDictionary<YearMonth, Money> otheriResults, IDictionary<YearMonth, Money> wasabi2Results, IDictionary<YearMonth, Money> wasabiResults, IDictionary<YearMonth, Money> samuriResults)
+        public static void DisplayOtheriWasabiSamuriResults(IDictionary<YearMonth, Money> otheriResults, IDictionary<YearMonth, Money> wasabiResults, IDictionary<YearMonth, Money> samuriResults, out List<string> resultList)
         {
-            var isWW2 = wasabi2Results != null;
+            resultList = new();
 
-            if (isWW2)
-            {
-                Console.WriteLine($"Month;Otheri;Wasabi2;Wasabi;Samuri");
-            }
-            else
-            {
-                Console.WriteLine($"Month;Otheri;Wasabi;Samuri");
-            }
+            resultList.Add($"Month;Otheri;Wasabi;Samuri");
 
-            foreach (var yearMonth in wasabi2Results
+            foreach (var yearMonth in wasabiResults
                 .Keys
-                .Concat(wasabiResults.Keys)
                 .Concat(otheriResults.Keys)
                 .Concat(samuriResults.Keys)
                 .Distinct()
@@ -107,18 +96,11 @@ namespace Dumplings.Displaying
                     samuri = Money.Zero;
                 }
 
-                if (isWW2)
-                {
-                    if (!wasabi2Results.TryGetValue(yearMonth, out var wasabi2))
-                    {
-                        wasabi2 = Money.Zero;
-                    }
-                    Console.WriteLine($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi2.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
-                }
-                else
-                {
-                    Console.WriteLine($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
-                }
+                resultList.Add($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
+            }
+            foreach (var line in resultList)
+            {
+                Console.WriteLine(line);
             }
         }
 
