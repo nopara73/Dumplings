@@ -16,14 +16,16 @@ namespace Dumplings.Stats
 {
     public class Statista
     {
-        public Statista(ScannerFiles scannerFiles, RPCClient rpc)
+        public Statista(ScannerFiles scannerFiles, RPCClient rpc, string filePath)
         {
             ScannerFiles = scannerFiles;
             Rpc = rpc;
+            FilePath = filePath;
         }
 
         public RPCClient Rpc { get; }
         public ScannerFiles ScannerFiles { get; }
+        public string FilePath { get; }
 
         public void CalculateAndUploadMonthlyVolumes()
         {
@@ -34,6 +36,11 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, decimal> wasabi2Results = CalculateMonthlyVolumes(ScannerFiles.Wasabi2CoinJoins);
                 Dictionary<YearMonth, decimal> samuriResults = CalculateMonthlyVolumes(ScannerFiles.SamouraiCoinJoins);
 
+                Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
+                if (FilePath != null)
+                {
+                    File.WriteAllLines(FilePath, resultList);
+                }
                 UploadToDatabase("MonthlyVolumes", wasabiResults, wasabi2Results, samuriResults, otheriResults);
             }
         }
@@ -126,11 +133,16 @@ namespace Dumplings.Stats
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonth, Money> otheri = CalculateMonthlyEqualVolumes(ScannerFiles.OtherCoinJoins);
-                Dictionary<YearMonth, Money> wasabi2 = CalculateMonthlyEqualVolumes(ScannerFiles.Wasabi2CoinJoins);
-                Dictionary<YearMonth, Money> wasabi = CalculateMonthlyEqualVolumes(ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonth, Money> samuri = CalculateMonthlyEqualVolumes(ScannerFiles.SamouraiCoinJoins);
-                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
+                Dictionary<YearMonth, Money> otheriResults = CalculateMonthlyEqualVolumes(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, Money> wasabi2Results = CalculateMonthlyEqualVolumes(ScannerFiles.Wasabi2CoinJoins);
+                Dictionary<YearMonth, Money> wasabiResults = CalculateMonthlyEqualVolumes(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, Money> samuriResults = CalculateMonthlyEqualVolumes(ScannerFiles.SamouraiCoinJoins);
+
+                Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
+                if (FilePath != null)
+                {
+                    File.WriteAllLines(FilePath, resultList);
+                }
             }
         }
 
@@ -138,12 +150,17 @@ namespace Dumplings.Stats
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonth, decimal> otheri = CalculateNeverMixed(ScannerFiles.OtherCoinJoins);
-                Dictionary<YearMonth, decimal> wasabi2 = CalculateNeverMixed(ScannerFiles.Wasabi2CoinJoins);
-                Dictionary<YearMonth, decimal> wasabi = CalculateNeverMixed(ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonth, decimal> samuri = CalculateNeverMixedFromTx0s(ScannerFiles.SamouraiCoinJoins, ScannerFiles.SamouraiTx0s);
+                Dictionary<YearMonth, decimal> otheriResults = CalculateNeverMixed(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, decimal> wasabiResults = CalculateNeverMixed(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, decimal> wasabi2Results = CalculateNeverMixed(ScannerFiles.Wasabi2CoinJoins);
+                Dictionary<YearMonth, decimal> samuriResults = CalculateNeverMixedFromTx0s(ScannerFiles.SamouraiCoinJoins, ScannerFiles.SamouraiTx0s);
 
-                UploadToDatabase("NeverMixed", wasabi, wasabi2, samuri, otheri);
+                Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
+                if (FilePath != null)
+                {
+                    File.WriteAllLines(FilePath, resultList);
+                }
+                UploadToDatabase("NeverMixed", wasabiResults, wasabi2Results, samuriResults, otheriResults);
             }
         }
 
@@ -151,11 +168,16 @@ namespace Dumplings.Stats
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonth, ulong> otheri = CalculateEquality(ScannerFiles.OtherCoinJoins);
-                Dictionary<YearMonth, ulong> wasabi2 = CalculateEquality(ScannerFiles.Wasabi2CoinJoins);
-                Dictionary<YearMonth, ulong> wasabi = CalculateEquality(ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonth, ulong> samuri = CalculateEquality(ScannerFiles.SamouraiCoinJoins);
-                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
+                Dictionary<YearMonth, ulong> otheriResults = CalculateEquality(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonth, ulong> wasabiResults = CalculateEquality(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, ulong> wasabi2Results = CalculateEquality(ScannerFiles.Wasabi2CoinJoins);
+                Dictionary<YearMonth, ulong> samuriResults = CalculateEquality(ScannerFiles.SamouraiCoinJoins);
+
+                Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
+                if (FilePath != null)
+                {
+                    File.WriteAllLines(FilePath, resultList);
+                }
             }
         }
 
@@ -163,12 +185,17 @@ namespace Dumplings.Stats
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonth, decimal> otheri = CalculateAveragePostMixInputs(ScannerFiles.OtherCoinJoinPostMixTxs);
-                Dictionary<YearMonth, decimal> wasabi2 = CalculateAveragePostMixInputs(ScannerFiles.Wasabi2PostMixTxs);
-                Dictionary<YearMonth, decimal> wasabi = CalculateAveragePostMixInputs(ScannerFiles.WasabiPostMixTxs);
-                Dictionary<YearMonth, decimal> samuri = CalculateAveragePostMixInputs(ScannerFiles.SamouraiPostMixTxs);
+                Dictionary<YearMonth, decimal> otheriResults = CalculateAveragePostMixInputs(ScannerFiles.OtherCoinJoinPostMixTxs);
+                Dictionary<YearMonth, decimal> wasabiResults = CalculateAveragePostMixInputs(ScannerFiles.WasabiPostMixTxs);
+                Dictionary<YearMonth, decimal> wasabi2Results = CalculateAveragePostMixInputs(ScannerFiles.Wasabi2PostMixTxs);
+                Dictionary<YearMonth, decimal> samuriResults = CalculateAveragePostMixInputs(ScannerFiles.SamouraiPostMixTxs);
 
-                UploadToDatabase("PostmixConsolidation", wasabi, wasabi2, samuri, otheri);
+                Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
+                if (FilePath != null)
+                {
+                    File.WriteAllLines(FilePath, resultList);
+                }
+                UploadToDatabase("PostmixConsolidation", wasabiResults, wasabi2Results, samuriResults, otheriResults);
             }
         }
 
@@ -177,7 +204,12 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonth, decimal> wasabi = CalculateSmallerThanMinimumWasabiInputs(ScannerFiles.WasabiCoinJoins);
-                Display.DisplayWasabiResults(wasabi);
+
+                Display.DisplayWasabiResults(wasabi, out var resultList);
+                if (FilePath != null)
+                {
+                    File.WriteAllLines(FilePath, resultList);
+                }
             }
         }
 
@@ -185,9 +217,14 @@ namespace Dumplings.Stats
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonth, Money> wasabi = CalculateWasabiIncome(ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonth, Money> samuri = CalculateSamuriIncome(ScannerFiles.SamouraiTx0s);
-                Display.DisplayWasabiSamuriResults(wasabi, samuri);
+                Dictionary<YearMonth, Money> wasabiResults = CalculateWasabiIncome(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonth, Money> samuriResults = CalculateSamuriIncome(ScannerFiles.SamouraiTx0s);
+
+                Display.DisplayWasabiSamuriResults(wasabiResults, samuriResults, out var resultList);
+                if (FilePath != null)
+                {
+                    File.WriteAllLines(FilePath, resultList);
+                }
             }
         }
 
@@ -200,6 +237,11 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, decimal> wasabiResults = CalculateFreshBitcoins(ScannerFiles.WasabiCoinJoins);
                 Dictionary<YearMonth, decimal> samuriResults = CalculateFreshBitcoinsFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
 
+                Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
+                if (FilePath != null)
+                {
+                    File.WriteAllLines(FilePath, resultList);
+                }
                 UploadToDatabase("FreshCoins", wasabiResults, wasabi2Results, samuriResults, otheriResults);
             }
         }
@@ -292,32 +334,45 @@ namespace Dumplings.Stats
 
         public void CalculateFreshBitcoinAmounts()
         {
+            List<string> resultList = new();
             var wasabi = GetFreshBitcoinAmounts(ScannerFiles.WasabiCoinJoins);
             var lastAmounts = wasabi.SelectMany(x => x.Value).Select(x => x.ToDecimal(MoneyUnit.BTC)).Reverse().Take(100000).Reverse().ToArray();
-            Console.WriteLine("Calculations for the last 100 000 Wasabi coinjoins' fresh bitcoin input amounts.");
-            Console.WriteLine($"Average:    {lastAmounts.Average()}");
-            Console.WriteLine($"Median:     {lastAmounts.Median()}");
-            Console.WriteLine($"8 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 8).Count()}");
-            Console.WriteLine($"7 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 7).Count()}");
-            Console.WriteLine($"6 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 6).Count()}");
-            Console.WriteLine($"5 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 5).Count()}");
-            Console.WriteLine($"4 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 4).Count()}");
-            Console.WriteLine($"3 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 3).Count()}");
-            Console.WriteLine($"2 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 2).Count()}");
-            Console.WriteLine($"1 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 1).Count()}");
-            Console.WriteLine($"0 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 0).Count()}");
-            Console.WriteLine($"Average Hamming Weight: {lastAmounts.Select(x => ((ulong)(x * 100000000)).HammingWeight()).Average()}");
-            Console.WriteLine($"Median Hamming Weight:  {lastAmounts.Select(x => ((ulong)(x * 100000000)).HammingWeight()).Median()}");
+            resultList.Add("Calculations for the last 100 000 Wasabi coinjoins' fresh bitcoin input amounts.");
+            resultList.Add($"Average:    {lastAmounts.Average()}");
+            resultList.Add($"Median:     {lastAmounts.Median()}");
+            resultList.Add($"8 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 8).Count()}");
+            resultList.Add($"7 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 7).Count()}");
+            resultList.Add($"6 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 6).Count()}");
+            resultList.Add($"5 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 5).Count()}");
+            resultList.Add($"4 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 4).Count()}");
+            resultList.Add($"3 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 3).Count()}");
+            resultList.Add($"2 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 2).Count()}");
+            resultList.Add($"1 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 1).Count()}");
+            resultList.Add($"0 Decimals: {lastAmounts.Where(x => BitConverter.GetBytes(decimal.GetBits(x)[3])[2] == 0).Count()}");
+            resultList.Add($"Average Hamming Weight: {lastAmounts.Select(x => ((ulong)(x * 100000000)).HammingWeight()).Average()}");
+            resultList.Add($"Median Hamming Weight:  {lastAmounts.Select(x => ((ulong)(x * 100000000)).HammingWeight()).Median()}");
+            foreach (var line in resultList)
+            {
+                Console.WriteLine(line);
+            }
+            if (FilePath != null)
+            {
+                File.WriteAllLines(FilePath, resultList);
+            }
         }
 
         public void CalculateMonthlyAverageMonthlyUserCounts()
         {
             using (BenchmarkLogger.Measure())
             {
-                IDictionary<YearMonth, int> otheri = CalculateAverageUserCounts(ScannerFiles.OtherCoinJoins);
-                IDictionary<YearMonth, int> wasabi = CalculateAverageUserCounts(ScannerFiles.WasabiCoinJoins);
-                IDictionary<YearMonth, int> samuri = CalculateAverageUserCounts(ScannerFiles.SamouraiCoinJoins);
-                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi, samuri);
+                IDictionary<YearMonth, int> otheriResults = CalculateAverageUserCounts(ScannerFiles.OtherCoinJoins);
+                IDictionary<YearMonth, int> wasabiResults = CalculateAverageUserCounts(ScannerFiles.WasabiCoinJoins);
+                IDictionary<YearMonth, int> samuriResults = CalculateAverageUserCounts(ScannerFiles.SamouraiCoinJoins);
+                Display.DisplayOtheriWasabiSamuriResults(otheriResults, null, wasabiResults, samuriResults, out var resultList);
+                if (FilePath != null)
+                {
+                    File.WriteAllLines(FilePath, resultList);
+                }
             }
         }
 
@@ -401,11 +456,16 @@ namespace Dumplings.Stats
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonthDay, Money> otheri = CalculateFreshBitcoinsDaily(ScannerFiles.OtherCoinJoins);
-                Dictionary<YearMonthDay, Money> wasabi2 = CalculateFreshBitcoinsDaily(ScannerFiles.Wasabi2CoinJoins);
-                Dictionary<YearMonthDay, Money> wasabi = CalculateFreshBitcoinsDaily(ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonthDay, Money> samuri = CalculateFreshBitcoinsDailyFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
-                Display.DisplayOtheriWasabiSamuriResults(otheri, wasabi2, wasabi, samuri);
+                Dictionary<YearMonthDay, Money> otheriResults = CalculateFreshBitcoinsDaily(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonthDay, Money> wasabiResults = CalculateFreshBitcoinsDaily(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonthDay, Money> wasabi2Results = CalculateFreshBitcoinsDaily(ScannerFiles.Wasabi2CoinJoins);
+                Dictionary<YearMonthDay, Money> samuriResults = CalculateFreshBitcoinsDailyFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
+
+                Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
+                if (FilePath != null)
+                {
+                    File.WriteAllLines(FilePath, resultList);
+                }
             }
         }
 
@@ -1057,6 +1117,11 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, decimal> samuriResults = CalculateCoinJoinsPerMonth(ScannerFiles.SamouraiCoinJoins);
                 Dictionary<YearMonth, decimal> otheriResults = CalculateCoinJoinsPerMonth(ScannerFiles.OtherCoinJoins);
 
+                Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
+                if (FilePath != null)
+                {
+                    File.WriteAllLines(FilePath, resultList);
+                }
                 UploadToDatabase("MonthlyCoinJoins", wasabiResults, wasabi2Results, samuriResults, otheriResults);
             }
         }
