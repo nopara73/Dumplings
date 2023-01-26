@@ -7,11 +7,10 @@ set -e
 # The following variables need to be imported from the config file:
 
 # RPCUSER & RPCPASSWD = RPC credentials for Bitcoin Kntos,
-# RPCHOST = Node/endpoint to get blockhain info from.
 
 source Config.txt
 
 echo "Syncronizing blockchain"
-dotnet run -c Release -- Upload --rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD --host=$RPCHOST --nowaitonexit
+dotnet run -c Release -- Upload --rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD --nowaitonexit
 
 echo "Script Ended!"
