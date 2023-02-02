@@ -1394,6 +1394,8 @@ namespace Dumplings.Stats
             CalculateAndUploadMonthlyVolumes();
             Console.WriteLine("Upload complete! Uploading FreshBitcoins...");
             CalculateAndUploadFreshBitcoins();
+            Console.WriteLine("Upload complete! Uploading FreshBitcoinsDaily...");
+            CalculateAndUploadFreshBitcoinsDaily();
             Console.WriteLine("Upload complete! Uploading MonthlyCoinJoins...");
             CalculateAndUploadMonthlyCoinJoins();
             Console.WriteLine("Upload complete! Uploading NeverMixed...");
