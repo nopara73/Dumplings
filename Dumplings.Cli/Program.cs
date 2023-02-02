@@ -80,7 +80,7 @@ namespace Dumplings.Cli
                     }
                     else if (command == Command.FreshBitcoinsDaily)
                     {
-                        stat.CalculateFreshBitcoinsDaily();
+                        stat.CalculateAndUploadFreshBitcoinsDaily();
                     }
                     else if (command == Command.NeverMixed)
                     {

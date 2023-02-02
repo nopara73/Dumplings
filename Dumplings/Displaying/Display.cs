@@ -299,7 +299,7 @@ namespace Dumplings.Displaying
             }
         }
 
-        internal static void DisplayOtheriWasabiWabiSabiSamuriResults(Dictionary<YearMonth, Money> otheriResults, Dictionary<YearMonth, Money> wasabiResults, Dictionary<YearMonth, Money> wasabi2Results, Dictionary<YearMonth, Money> samuriResults, out List<string> resultList)
+        public static void DisplayOtheriWasabiWabiSabiSamuriResults(Dictionary<YearMonth, Money> otheriResults, Dictionary<YearMonth, Money> wasabiResults, Dictionary<YearMonth, Money> wasabi2Results, Dictionary<YearMonth, Money> samuriResults, out List<string> resultList)
         {
             resultList = new List<string>();
 
@@ -338,7 +338,7 @@ namespace Dumplings.Displaying
             }
         }
 
-        public static void DisplayOtheriWasabiWabiSabiSamuriResults(Dictionary<YearMonthDay, Money> otheriResults, Dictionary<YearMonthDay, Money> wasabiResults, Dictionary<YearMonthDay, Money> wasabi2Results, Dictionary<YearMonthDay, Money> samuriResults, out List<string> resultList)
+        public static void DisplayOtheriWasabiWabiSabiSamuriResults(Dictionary<YearMonthDay, decimal> otheriResults, Dictionary<YearMonthDay, decimal> wasabiResults, Dictionary<YearMonthDay, decimal> wasabi2Results, Dictionary<YearMonthDay, decimal> samuriResults, out List<string> resultList)
         {
             resultList = new List<string>();
 
@@ -354,23 +354,23 @@ namespace Dumplings.Displaying
                 .ThenBy(x => x.Month)
                 .ThenBy(x => x.Day))
             {
-                if (!otheriResults.TryGetValue(yearMonthDay, out Money otheri))
+                if (!otheriResults.TryGetValue(yearMonthDay, out decimal otheri))
                 {
-                    otheri = Money.Zero;
+                    otheri = 0;
                 }
-                if (!wasabiResults.TryGetValue(yearMonthDay, out Money wasabi))
+                if (!wasabiResults.TryGetValue(yearMonthDay, out decimal wasabi))
                 {
-                    wasabi = Money.Zero;
+                    wasabi = 0;
                 }
-                if (!wasabi2Results.TryGetValue(yearMonthDay, out Money wasabi2))
+                if (!wasabi2Results.TryGetValue(yearMonthDay, out decimal wasabi2))
                 {
-                    wasabi2 = Money.Zero;
+                    wasabi2 = 0;
                 }
-                if (!samuriResults.TryGetValue(yearMonthDay, out Money samuri))
+                if (!samuriResults.TryGetValue(yearMonthDay, out decimal samuri))
                 {
-                    samuri = Money.Zero;
+                    samuri = 0;
                 }
-                resultList.Add($"{yearMonthDay};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi2.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
+                resultList.Add($"{yearMonthDay};{otheri:0};{wasabi:0};{wasabi:0};{samuri:0}");
             }
             foreach (var line in resultList)
             {

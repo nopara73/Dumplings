@@ -46,6 +46,91 @@ namespace Dumplings.Stats
             }
         }
 
+        private void UploadToDatabase(string table, Dictionary<YearMonthDay, decimal> wasabiResults, Dictionary<YearMonthDay, decimal> wasabi2Results, Dictionary<YearMonthDay, decimal> samuriResults, Dictionary<YearMonthDay, decimal> otheriResults)
+        {
+            MySqlConnection conn = Connect.InitDb();
+            foreach (var yearMonthDay in wasabi2Results
+            .Keys
+            .Concat(otheriResults.Keys)
+            .Concat(samuriResults.Keys)
+            .Concat(wasabiResults.Keys)
+            .Distinct()
+            .OrderBy(x => x.Year)
+            .ThenBy(x => x.Month)
+            .ThenBy(x => x.Day))
+            {
+                if (!otheriResults.TryGetValue(yearMonthDay, out decimal otheri))
+                {
+                    otheri = 0;
+                }
+                if (!wasabiResults.TryGetValue(yearMonthDay, out decimal wasabi))
+                {
+                    wasabi = 0;
+                }
+                if (!samuriResults.TryGetValue(yearMonthDay, out decimal samuri))
+                {
+                    samuri = 0;
+                }
+                if (!wasabi2Results.TryGetValue(yearMonthDay, out decimal wasabi2))
+                {
+                    wasabi2 = 0;
+                }
+
+                string check = $"CALL check{table}(@d);";
+                MySqlCommand comm = new MySqlCommand(check, conn);
+                comm.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonthDay}"));
+                comm.Parameters["@d"].Direction = ParameterDirection.Input;
+                conn.Open();
+                MySqlDataReader reader = comm.ExecuteReader();
+                bool write = false;
+                while (reader.Read())
+                {
+                    if (reader[0].ToString() == "0")
+                    {
+                        write = true;
+                    }
+                }
+                reader.Close();
+                conn.Close();
+                if (write)
+                {
+                    string sql = $"CALL store{table}(@d,@w,@w2,@s,@o);";
+                    MySqlCommand cmd = new MySqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonthDay}"));
+                    cmd.Parameters["@d"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@w", wasabi);
+                    cmd.Parameters["@w"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@w2", wasabi2);
+                    cmd.Parameters["@w2"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@s", samuri);
+                    cmd.Parameters["@s"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@o", otheri);
+                    cmd.Parameters["@o"].Direction = ParameterDirection.Input;
+                    conn.Open();
+                    int res = cmd.ExecuteNonQuery();
+                    conn.Close();
+                }
+                else
+                {
+                    string sql = $"CALL update{table}(@d,@w,@w2,@s,@o);";
+                    MySqlCommand cmd = new MySqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonthDay}"));
+                    cmd.Parameters["@d"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@w", wasabi);
+                    cmd.Parameters["@w"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@w2", wasabi2);
+                    cmd.Parameters["@w2"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@s", samuri);
+                    cmd.Parameters["@s"].Direction = ParameterDirection.Input;
+                    cmd.Parameters.AddWithValue("@o", otheri);
+                    cmd.Parameters["@o"].Direction = ParameterDirection.Input;
+                    conn.Open();
+                    int res = cmd.ExecuteNonQuery();
+                    conn.Close();
+                }
+            }
+        }
+
         private void UploadToDatabase(string table, Dictionary<YearMonth, decimal> wasabiResults, Dictionary<YearMonth, decimal> wasabi2Results, Dictionary<YearMonth, decimal> samuriResults, Dictionary<YearMonth, decimal> otheriResults)
         {
             MySqlConnection conn = Connect.InitDb();
@@ -467,20 +552,21 @@ namespace Dumplings.Stats
             return retDic;
         }
 
-        public void CalculateFreshBitcoinsDaily()
+        public void CalculateAndUploadFreshBitcoinsDaily()
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonthDay, Money> otheriResults = CalculateFreshBitcoinsDaily(ScannerFiles.OtherCoinJoins);
-                Dictionary<YearMonthDay, Money> wasabiResults = CalculateFreshBitcoinsDaily(ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonthDay, Money> wasabi2Results = CalculateFreshBitcoinsDaily(ScannerFiles.Wasabi2CoinJoins);
-                Dictionary<YearMonthDay, Money> samuriResults = CalculateFreshBitcoinsDailyFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
+                Dictionary<YearMonthDay, decimal> otheriResults = CalculateFreshBitcoinsDaily(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonthDay, decimal> wasabiResults = CalculateFreshBitcoinsDaily(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonthDay, decimal> wasabi2Results = CalculateFreshBitcoinsDaily(ScannerFiles.Wasabi2CoinJoins);
+                Dictionary<YearMonthDay, decimal> samuriResults = CalculateFreshBitcoinsDailyFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
 
                 Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
                 if (FilePath != null)
                 {
                     File.WriteAllLines(FilePath, resultList);
                 }
+                UploadToDatabase("FreshBitcoinsDaily", wasabiResults, wasabi2Results, samuriResults, otheriResults);
             }
         }
 
@@ -542,7 +628,7 @@ namespace Dumplings.Stats
             foreach (var day in CalculateFreshBitcoinsDaily(txs))
             {
                 var yearMonth = day.Key.ToYearMonth();
-                decimal sum = day.Value.ToDecimal(MoneyUnit.BTC);
+                decimal sum = day.Value;
                 if (myDic.TryGetValue(yearMonth, out decimal current))
                 {
                     myDic[yearMonth] = current + sum;
@@ -561,7 +647,7 @@ namespace Dumplings.Stats
             foreach (var day in CalculateFreshBitcoinsDailyFromTX0s(tx0s, cjHashes))
             {
                 var yearMonth = day.Key.ToYearMonth();
-                decimal sum = day.Value.ToDecimal(MoneyUnit.BTC);
+                decimal sum = day.Value;
                 if (myDic.TryGetValue(yearMonth, out decimal current))
                 {
                     myDic[yearMonth] = current + sum;
@@ -574,9 +660,9 @@ namespace Dumplings.Stats
             return myDic;
         }
 
-        private Dictionary<YearMonthDay, Money> CalculateFreshBitcoinsDaily(IEnumerable<VerboseTransactionInfo> txs)
+        private Dictionary<YearMonthDay, decimal> CalculateFreshBitcoinsDaily(IEnumerable<VerboseTransactionInfo> txs)
         {
-            var myDic = new Dictionary<YearMonthDay, Money>();
+            var myDic = new Dictionary<YearMonthDay, decimal>();
             var txHashes = txs.Select(x => x.Id).ToHashSet();
 
             foreach (var tx in txs)
@@ -587,13 +673,13 @@ namespace Dumplings.Stats
                     var blockTimeValue = blockTime.Value;
                     var yearMonthDay = new YearMonthDay(blockTimeValue.Year, blockTimeValue.Month, blockTimeValue.Day);
 
-                    var sum = Money.Zero;
+                    decimal sum = 0;
                     foreach (var input in tx.Inputs.Where(x => !txHashes.Contains(x.OutPoint.Hash)))
                     {
-                        sum += input.PrevOutput.Value;
+                        sum += input.PrevOutput.Value.ToDecimal(MoneyUnit.BTC);
                     }
 
-                    if (myDic.TryGetValue(yearMonthDay, out Money current))
+                    if (myDic.TryGetValue(yearMonthDay, out decimal current))
                     {
                         myDic[yearMonthDay] = current + sum;
                     }
@@ -607,9 +693,9 @@ namespace Dumplings.Stats
             return myDic;
         }
 
-        private Dictionary<YearMonthDay, Money> CalculateFreshBitcoinsDailyFromTX0s(IEnumerable<VerboseTransactionInfo> tx0s, IEnumerable<uint256> cjHashes)
+        private Dictionary<YearMonthDay, decimal> CalculateFreshBitcoinsDailyFromTX0s(IEnumerable<VerboseTransactionInfo> tx0s, IEnumerable<uint256> cjHashes)
         {
-            var myDic = new Dictionary<YearMonthDay, Money>();
+            var myDic = new Dictionary<YearMonthDay, decimal>();
             // In Samourai in order to identify fresh bitcoins the tx0 input shouldn't come from other samuri coinjoins, nor tx0s.
             var txHashes = tx0s.Select(x => x.Id).Union(cjHashes).ToHashSet();
 
@@ -621,13 +707,13 @@ namespace Dumplings.Stats
                     var blockTimeValue = blockTime.Value;
                     var yearMonthDay = new YearMonthDay(blockTimeValue.Year, blockTimeValue.Month, blockTimeValue.Day);
 
-                    var sum = Money.Zero;
+                    decimal sum = 0;
                     foreach (var input in tx.Inputs.Where(x => !txHashes.Contains(x.OutPoint.Hash)))
                     {
-                        sum += input.PrevOutput.Value;
+                        sum += input.PrevOutput.Value.ToDecimal(MoneyUnit.BTC);
                     }
 
-                    if (myDic.TryGetValue(yearMonthDay, out Money current))
+                    if (myDic.TryGetValue(yearMonthDay, out decimal current))
                     {
                         myDic[yearMonthDay] = current + sum;
                     }
