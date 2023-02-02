@@ -566,7 +566,7 @@ namespace Dumplings.Stats
                 {
                     File.WriteAllLines(FilePath, resultList);
                 }
-                UploadToDatabase("FreshBitcoinsDaily", wasabiResults, wasabi2Results, samuriResults, otheriResults);
+                UploadToDatabase("DailyFreshCoins", wasabiResults, wasabi2Results, samuriResults, otheriResults);
             }
         }
 
