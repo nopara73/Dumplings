@@ -38,7 +38,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, decimal> samuriResults = CalculateMonthlyVolumes(ScannerFiles.SamouraiCoinJoins);
 
                 Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
-                if (FilePath != null)
+                if (!string.IsNullOrWhiteSpace(FilePath))
                 {
                     File.WriteAllLines(FilePath, resultList);
                 }
@@ -56,7 +56,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonthDay, decimal> samuriResults = CalculateDailyVolumes(ScannerFiles.SamouraiCoinJoins);
 
                 Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
-                if (FilePath != null)
+                if (!string.IsNullOrWhiteSpace(FilePath))
                 {
                     File.WriteAllLines(FilePath, resultList);
                 }
@@ -270,7 +270,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, Money> samuriResults = CalculateMonthlyEqualVolumes(ScannerFiles.SamouraiCoinJoins);
 
                 Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
-                if (FilePath != null)
+                if (!string.IsNullOrWhiteSpace(FilePath))
                 {
                     File.WriteAllLines(FilePath, resultList);
                 }
@@ -287,7 +287,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, decimal> samuriResults = CalculateNeverMixedFromTx0s(ScannerFiles.SamouraiCoinJoins, ScannerFiles.SamouraiTx0s);
 
                 Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
-                if (FilePath != null)
+                if (!string.IsNullOrWhiteSpace(FilePath))
                 {
                     File.WriteAllLines(FilePath, resultList);
                 }
@@ -305,7 +305,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, ulong> samuriResults = CalculateEquality(ScannerFiles.SamouraiCoinJoins);
 
                 Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
-                if (FilePath != null)
+                if (!string.IsNullOrWhiteSpace(FilePath))
                 {
                     File.WriteAllLines(FilePath, resultList);
                 }
@@ -322,7 +322,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, decimal> samuriResults = CalculateAveragePostMixInputs(ScannerFiles.SamouraiPostMixTxs);
 
                 Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
-                if (FilePath != null)
+                if (!string.IsNullOrWhiteSpace(FilePath))
                 {
                     File.WriteAllLines(FilePath, resultList);
                 }
@@ -337,7 +337,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, decimal> wasabi = CalculateSmallerThanMinimumWasabiInputs(ScannerFiles.WasabiCoinJoins);
 
                 Display.DisplayWasabiResults(wasabi, out var resultList);
-                if (FilePath != null)
+                if (!string.IsNullOrWhiteSpace(FilePath))
                 {
                     File.WriteAllLines(FilePath, resultList);
                 }
@@ -352,7 +352,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, Money> samuriResults = CalculateSamuriIncome(ScannerFiles.SamouraiTx0s);
 
                 Display.DisplayWasabiSamuriResults(wasabiResults, samuriResults, out var resultList);
-                if (FilePath != null)
+                if (!string.IsNullOrWhiteSpace(FilePath))
                 {
                     File.WriteAllLines(FilePath, resultList);
                 }
@@ -369,7 +369,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, decimal> samuriResults = CalculateFreshBitcoinsFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
 
                 Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
-                if (FilePath != null)
+                if (!string.IsNullOrWhiteSpace(FilePath))
                 {
                     File.WriteAllLines(FilePath, resultList);
                 }
@@ -402,7 +402,7 @@ namespace Dumplings.Stats
             }
 
             Display.DisplayOtheriWasabiSamuriResults(uniqueCountPercents, out var resultList);
-            if (FilePath != null)
+            if (!string.IsNullOrWhiteSpace(FilePath))
             {
                 File.WriteAllLines(FilePath, resultList);
             }
@@ -465,7 +465,7 @@ namespace Dumplings.Stats
             }
 
             Display.DisplayRecords(mostInputs, mostOutputs, mostInputsAndOutputs, largestVolumes, largestCjEqualities, smallestUnequalOutputs, smallestUnequalInputs, out var resultList);
-            if (FilePath != null)
+            if (!string.IsNullOrWhiteSpace(FilePath))
             {
                 File.WriteAllLines(FilePath, resultList);
             }
@@ -494,7 +494,7 @@ namespace Dumplings.Stats
             {
                 Console.WriteLine(line);
             }
-            if (FilePath != null)
+            if (!string.IsNullOrWhiteSpace(FilePath))
             {
                 File.WriteAllLines(FilePath, resultList);
             }
@@ -509,7 +509,7 @@ namespace Dumplings.Stats
                 IDictionary<YearMonth, int> samuriResults = CalculateAverageUserCounts(ScannerFiles.SamouraiCoinJoins);
 
                 Display.DisplayOtheriWasabiSamuriResults(otheriResults, null, wasabiResults, samuriResults, out var resultList);
-                if (FilePath != null)
+                if (!string.IsNullOrWhiteSpace(FilePath))
                 {
                     File.WriteAllLines(FilePath, resultList);
                 }
@@ -525,7 +525,7 @@ namespace Dumplings.Stats
                 IDictionary<YearMonth, Money> samuriResults = CalculateAverageNetworkFeePaidByUserPerCoinjoin(ScannerFiles.SamouraiCoinJoins);
 
                 Display.DisplayOtheriWasabiSamuriResults(otheriResults, wasabiResults, samuriResults, out var resultList);
-                if (FilePath != null)
+                if (!string.IsNullOrWhiteSpace(FilePath))
                 {
                     File.WriteAllLines(FilePath, resultList);
                 }
@@ -607,7 +607,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonthDay, decimal> samuriResults = CalculateFreshBitcoinsDailyFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
 
                 Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
-                if (FilePath != null)
+                if (!string.IsNullOrWhiteSpace(FilePath))
                 {
                     File.WriteAllLines(FilePath, resultList);
                 }
@@ -1269,7 +1269,7 @@ namespace Dumplings.Stats
                 Dictionary<YearMonth, decimal> otheriResults = CalculateCoinJoinsPerMonth(ScannerFiles.OtherCoinJoins);
 
                 Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
-                if (FilePath != null)
+                if (!string.IsNullOrWhiteSpace(FilePath))
                 {
                     File.WriteAllLines(FilePath, resultList);
                 }
@@ -1362,7 +1362,7 @@ namespace Dumplings.Stats
                     sb.Clear();
                 }
 
-                if (FilePath != null)
+                if (!string.IsNullOrWhiteSpace(FilePath))
                 {
                     File.WriteAllLines(FilePath, resultList);
                 }
@@ -1426,7 +1426,7 @@ namespace Dumplings.Stats
                     sb.Clear();
                 }
 
-                if (FilePath != null)
+                if (!string.IsNullOrWhiteSpace(FilePath))
                 {
                     File.WriteAllLines(FilePath, resultList);
                 }
