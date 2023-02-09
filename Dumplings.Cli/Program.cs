@@ -70,6 +70,10 @@ namespace Dumplings.Cli
                     {
                         stat.CalculateAndUploadMonthlyVolumes();
                     }
+                    else if (command == Command.DailyVolumes)
+                    {
+                        stat.CalculateAndUploadDailyVolumes();
+                    }
                     else if (command == Command.FreshBitcoins)
                     {
                         stat.CalculateAndUploadFreshBitcoins();

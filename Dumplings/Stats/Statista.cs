@@ -46,6 +46,51 @@ namespace Dumplings.Stats
             }
         }
 
+        public void CalculateAndUploadDailyVolumes()
+        {
+            using (BenchmarkLogger.Measure())
+            {
+                Dictionary<YearMonthDay, decimal> otheriResults = CalculateDailyVolumes(ScannerFiles.OtherCoinJoins);
+                Dictionary<YearMonthDay, decimal> wasabiResults = CalculateDailyVolumes(ScannerFiles.WasabiCoinJoins);
+                Dictionary<YearMonthDay, decimal> wasabi2Results = CalculateDailyVolumes(ScannerFiles.Wasabi2CoinJoins);
+                Dictionary<YearMonthDay, decimal> samuriResults = CalculateDailyVolumes(ScannerFiles.SamouraiCoinJoins);
+
+                Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
+                if (FilePath != null)
+                {
+                    File.WriteAllLines(FilePath, resultList);
+                }
+                UploadToDatabase("DailyVolumes", wasabiResults, wasabi2Results, samuriResults, otheriResults);
+            }
+        }
+
+        private Dictionary<YearMonthDay, decimal> CalculateDailyVolumes(IEnumerable<VerboseTransactionInfo> txs)
+        {
+            var myDic = new Dictionary<YearMonthDay, decimal>();
+
+            foreach (var tx in txs)
+            {
+                var blockTime = tx.BlockInfo.BlockTime;
+                if (blockTime.HasValue)
+                {
+                    var blockTimeValue = blockTime.Value;
+                    var yearMonthDay = new YearMonthDay(blockTimeValue.Year, blockTimeValue.Month, blockTimeValue.Day);
+
+                    decimal sum = tx.Outputs.Sum(x => x.Value.ToDecimal(MoneyUnit.BTC));
+                    if (myDic.TryGetValue(yearMonthDay, out decimal current))
+                    {
+                        myDic[yearMonthDay] = current + sum;
+                    }
+                    else
+                    {
+                        myDic.Add(yearMonthDay, sum);
+                    }
+                }
+            }
+
+            return myDic;
+        }
+
         private void UploadToDatabase(string table, Dictionary<YearMonthDay, decimal> wasabiResults, Dictionary<YearMonthDay, decimal> wasabi2Results, Dictionary<YearMonthDay, decimal> samuriResults, Dictionary<YearMonthDay, decimal> otheriResults)
         {
             MySqlConnection conn = Connect.InitDb();
@@ -1392,6 +1437,8 @@ namespace Dumplings.Stats
         {
             Console.WriteLine("Uploading MonthlyVolumes...");
             CalculateAndUploadMonthlyVolumes();
+            Console.WriteLine("Upload complete! Uploading DailyVolumes...");
+            CalculateAndUploadDailyVolumes();
             Console.WriteLine("Upload complete! Uploading FreshBitcoins...");
             CalculateAndUploadFreshBitcoins();
             Console.WriteLine("Upload complete! Uploading FreshBitcoinsDaily...");
