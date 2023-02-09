@@ -29,12 +29,19 @@ namespace Dumplings.Cli
             {
                 UserPassword = rpcCred
             };
+            var outputFolder = GetOutputFolder(args);
+            string filePath = null;
+            if (!string.IsNullOrEmpty(outputFolder))
+            {
+                Directory.CreateDirectory(outputFolder);
+                filePath = Path.Combine(outputFolder, $"Dump{DateTime.Now:yyMMdd_HHmmss}.txt");
+                Console.WriteLine($"Outfolder set to: {filePath}");
+            }
 
             var client = new RPCClient(rpcConf, host, Network.Main);
 
             using (BenchmarkLogger.Measure(operationName: $"{command} Command"))
             {
-                var outputFolder = GetOutputFolder(args);
                 try
                 {
                     if (command == Command.Resync)
@@ -48,13 +55,6 @@ namespace Dumplings.Cli
                         await scanner.ScanAsync(rescan: false);
                     }
 
-                    string filePath = null;
-                    if (!string.IsNullOrEmpty(outputFolder))
-                    {
-                        Directory.CreateDirectory(outputFolder);
-                        filePath = Path.Combine(outputFolder, $"Dump{DateTime.Now:yyMMdd_HHmmss}.txt");
-                        Console.WriteLine($"Outfolder set to: {filePath}");
-                    }
                     var loadedScannerFiles = Scanner.Load();
                     var stat = new Statista(loadedScannerFiles, client, filePath);
 
