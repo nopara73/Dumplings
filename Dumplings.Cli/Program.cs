@@ -53,6 +53,7 @@ namespace Dumplings.Cli
                     {
                         Directory.CreateDirectory(outputFolder);
                         filePath = Path.Combine(outputFolder, $"Dump{DateTime.Now:yyMMdd_HHmmss}.txt");
+                        Console.WriteLine($"Outfolder set to: {filePath}");
                     }
                     var loadedScannerFiles = Scanner.Load();
                     var stat = new Statista(loadedScannerFiles, client, filePath);
