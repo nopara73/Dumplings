@@ -252,7 +252,7 @@ namespace Dumplings.Displaying
                 {
                     samuri = 0;
                 }
-                resultList.Add($"{yearMonth};{otheri:0};{wasabi2:0};{wasabi:0};{samuri:0}");
+                resultList.Add($"{yearMonth};{otheri:0};{wasabi:0};{wasabi2:0};{samuri:0}");
             }
             foreach (var line in resultList)
             {
@@ -291,7 +291,7 @@ namespace Dumplings.Displaying
                 {
                     samuri = 0;
                 }
-                resultList.Add($"{yearMonth};{otheri:0};{wasabi2:0};{wasabi:0};{samuri:0}");
+                resultList.Add($"{yearMonth};{otheri:0};{wasabi:0};{wasabi2:0};{samuri:0}");
             }
             foreach (var line in resultList)
             {
@@ -303,7 +303,7 @@ namespace Dumplings.Displaying
         {
             resultList = new List<string>();
 
-            resultList.Add($"Month;Otheri;Wasabi2;Wasabi;Samuri");
+            resultList.Add($"Month;Otheri;Wasabi;Wasabi2;Samuri");
 
             foreach (var yearMonth in wasabi2Results
                 .Keys
@@ -330,7 +330,7 @@ namespace Dumplings.Displaying
                 {
                     samuri = Money.Zero;
                 }
-                resultList.Add($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi2.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
+                resultList.Add($"{yearMonth};{otheri.ToDecimal(MoneyUnit.BTC):0};{wasabi.ToDecimal(MoneyUnit.BTC):0};{wasabi2.ToDecimal(MoneyUnit.BTC):0};{samuri.ToDecimal(MoneyUnit.BTC):0}");
             }
             foreach (var line in resultList)
             {
@@ -342,7 +342,7 @@ namespace Dumplings.Displaying
         {
             resultList = new List<string>();
 
-            resultList.Add($"Month;Otheri;Wasabi2;Wasabi;Samuri");
+            resultList.Add($"Month;Otheri;Wasabi;Wasabi2;Samuri");
 
             foreach (var yearMonthDay in wasabi2Results
                 .Keys
@@ -370,7 +370,7 @@ namespace Dumplings.Displaying
                 {
                     samuri = 0;
                 }
-                resultList.Add($"{yearMonthDay};{otheri:0};{wasabi:0};{wasabi:0};{samuri:0}");
+                resultList.Add($"{yearMonthDay};{otheri:0};{wasabi:0};{wasabi2:0};{samuri:0}");
             }
             foreach (var line in resultList)
             {
