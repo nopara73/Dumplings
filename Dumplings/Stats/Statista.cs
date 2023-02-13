@@ -100,7 +100,6 @@ namespace Dumplings.Stats
             {
                 return;
             }
-            Logger.LogInfo($"Connection opened with connection string: {ConnectionString}.");
             foreach (var yearMonthDay in wasabi2Results
             .Keys
             .Concat(otheriResults.Keys)
@@ -190,7 +189,6 @@ namespace Dumplings.Stats
             {
                 return;
             }
-            Logger.LogInfo($"Connection opened with connection string: {ConnectionString}.");
             foreach (var yearMonth in wasabi2Results
             .Keys
             .Concat(otheriResults.Keys)
