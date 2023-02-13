@@ -10,7 +10,7 @@ set -e
 # The following variables need to be imported from the config file:
 
 # RPCUSER & RPCPASSWD = RPC credentials for Bitcoin Kntos,
-# CONN = Connection string to database.
+# CONN = Connection string to database. ("Server=myServerAddress;Database=myDataBase;Uid=myUsername;Pwd=myPassword;")
 
 source Config.txt
 
