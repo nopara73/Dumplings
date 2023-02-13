@@ -1,36 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Dumplings.Helpers;
 using MySql.Data.MySqlClient;
-
 
 namespace Dumplings.Cli
 {
     internal class Connect
     {
-        public const string server = "178.238.222.15";
-        public const string user = "creati14_wasabi";
-        public const string psw = "rMgv[egZw};1";
-        public const string db = "creati14_wasabi";
-
-        public static MySqlConnection InitDb()
+        public static MySqlConnection InitDb(string connectionString)
         {
-            MySqlConnectionStringBuilder builder = new MySqlConnectionStringBuilder();
-            builder.Server = server;
-            builder.UserID = user;
-            builder.Password = psw;
-            builder.Database = db;
-            string conn = builder.ToString();
             try
             {
-                return new MySqlConnection(conn);
+                return new MySqlConnection(connectionString);
             }
-            catch (MySqlException err)
+            catch (MySqlException exc)
             {
-                Console.WriteLine("Nem sikerült a kapcsolat" + err.Message);
-                return default(MySqlConnection);
+                Logger.LogError(exc, $"Couldn't connect to database with provided connection string.\n The string was: '{connectionString}'.");
+                return null;
             }
-
         }
     }
 }

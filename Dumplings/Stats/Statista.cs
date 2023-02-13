@@ -17,16 +17,18 @@ namespace Dumplings.Stats
 {
     public class Statista
     {
-        public Statista(ScannerFiles scannerFiles, RPCClient rpc, string filePath)
+        public Statista(ScannerFiles scannerFiles, RPCClient rpc, string filePath, string connString)
         {
             ScannerFiles = scannerFiles;
             Rpc = rpc;
             FilePath = filePath;
+            ConnectionString = connString;
         }
 
         public RPCClient Rpc { get; }
         public ScannerFiles ScannerFiles { get; }
         public string FilePath { get; }
+        public string ConnectionString { get; }
 
         public void CalculateAndUploadMonthlyVolumes()
         {
@@ -93,7 +95,7 @@ namespace Dumplings.Stats
 
         private void UploadToDatabase(string table, Dictionary<YearMonthDay, decimal> wasabiResults, Dictionary<YearMonthDay, decimal> wasabi2Results, Dictionary<YearMonthDay, decimal> samuriResults, Dictionary<YearMonthDay, decimal> otheriResults)
         {
-            MySqlConnection conn = Connect.InitDb();
+            MySqlConnection conn = Connect.InitDb(ConnectionString);
             foreach (var yearMonthDay in wasabi2Results
             .Keys
             .Concat(otheriResults.Keys)
@@ -178,7 +180,11 @@ namespace Dumplings.Stats
 
         private void UploadToDatabase(string table, Dictionary<YearMonth, decimal> wasabiResults, Dictionary<YearMonth, decimal> wasabi2Results, Dictionary<YearMonth, decimal> samuriResults, Dictionary<YearMonth, decimal> otheriResults)
         {
-            MySqlConnection conn = Connect.InitDb();
+            MySqlConnection conn = Connect.InitDb(ConnectionString);
+            if (conn == null)
+            {
+                return;
+            }
             foreach (var yearMonth in wasabi2Results
             .Keys
             .Concat(otheriResults.Keys)

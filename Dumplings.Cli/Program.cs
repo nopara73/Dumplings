@@ -23,7 +23,7 @@ namespace Dumplings.Cli
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
             Logger.LogInfo("Parsing arguments...");
-            ParseArgs(args, out Command command, out NetworkCredential rpcCred, out var host);
+            ParseArgs(args, out Command command, out NetworkCredential rpcCred, out var host, out string connString);
 
             var rpcConf = new RPCCredentialString
             {
@@ -56,7 +56,7 @@ namespace Dumplings.Cli
                     }
 
                     var loadedScannerFiles = Scanner.Load();
-                    var stat = new Statista(loadedScannerFiles, client, filePath);
+                    var stat = new Statista(loadedScannerFiles, client, filePath, connString);
 
                     if (command == Command.Check)
                     {
@@ -211,16 +211,18 @@ namespace Dumplings.Cli
             return folderPath;
         }
 
-        private static void ParseArgs(string[] args, out Command command, out NetworkCredential cred, out string host)
+        private static void ParseArgs(string[] args, out Command command, out NetworkCredential cred, out string host, out string connString)
         {
             string rpcUser = null;
             string rpcPassword = null;
+            connString = null;
             host = null;
             command = (Command)Enum.Parse(typeof(Command), args[0], ignoreCase: true);
 
             var rpcUserArg = "--rpcuser=";
             var rpcPasswordArg = "--rpcpassword=";
             var hostArg = "--host=";
+            var connStringArg = "--conn=";
             foreach (var arg in args)
             {
                 var idx = arg.IndexOf(rpcUserArg, StringComparison.Ordinal);
@@ -239,6 +241,12 @@ namespace Dumplings.Cli
                 if (idx == 0)
                 {
                     host = arg.Substring(idx + hostArg.Length).Trim();
+                }
+
+                idx = arg.IndexOf(connStringArg, StringComparison.Ordinal);
+                if (idx == 0)
+                {
+                    connString = arg.Substring(idx + connStringArg.Length).Trim();
                 }
             }
 
