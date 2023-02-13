@@ -44,12 +44,12 @@ namespace Dumplings.Cli
             {
                 try
                 {
-                    if (command == Command.Resync)
+                    if (GetShouldSync(args))
                     {
                         var scanner = new Scanner(client);
                         await scanner.ScanAsync(rescan: true);
                     }
-                    else
+                    else if (GetShouldResync(args))
                     {
                         var scanner = new Scanner(client);
                         await scanner.ScanAsync(rescan: false);
@@ -184,6 +184,32 @@ namespace Dumplings.Cli
             foreach (var arg in args)
             {
                 if (arg.Contains("--nowaitonexit", StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool GetShouldSync(string[] args)
+        {
+            foreach (var arg in args)
+            {
+                if (arg.Contains("--sync", StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool GetShouldResync(string[] args)
+        {
+            foreach (var arg in args)
+            {
+                if (arg.Contains("--resync", StringComparison.Ordinal))
                 {
                     return true;
                 }
