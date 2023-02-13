@@ -96,6 +96,11 @@ namespace Dumplings.Stats
         private void UploadToDatabase(string table, Dictionary<YearMonthDay, decimal> wasabiResults, Dictionary<YearMonthDay, decimal> wasabi2Results, Dictionary<YearMonthDay, decimal> samuriResults, Dictionary<YearMonthDay, decimal> otheriResults)
         {
             using MySqlConnection conn = Connect.InitDb(ConnectionString);
+            if (conn == null)
+            {
+                return;
+            }
+            Logger.LogInfo($"Connection opened with connection string: {ConnectionString}.");
             foreach (var yearMonthDay in wasabi2Results
             .Keys
             .Concat(otheriResults.Keys)
@@ -185,6 +190,7 @@ namespace Dumplings.Stats
             {
                 return;
             }
+            Logger.LogInfo($"Connection opened with connection string: {ConnectionString}.");
             foreach (var yearMonth in wasabi2Results
             .Keys
             .Concat(otheriResults.Keys)
