@@ -95,7 +95,7 @@ namespace Dumplings.Stats
 
         private void UploadToDatabase(string table, Dictionary<YearMonthDay, decimal> wasabiResults, Dictionary<YearMonthDay, decimal> wasabi2Results, Dictionary<YearMonthDay, decimal> samuriResults, Dictionary<YearMonthDay, decimal> otheriResults)
         {
-            MySqlConnection conn = Connect.InitDb(ConnectionString);
+            using MySqlConnection conn = Connect.InitDb(ConnectionString);
             foreach (var yearMonthDay in wasabi2Results
             .Keys
             .Concat(otheriResults.Keys)
@@ -124,11 +124,11 @@ namespace Dumplings.Stats
                 }
 
                 string check = $"CALL check{table}(@d);";
-                MySqlCommand comm = new MySqlCommand(check, conn);
+                using MySqlCommand comm = new MySqlCommand(check, conn);
                 comm.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonthDay}"));
                 comm.Parameters["@d"].Direction = ParameterDirection.Input;
                 conn.Open();
-                MySqlDataReader reader = comm.ExecuteReader();
+                using MySqlDataReader reader = comm.ExecuteReader();
                 bool write = false;
                 while (reader.Read())
                 {
@@ -142,7 +142,7 @@ namespace Dumplings.Stats
                 if (write)
                 {
                     string sql = $"CALL store{table}(@d,@w,@w2,@s,@o);";
-                    MySqlCommand cmd = new MySqlCommand(sql, conn);
+                    using MySqlCommand cmd = new MySqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonthDay}"));
                     cmd.Parameters["@d"].Direction = ParameterDirection.Input;
                     cmd.Parameters.AddWithValue("@w", wasabi);
@@ -160,7 +160,7 @@ namespace Dumplings.Stats
                 else
                 {
                     string sql = $"CALL update{table}(@d,@w,@w2,@s,@o);";
-                    MySqlCommand cmd = new MySqlCommand(sql, conn);
+                    using MySqlCommand cmd = new MySqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonthDay}"));
                     cmd.Parameters["@d"].Direction = ParameterDirection.Input;
                     cmd.Parameters.AddWithValue("@w", wasabi);
@@ -180,7 +180,7 @@ namespace Dumplings.Stats
 
         private void UploadToDatabase(string table, Dictionary<YearMonth, decimal> wasabiResults, Dictionary<YearMonth, decimal> wasabi2Results, Dictionary<YearMonth, decimal> samuriResults, Dictionary<YearMonth, decimal> otheriResults)
         {
-            MySqlConnection conn = Connect.InitDb(ConnectionString);
+            using MySqlConnection conn = Connect.InitDb(ConnectionString);
             if (conn == null)
             {
                 return;
@@ -212,11 +212,11 @@ namespace Dumplings.Stats
                 }
 
                 string check = $"CALL check{table}(@d);";
-                MySqlCommand comm = new MySqlCommand(check, conn);
+                using MySqlCommand comm = new MySqlCommand(check, conn);
                 comm.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
                 comm.Parameters["@d"].Direction = ParameterDirection.Input;
                 conn.Open();
-                MySqlDataReader reader = comm.ExecuteReader();
+                using MySqlDataReader reader = comm.ExecuteReader();
                 bool write = false;
                 while (reader.Read())
                 {
@@ -230,7 +230,7 @@ namespace Dumplings.Stats
                 if (write)
                 {
                     string sql = $"CALL store{table}(@d,@w,@w2,@s,@o);";
-                    MySqlCommand cmd = new MySqlCommand(sql, conn);
+                    using MySqlCommand cmd = new MySqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
                     cmd.Parameters["@d"].Direction = ParameterDirection.Input;
                     cmd.Parameters.AddWithValue("@w", wasabi);
@@ -248,7 +248,7 @@ namespace Dumplings.Stats
                 else
                 {
                     string sql = $"CALL update{table}(@d,@w,@w2,@s,@o);";
-                    MySqlCommand cmd = new MySqlCommand(sql, conn);
+                    using MySqlCommand cmd = new MySqlCommand(sql, conn);
                     cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{yearMonth}"));
                     cmd.Parameters["@d"].Direction = ParameterDirection.Input;
                     cmd.Parameters.AddWithValue("@w", wasabi);
