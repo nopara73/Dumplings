@@ -47,12 +47,12 @@ namespace Dumplings.Cli
                     if (GetShouldSync(args))
                     {
                         var scanner = new Scanner(client);
-                        await scanner.ScanAsync(rescan: true);
+                        await scanner.ScanAsync(rescan: false);
                     }
                     else if (GetShouldResync(args))
                     {
                         var scanner = new Scanner(client);
-                        await scanner.ScanAsync(rescan: false);
+                        await scanner.ScanAsync(rescan: true);
                     }
 
                     var loadedScannerFiles = Scanner.Load();
