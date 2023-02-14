@@ -6,8 +6,6 @@ namespace Dumplings.Cli
 {
     public enum Command
     {
-        Sync,                       // Syncs the Scanner files from where it was left off.
-        Resync,                     // Resync the Scanner files from Wasabi's launch.
         Check,                      // Cross checks the Scanner files to make sure of no bugs.
         MonthlyVolumes,             // Calculate the monthly volumes of different kind of coinjoins.
         FreshBitcoins,              // Calculate how much previously not coinjoined bitcoins come to different kind of coinjoins monthly.
@@ -25,7 +23,10 @@ namespace Dumplings.Cli
         UniqueCountPercent,
         ListFreshBitcoins,          // Lists fresh bitcoins by wallet.
         UnspentCapacity,
-        WasabiCoordStats,          // Calculate the monthly volumes of different kind of coinjoins of equal values.
-        WabiSabiCoordStats         // Calculate the monthly volumes of different kind of WabiSabi coinjoins of equal values.
+        WasabiCoordStats,           // Calculate the monthly volumes of different kind of coinjoins of equal values.
+        WabiSabiCoordStats,         // Calculate the monthly volumes of different kind of WabiSabi coinjoins of equal values.
+        CountCoinJoins,
+        Upload,                      // Upload data to Database.
+        DailyVolumes
     }
 }
