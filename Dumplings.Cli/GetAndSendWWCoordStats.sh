@@ -17,7 +17,7 @@ set -e
 source Config.txt
 
 echo "Getting Coordinator Stats"
-dotnet run -c Release -- WasabiCoordStats --xpub=$WW1XPUBS --rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD --outfolder=$OUTFOLDER --nowaitonexit
+dotnet run -c Release -- WasabiCoordStats --xpub=$WW1XPUBS --rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD --outfolder=$OUTFOLDER --nowaitonexit --sync
 dotnet run -c Release -- WabiSabiCoordStats --xpub=$WW2XPUBS --rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD --outfolder=$OUTFOLDER --nowaitonexit
 
 echo "Script Ended!"
