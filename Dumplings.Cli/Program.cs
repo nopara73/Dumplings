@@ -34,8 +34,8 @@ namespace Dumplings.Cli
             if (!string.IsNullOrEmpty(outputFolder))
             {
                 Directory.CreateDirectory(outputFolder);
-                filePath = Path.Combine(outputFolder, $"Dump{DateTime.Now:yyMMdd_HHmmss}.txt");
-                Console.WriteLine($"Outfolder set to: {filePath}");
+                filePath = Path.Combine(outputFolder, $"{command}_{DateTime.Now:yyMMdd_HHmmss}.txt");
+                Console.WriteLine($"Output will be written to: {filePath}");
             }
 
             var client = new RPCClient(rpcConf, host, Network.Main);

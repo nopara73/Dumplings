@@ -15,6 +15,6 @@ set -e
 source Config.txt
 
 echo "Starting Upload Script!"
-dotnet run -c Release -- Upload --rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD --conn=$CONN --nowaitonexit
+dotnet run -c Release -- Upload --rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD --conn=$CONN --nowaitonexit --sync &>> /home/dumplings/Logs.txt
 
 echo "Script Ended!"
