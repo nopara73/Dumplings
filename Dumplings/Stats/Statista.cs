@@ -1267,6 +1267,10 @@ namespace Dumplings.Stats
             string line = $"{prevYMD}\t{ucWW2.ToString(false, false)}\t{ucWW1.ToString(false, false)}\t{ucSW.ToString(false, false)}";
             resultList.Add(line);
             Console.WriteLine(line);
+            if (!string.IsNullOrWhiteSpace(FilePath))
+            {
+                File.WriteAllLines(FilePath, resultList);
+            }
         }
 
         public void CalculateAndUploadMonthlyCoinJoins()
