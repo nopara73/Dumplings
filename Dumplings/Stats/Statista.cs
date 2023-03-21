@@ -373,10 +373,11 @@ namespace Dumplings.Stats
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonth, decimal> otheriResults = CalculateFreshBitcoins(ScannerFiles.OtherCoinJoins);
-                Dictionary<YearMonth, decimal> wasabi2Results = CalculateFreshBitcoins(ScannerFiles.Wasabi2CoinJoins);
-                Dictionary<YearMonth, decimal> wasabiResults = CalculateFreshBitcoins(ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonth, decimal> samuriResults = CalculateFreshBitcoinsFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
+                var wasabiPostMixHashes = ScannerFiles.WasabiPostMixTxHashes.Concat(ScannerFiles.Wasabi2PostMixTxHashes).ToHashSet();
+                Dictionary<YearMonth, decimal> otheriResults = CalculateFreshBitcoins(ScannerFiles.OtherCoinJoins, ScannerFiles.OtherCoinJoinPostMixTxHashes.ToHashSet());
+                Dictionary<YearMonth, decimal> wasabi2Results = CalculateFreshBitcoins(ScannerFiles.Wasabi2CoinJoins, wasabiPostMixHashes);
+                Dictionary<YearMonth, decimal> wasabiResults = CalculateFreshBitcoins(ScannerFiles.WasabiCoinJoins, wasabiPostMixHashes);
+                Dictionary<YearMonth, decimal> samuriResults = CalculateFreshBitcoinsFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes, ScannerFiles.SamouraiPostMixTxHashes.ToHashSet());
 
                 Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
                 if (!string.IsNullOrWhiteSpace(FilePath))
@@ -611,10 +612,11 @@ namespace Dumplings.Stats
         {
             using (BenchmarkLogger.Measure())
             {
-                Dictionary<YearMonthDay, decimal> otheriResults = CalculateFreshBitcoinsDaily(ScannerFiles.OtherCoinJoins);
-                Dictionary<YearMonthDay, decimal> wasabiResults = CalculateFreshBitcoinsDaily(ScannerFiles.WasabiCoinJoins);
-                Dictionary<YearMonthDay, decimal> wasabi2Results = CalculateFreshBitcoinsDaily(ScannerFiles.Wasabi2CoinJoins);
-                Dictionary<YearMonthDay, decimal> samuriResults = CalculateFreshBitcoinsDailyFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes);
+                var wasabiPostMixHashes = ScannerFiles.WasabiPostMixTxHashes.Concat(ScannerFiles.Wasabi2PostMixTxHashes).ToHashSet();
+                Dictionary<YearMonthDay, decimal> otheriResults = CalculateFreshBitcoinsDaily(ScannerFiles.OtherCoinJoins, ScannerFiles.OtherCoinJoinPostMixTxHashes.ToHashSet());
+                Dictionary<YearMonthDay, decimal> wasabiResults = CalculateFreshBitcoinsDaily(ScannerFiles.WasabiCoinJoins, wasabiPostMixHashes);
+                Dictionary<YearMonthDay, decimal> wasabi2Results = CalculateFreshBitcoinsDaily(ScannerFiles.Wasabi2CoinJoins, wasabiPostMixHashes);
+                Dictionary<YearMonthDay, decimal> samuriResults = CalculateFreshBitcoinsDailyFromTX0s(ScannerFiles.SamouraiTx0s, ScannerFiles.SamouraiCoinJoinHashes, ScannerFiles.SamouraiPostMixTxHashes.ToHashSet());
 
                 Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
                 if (!string.IsNullOrWhiteSpace(FilePath))
@@ -677,10 +679,10 @@ namespace Dumplings.Stats
             return myDic;
         }
 
-        private Dictionary<YearMonth, decimal> CalculateFreshBitcoins(IEnumerable<VerboseTransactionInfo> txs)
+        private Dictionary<YearMonth, decimal> CalculateFreshBitcoins(IEnumerable<VerboseTransactionInfo> txs, ISet<uint256> doesntCount)
         {
             var myDic = new Dictionary<YearMonth, decimal>();
-            foreach (var day in CalculateFreshBitcoinsDaily(txs))
+            foreach (var day in CalculateFreshBitcoinsDaily(txs, doesntCount))
             {
                 var yearMonth = day.Key.ToYearMonth();
                 decimal sum = day.Value;
@@ -696,10 +698,10 @@ namespace Dumplings.Stats
             return myDic;
         }
 
-        private Dictionary<YearMonth, decimal> CalculateFreshBitcoinsFromTX0s(IEnumerable<VerboseTransactionInfo> tx0s, IEnumerable<uint256> cjHashes)
+        private Dictionary<YearMonth, decimal> CalculateFreshBitcoinsFromTX0s(IEnumerable<VerboseTransactionInfo> tx0s, IEnumerable<uint256> cjHashes, ISet<uint256> doesntCount)
         {
             var myDic = new Dictionary<YearMonth, decimal>();
-            foreach (var day in CalculateFreshBitcoinsDailyFromTX0s(tx0s, cjHashes))
+            foreach (var day in CalculateFreshBitcoinsDailyFromTX0s(tx0s, cjHashes, doesntCount))
             {
                 var yearMonth = day.Key.ToYearMonth();
                 decimal sum = day.Value;
@@ -715,10 +717,10 @@ namespace Dumplings.Stats
             return myDic;
         }
 
-        private Dictionary<YearMonthDay, decimal> CalculateFreshBitcoinsDaily(IEnumerable<VerboseTransactionInfo> txs)
+        private Dictionary<YearMonthDay, decimal> CalculateFreshBitcoinsDaily(IEnumerable<VerboseTransactionInfo> txs, ISet<uint256> doesntCount)
         {
             var myDic = new Dictionary<YearMonthDay, decimal>();
-            var txHashes = txs.Select(x => x.Id).ToHashSet();
+            var txHashes = txs.Select(x => x.Id).Concat(doesntCount).ToHashSet();
 
             foreach (var tx in txs)
             {
@@ -748,11 +750,11 @@ namespace Dumplings.Stats
             return myDic;
         }
 
-        private Dictionary<YearMonthDay, decimal> CalculateFreshBitcoinsDailyFromTX0s(IEnumerable<VerboseTransactionInfo> tx0s, IEnumerable<uint256> cjHashes)
+        private Dictionary<YearMonthDay, decimal> CalculateFreshBitcoinsDailyFromTX0s(IEnumerable<VerboseTransactionInfo> tx0s, IEnumerable<uint256> cjHashes, ISet<uint256> doesntCount)
         {
             var myDic = new Dictionary<YearMonthDay, decimal>();
             // In Samourai in order to identify fresh bitcoins the tx0 input shouldn't come from other samuri coinjoins, nor tx0s.
-            var txHashes = tx0s.Select(x => x.Id).Union(cjHashes).ToHashSet();
+            var txHashes = tx0s.Select(x => x.Id).Union(cjHashes).Union(doesntCount).ToHashSet();
 
             foreach (var tx in tx0s)
             {
