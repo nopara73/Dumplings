@@ -1250,17 +1250,14 @@ namespace Dumplings.Stats
                     {
                         if (ScannerFiles.WasabiCoinJoinHashes.Contains(tx.Id))
                         {
-                            Console.WriteLine("Wasabi coinjoin tx:" + tx.Id);
                             ucWW1 += o.Value;
                         }
                         else if (ScannerFiles.Wasabi2CoinJoinHashes.Contains(tx.Id))
                         {
-                            Console.WriteLine("WabiSabi coinjoin tx:" + tx.Id);
                             ucWW2 += o.Value;
                         }
                         else if (ScannerFiles.SamouraiCoinJoinHashes.Contains(tx.Id))
                         {
-                            Console.WriteLine("Samuri coinjoin tx:" + tx.Id);
                             ucSW += o.Value;
                         }
                     }
