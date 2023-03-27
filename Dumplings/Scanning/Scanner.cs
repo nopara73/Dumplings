@@ -129,7 +129,7 @@ namespace Dumplings.Scanning
                             if (block.Height >= Constants.FirstWasabi2Block)
                             {
                                 isWasabi2Cj =
-                                    isNativeSegwitOnly
+                                    tx.Inputs.All(x => x.PrevOutput.ScriptPubKey.IsScriptType(ScriptType.P2WPKH) || x.PrevOutput.ScriptPubKey.IsScriptType(ScriptType.Taproot))
                                     && inputCount >= 50 // 50 was the minimum input count at the beginning of Wasabi 2.
                                     && inputValues.SequenceEqual(inputValues.OrderByDescending(x => x)) // Inputs are ordered descending.
                                     && outputValues.SequenceEqual(outputValues.OrderByDescending(x => x)) // Outputs are ordered descending.
