@@ -327,8 +327,8 @@ namespace Dumplings.Stats
             using (BenchmarkLogger.Measure())
             {
                 Dictionary<YearMonth, decimal> otheriResults = CalculateAveragePostMixInputs(ScannerFiles.OtherCoinJoinPostMixTxs);
-                Dictionary<YearMonth, decimal> wasabiResults = CalculateAveragePostMixInputs(ScannerFiles.WasabiPostMixTxs);
-                Dictionary<YearMonth, decimal> wasabi2Results = CalculateAveragePostMixInputs(ScannerFiles.Wasabi2PostMixTxs);
+                Dictionary<YearMonth, decimal> wasabiResults = CalculateAveragePostMixInputs(ScannerFiles.WasabiPostMixTxs.Where(x => !ScannerFiles.Wasabi2CoinJoinHashes.Contains(x.Id)));
+                Dictionary<YearMonth, decimal> wasabi2Results = CalculateAveragePostMixInputs(ScannerFiles.Wasabi2PostMixTxs.Where(x => !ScannerFiles.WasabiCoinJoinHashes.Contains(x.Id)));
                 Dictionary<YearMonth, decimal> samuriResults = CalculateAveragePostMixInputs(ScannerFiles.SamouraiPostMixTxs);
 
                 Display.DisplayOtheriWasabiWabiSabiSamuriResults(otheriResults, wasabiResults, wasabi2Results, samuriResults, out var resultList);
