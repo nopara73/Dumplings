@@ -270,6 +270,64 @@ namespace Dumplings.Stats
             }
         }
 
+        private void UploadToDatabase(string table, YearMonthDay date, Money wasabiUnspentCapacity, Money wabiSabiUnspentCapacity, Money samuriUnspentCapacity)
+        {
+            using MySqlConnection conn = Connect.InitDb(ConnectionString);
+            if (conn == null)
+            {
+                return;
+            }
+
+            string check = $"CALL check{table}(@d);";
+            using MySqlCommand comm = new MySqlCommand(check, conn);
+            comm.Parameters.AddWithValue("@d", DateTime.Parse($"{date}"));
+            comm.Parameters["@d"].Direction = ParameterDirection.Input;
+            conn.Open();
+            using MySqlDataReader reader = comm.ExecuteReader();
+            bool write = false;
+            while (reader.Read())
+            {
+                if (reader[0].ToString() == "0")
+                {
+                    write = true;
+                }
+            }
+            reader.Close();
+            conn.Close();
+            if (write)
+            {
+                string sql = $"CALL store{table}(@d,@w,@w2,@s);";
+                using MySqlCommand cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{date}"));
+                cmd.Parameters["@d"].Direction = ParameterDirection.Input;
+                cmd.Parameters.AddWithValue("@w", wasabiUnspentCapacity);
+                cmd.Parameters["@w"].Direction = ParameterDirection.Input;
+                cmd.Parameters.AddWithValue("@w2", wabiSabiUnspentCapacity);
+                cmd.Parameters["@w2"].Direction = ParameterDirection.Input;
+                cmd.Parameters.AddWithValue("@s", samuriUnspentCapacity);
+                cmd.Parameters["@s"].Direction = ParameterDirection.Input;
+                conn.Open();
+                int res = cmd.ExecuteNonQuery();
+                conn.Close();
+            }
+            else
+            {
+                string sql = $"CALL update{table}(@d,@w,@w2,@s);";
+                using MySqlCommand cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@d", DateTime.Parse($"{date}"));
+                cmd.Parameters["@d"].Direction = ParameterDirection.Input;
+                cmd.Parameters.AddWithValue("@w", wasabiUnspentCapacity);
+                cmd.Parameters["@w"].Direction = ParameterDirection.Input;
+                cmd.Parameters.AddWithValue("@w2", wabiSabiUnspentCapacity);
+                cmd.Parameters["@w2"].Direction = ParameterDirection.Input;
+                cmd.Parameters.AddWithValue("@s", samuriUnspentCapacity);
+                cmd.Parameters["@s"].Direction = ParameterDirection.Input;
+                conn.Open();
+                int res = cmd.ExecuteNonQuery();
+                conn.Close();
+            }
+        }
+
         public void CalculateMonthlyEqualVolumes()
         {
             using (BenchmarkLogger.Measure())
@@ -1219,7 +1277,7 @@ namespace Dumplings.Stats
             }
         }
 
-        public void CalculateUnspentCapacity(RPCClient rpc)
+        public void CalculateAndUploadUnspentCapacity(RPCClient rpc)
         {
             List<string> resultList = new();
             var ucWW1 = Money.Zero;
@@ -1273,6 +1331,7 @@ namespace Dumplings.Stats
             {
                 File.WriteAllLines(FilePath, resultList);
             }
+            UploadToDatabase("UnspentCapacity", prevYMD, ucWW1, ucWW2, ucSW);
         }
 
         public void CalculateAndUploadMonthlyCoinJoins()
