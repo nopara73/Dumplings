@@ -133,7 +133,7 @@ namespace Dumplings.Cli
                     }
                     else if (command == Command.UnspentCapacity)
                     {
-                        stat.CalculateUnspentCapacity(client);
+                        stat.CalculateAndUploadUnspentCapacity(client);
                     }
                     else if (command == Command.WasabiCoordStats)
                     {
