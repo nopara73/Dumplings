@@ -7,6 +7,8 @@ set -e
 # The following variables need to be imported from the config file:
 
 # RPCUSER & RPCPASSWD = RPC credentials for Bitcoin Kntos,
+# UCOUTFOLDER = Folder where Dumplings can save files with desired data.
+# CONN = Connection string to database. ("Server=myServerAddress;Database=myDataBase;Uid=myUsername;Pwd=myPassword;")
 
 source Config.txt
 
