@@ -169,12 +169,12 @@ namespace Dumplings.Scanning
                                 var poolSizedInputCount = tx.Inputs.Count(x => x.PrevOutput.Value == poolSize);
                                 isSamouraiCj =
                                    isNativeSegwitOnly
-                                   && inputCount == 5 // Always have 5 inputs.
-                                   && outputCount == 5 // Always have 5 outputs.
+                                   && inputCount >= 5 && inputCount <= 10
+                                   && outputCount >= 5 && outputCount <= 10
+                                   && inputCount == outputCount
                                    && outputValues.Distinct().Count() == 1 // Outputs are always equal.
                                    && Constants.SamouraiPools.Any(x => x == poolSize) // Just to be sure match Samourai's pool sizes.
                                    && poolSizedInputCount >= 1
-                                   && poolSizedInputCount <= 3
                                    && tx.Inputs.Where(x => x.PrevOutput.Value != poolSize).All(x => x.PrevOutput.Value.Almost(poolSize, Money.Coins(0.0011m)));
                             }
 
