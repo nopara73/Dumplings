@@ -959,5 +959,38 @@ namespace Dumplings.Stats
 
             Console.WriteLine($"{prevYMD}\t{ucWW2.ToString(false, false)}\t{ucWW1.ToString(false, false)}\t{ucSW.ToString(false, false)}");
         }
+
+        public void CalculateSakeRelevantStats(RPCClient client)
+        {
+            Console.WriteLine("The following statistics apply for the last 3 months.");
+            var today = DateTimeOffset.UtcNow;
+            var threeMonthsAgo = today - TimeSpan.FromDays(90);
+
+            var sample = ScannerFiles
+                .Wasabi2CoinJoins
+                .Where(x => x.BlockInfo.BlockTime > threeMonthsAgo)
+                .ToArray();
+            var wwHashes = ScannerFiles
+                .WasabiCoinJoinHashes
+                .Concat(ScannerFiles.Wasabi2CoinJoinHashes)
+                .Concat(ScannerFiles.Wasabi2CoinJoinHashes)
+                .ToHashSet();
+
+            Console.WriteLine("Freshbitcoin Amounts:");
+
+            foreach (var amount in sample
+                .SelectMany(x => x.Inputs)
+                .Where(x => !wwHashes.Contains(x.OutPoint.Hash))
+                .Select(x => x.PrevOutput.Value))
+            {
+                Console.WriteLine(amount.ToString(false, true));
+            }
+
+            Console.WriteLine($"Median input count: {(int)sample.Median(x => x.Inputs.Count())}");
+            var medianOutputCount = (int)sample.Median(x => x.Outputs.Count());
+            Console.WriteLine($"Median output count: {medianOutputCount}");
+            Console.WriteLine($"Median estimated user count: {(medianOutputCount / 5.6)}");
+            Console.WriteLine($"Median remix ratio: {sample.Median(x => x.Inputs.Count(y => wwHashes.Contains(y.OutPoint.Hash)) / (double)x.Inputs.Count())}");
+        }
     }
 }

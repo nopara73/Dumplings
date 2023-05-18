@@ -141,6 +141,12 @@ namespace Dumplings.Cli
                     var stat = new Statista(loadedScannerFiles);
                     stat.CalculateUnspentCapacity(client);
                 }
+                else if (command == Command.Sake)
+                {
+                    var loadedScannerFiles = Scanner.Load();
+                    var stat = new Statista(loadedScannerFiles);
+                    stat.CalculateSakeRelevantStats(client);
+                }
             }
 
             Console.WriteLine();
