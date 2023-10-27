@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # exit when any command fails
 set -e
@@ -16,8 +16,14 @@ set -e
 
 source Config.txt
 
+if [[ -n "$RPCCOOKIEFILE" ]]; then
+    authparams="--rpccookiefile=$RPCCOOKIEFILE"
+else
+    authparams="--rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD"
+fi
+
 echo "Getting Coordinator Stats"
-dotnet run -c Release -- WasabiCoordStats --xpub=$WW1XPUBS --rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD --outfolder=$OUTFOLDER --nowaitonexit --sync
-dotnet run -c Release -- WabiSabiCoordStats --xpub=$WW2XPUBS --rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD --outfolder=$OUTFOLDER --nowaitonexit
+dotnet run -c Release -- WasabiCoordStats --xpub=$WW1XPUBS $authparams --outfolder=$OUTFOLDER --nowaitonexit --sync
+dotnet run -c Release -- WabiSabiCoordStats --xpub=$WW2XPUBS $authparams --outfolder=$OUTFOLDER --nowaitonexit
 
 echo "Script Ended!"

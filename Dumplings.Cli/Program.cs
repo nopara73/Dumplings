@@ -247,6 +247,7 @@ namespace Dumplings.Cli
 
             var rpcUserArg = "--rpcuser=";
             var rpcPasswordArg = "--rpcpassword=";
+            var rpcCookieFileArg = "--rpccookiefile=";
             var hostArg = "--host=";
             var connStringArg = "--conn=";
             foreach (var arg in args)
@@ -261,6 +262,15 @@ namespace Dumplings.Cli
                 if (idx == 0)
                 {
                     rpcPassword = arg.Substring(idx + rpcPasswordArg.Length);
+                }
+
+                idx = arg.IndexOf(rpcCookieFileArg, StringComparison.Ordinal);
+                if (idx == 0)
+                {
+                    string rpcCookieFile = arg.Substring(idx + rpcCookieFileArg.Length);
+                    string[] rpcCookieData = File.ReadAllText(rpcCookieFile).Split(":");
+                    rpcUser = rpcCookieData[0];
+                    rpcPassword = rpcCookieData[1];
                 }
 
                 idx = arg.IndexOf(hostArg, StringComparison.Ordinal);

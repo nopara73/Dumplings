@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # exit when any command fails
 set -e
@@ -14,7 +14,13 @@ set -e
 
 source Config.txt
 
+if [[ -n "$RPCCOOKIEFILE" ]]; then
+    authparams="--rpccookiefile=$RPCCOOKIEFILE"
+else
+    authparams="--rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD"
+fi
+
 echo "Starting Upload Script!"
-dotnet run -c Release -- Upload --rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD --conn=$CONN --nowaitonexit --sync &>> /home/dumplings/Logs.txt
+dotnet run -c Release -- Upload $authparams --conn=$CONN --nowaitonexit --sync &>> /home/dumplings/Logs.txt
 
 echo "Script Ended!"
