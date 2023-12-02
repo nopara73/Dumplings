@@ -915,9 +915,19 @@ namespace Dumplings.Stats
 
         public void CalculateUnspentCapacity(RPCClient rpc)
         {
-            var ucWW1 = Money.Zero;
-            var ucWW2 = Money.Zero;
-            var ucSW = Money.Zero;
+            var unspentCoinsWW1 = new List<VerboseOutputInfo>();
+            var unspentCoinsWW2 = new List<VerboseOutputInfo>();
+            var unspentCoinsSW = new List<VerboseOutputInfo>();
+
+            // Average size of of unspent capacity coins.
+            var avgucWW1 = Money.Zero;
+            var avgucWW2 = Money.Zero;
+            var avgucSW = Money.Zero;
+
+            // Median size of of unspent capacity coins.
+            var meducWW1 = Money.Zero;
+            var meducWW2 = Money.Zero;
+            var meducSW = Money.Zero;
 
             YearMonthDay prevYMD = null;
             foreach (var tx in ScannerFiles.WasabiCoinJoins
@@ -931,7 +941,19 @@ namespace Dumplings.Stats
                 }
                 else if (prevYMD != tx.BlockInfo.YearMonthDay)
                 {
-                    Console.WriteLine($"{prevYMD}\t{ucWW2.ToString(false, false)}\t{ucWW1.ToString(false, false)}\t{ucSW.ToString(false, false)}");
+                    var ucaww2 = Money.Coins(!unspentCoinsWW2.Any() ? 0 : unspentCoinsWW2.Average(x => x.Value.ToDecimal(MoneyUnit.BTC))).ToString(false, false);
+                    var ucaww1 = Money.Coins(!unspentCoinsWW1.Any() ? 0 : unspentCoinsWW1.Average(x => x.Value.ToDecimal(MoneyUnit.BTC))).ToString(false, false);
+                    var ucasw = Money.Coins(!unspentCoinsSW.Any() ? 0 : unspentCoinsSW.Average(x => x.Value.ToDecimal(MoneyUnit.BTC))).ToString(false, false);
+
+                    var ucmww2 = Money.Coins(!unspentCoinsWW2.Any() ? 0 : (decimal)unspentCoinsWW2.Median(x => x.Value.ToDecimal(MoneyUnit.BTC))).ToString(false, false);
+                    var ucmww1 = Money.Coins(!unspentCoinsWW1.Any() ? 0 : (decimal)unspentCoinsWW1.Median(x => x.Value.ToDecimal(MoneyUnit.BTC))).ToString(false, false);
+                    var ucmsw = Money.Coins(!unspentCoinsSW.Any() ? 0 : (decimal)unspentCoinsSW.Median(x => x.Value.ToDecimal(MoneyUnit.BTC))).ToString(false, false);
+
+                    Console.WriteLine($"Number of unspent coins:\t{prevYMD}\t{unspentCoinsWW2.Count()}\t\t{unspentCoinsWW1.Count()}\t\t{unspentCoinsSW.Count()}");
+                    Console.WriteLine($"Average unspent coin:\t\t{prevYMD}\t{ucaww2}\t{ucaww1}\t{ucasw}");
+                    Console.WriteLine($"Median unspent coin:\t\t{prevYMD}\t{ucmww2}\t{ucmww1}\t{ucmsw}");
+                    Console.WriteLine($"Unspent coins:\t\t\t{prevYMD}\t{((Money)unspentCoinsWW2.Sum(x => x.Value)).ToString(false, false)}\t{((Money)unspentCoinsWW1.Sum(x => x.Value)).ToString(false, false)}\t{((Money)unspentCoinsSW.Sum(x => x.Value)).ToString(false, false)}");
+                    Console.WriteLine();
                     prevYMD = tx.BlockInfo.YearMonthDay;
                 }
 
@@ -943,21 +965,51 @@ namespace Dumplings.Stats
                     {
                         if (ScannerFiles.WasabiCoinJoinHashes.Contains(tx.Id))
                         {
-                            ucWW1 += o.Value;
+                            unspentCoinsWW1.Add(o);
                         }
                         else if (ScannerFiles.Wasabi2CoinJoinHashes.Contains(tx.Id))
                         {
-                            ucWW2 += o.Value;
+                            unspentCoinsWW2.Add(o);
                         }
                         else if (ScannerFiles.SamouraiCoinJoinHashes.Contains(tx.Id))
                         {
-                            ucSW += o.Value;
+                            unspentCoinsSW.Add(o);
                         }
                     }
                 }
             }
 
-            Console.WriteLine($"{prevYMD}\t{ucWW2.ToString(false, false)}\t{ucWW1.ToString(false, false)}\t{ucSW.ToString(false, false)}");
+            Console.WriteLine($"Number of unspent coins:\t{prevYMD}\t{unspentCoinsWW2.Count()}\t\t{unspentCoinsWW1.Count()}\t\t{unspentCoinsSW.Count()}");
+            Console.WriteLine($"Average unspent coin:\t\t{prevYMD}\t{Money.Coins(unspentCoinsWW2.Average(x => x.Value.ToDecimal(MoneyUnit.BTC))).ToString(false, false)}\t{Money.Coins(unspentCoinsWW1.Average(x => x.Value.ToDecimal(MoneyUnit.BTC))).ToString(false, false)}\t{Money.Coins(unspentCoinsSW.Average(x => x.Value.ToDecimal(MoneyUnit.BTC))).ToString(false, false)}");
+            Console.WriteLine($"Median unspent coin:\t\t{prevYMD}\t{Money.Coins((decimal)unspentCoinsWW2.Median(x => x.Value.ToDecimal(MoneyUnit.BTC))).ToString(false, false)}\t{Money.Coins((decimal)unspentCoinsWW1.Median(x => x.Value.ToDecimal(MoneyUnit.BTC))).ToString(false, false)}\t{Money.Coins((decimal)unspentCoinsSW.Median(x => x.Value.ToDecimal(MoneyUnit.BTC))).ToString(false, false)}");
+            Console.WriteLine($"Unspent coins:\t\t\t{prevYMD}\t{((Money)unspentCoinsWW2.Sum(x => x.Value)).ToString(false, false)}\t{((Money)unspentCoinsWW1.Sum(x => x.Value)).ToString(false, false)}\t{((Money)unspentCoinsSW.Sum(x => x.Value)).ToString(false, false)}");
+
+            Console.WriteLine();
+            Console.WriteLine("10 largest unspent WW2 coins");
+            var top = 0;
+            foreach (var coin in unspentCoinsWW2.OrderByDescending(x => x.Value).Take(10))
+            {
+                top++;
+                Console.WriteLine($"{top}. {coin.Value.ToString(false, true)}:{coin.ScriptPubKey.GetDestinationAddress(Network.Main)}");
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("10 largest unspent WW1 coins");
+            top = 0;
+            foreach (var coin in unspentCoinsWW1.OrderByDescending(x => x.Value).Take(10))
+            {
+                top++;
+                Console.WriteLine($"{top}. {coin.Value.ToString(false, true)}:{coin.ScriptPubKey.GetDestinationAddress(Network.Main)}");
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("10 largest unspent SW coins");
+            top = 0;
+            foreach (var coin in unspentCoinsSW.OrderByDescending(x => x.Value).Take(10))
+            {
+                top++;
+                Console.WriteLine($"{top}. {coin.Value.ToString(false, true)}:{coin.ScriptPubKey.GetDestinationAddress(Network.Main)}");
+            }
         }
 
         public void CalculateSakeRelevantStats(RPCClient client)
