@@ -82,6 +82,7 @@ namespace Dumplings.Checking
 
         private void CheckDuplications(IEnumerable<uint256> txs, string where)
         {
+            Logger.LogInfo($"Starting CheckDuplications for {where}.");
             var txids = txs.ToArray();
             var duplicated = new HashSet<uint256>();
             for (int i = 0; i < txids.Length; i++)
