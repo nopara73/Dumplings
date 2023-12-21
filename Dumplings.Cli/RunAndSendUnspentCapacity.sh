@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # exit when any command fails
 set -e
@@ -12,7 +12,13 @@ set -e
 
 source Config.txt
 
+if [[ -n "$RPCCOOKIEFILE" ]]; then
+    authparams="--rpccookiefile=$RPCCOOKIEFILE"
+else
+    authparams="--rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD"
+fi
+
 echo "Syncronizing blockchain"
-dotnet run -c Release -- UnspentCapacity --rpcuser=$RPCUSER --rpcpassword=$RPCPASSWD --outfolder=$UCOUTFOLDER --conn=$CONN --nowaitonexit --sync &>> /home/dumplings/Logs.txt
+dotnet run -c Release -- UnspentCapacity $authparams --outfolder=$UCOUTFOLDER --conn=$CONN --nowaitonexit --sync &>> /home/dumplings/Logs.txt
 
 echo "Script Ended!"
