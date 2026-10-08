@@ -1,3 +1,7 @@
+# Dumplings
+
+CoinJoin analysis by [Ádám Ficsór (nopara73)](https://adamficsor.com/work.html).
+
 # Setup & Run
 
 1. Get Git: https://git-scm.com/downloads
